@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pine_media_bg">#00000000</color>
+
+    <color name="pine_controller_bg">#CC000000</color>
+    <color name="pine_controller_text">#DFDFDF</color>
+
+    <color name="pine_subtitle_text">#FFFFFF</color>
+</resources>
