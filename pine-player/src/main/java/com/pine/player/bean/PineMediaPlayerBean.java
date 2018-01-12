@@ -3,10 +3,10 @@ package com.pine.player.bean;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
-import com.pine.player.applet.advert.IPineAdvertDisplay;
-import com.pine.player.applet.barrage.IPineBarrageParser;
-import com.pine.player.applet.subtitle.parser.IPineSubtitleParser;
+import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.decrytor.IPineMediaDecryptor;
+
+import java.util.List;
 
 /**
  * Created by tanghongfeng on 2017/9/18.
@@ -27,37 +27,31 @@ public class PineMediaPlayerBean {
     private Uri mediaUri;
     private int mediaType = MEDIA_TYPE_VIDEO;
     private Uri mediaImgUri;
-    private IPineSubtitleParser subtitleParser;
-    private IPineBarrageParser barrageParser;
-    private IPineAdvertDisplay advertParser;
+    private List<IPinePlayerPlugin> playerPluginList;
     private IPineMediaDecryptor playerDecryptor;
 
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull Uri mediaUri) {
-        this(mediaCode, mediaName, mediaUri, MEDIA_TYPE_VIDEO, null, null, null, null, null);
+        this(mediaCode, mediaName, mediaUri, MEDIA_TYPE_VIDEO, null, null, null);
     }
 
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull Uri mediaUri, int mediaType) {
-        this(mediaCode, mediaName, mediaUri, mediaType, null, null, null, null, null);
+        this(mediaCode, mediaName, mediaUri, mediaType, null, null, null);
     }
 
     /**
-     * @param mediaCode       media标识编码 不可为null，用于区分不同的视频
-     * @param mediaName       media名称 不可为null
-     * @param mediaUri        media文件Uri 不可为null
-     * @param mediaType       media类型 默认为MEDIA_TYPE_VIDEO
-     * @param mediaImgUri     media图片Uri 可为null
-     * @param subtitleParser  media外挂字幕解析器（内置有SRT解析器PineSrtParser） 可为null
-     * @param barrageParser   media弹幕解析器 可为null
-     * @param advertParser    media广告解析器 可为null
-     * @param playerDecryptor media解密器 可为null
+     * @param mediaCode        media标识编码 不可为null，用于区分不同的视频
+     * @param mediaName        media名称 不可为null
+     * @param mediaUri         media文件Uri 不可为null
+     * @param mediaType        media类型 默认为MEDIA_TYPE_VIDEO
+     * @param mediaImgUri      media图片Uri 可为null
+     * @param playerPluginList media解密器 可为null
+     * @param playerDecryptor  media解密器 可为null
      */
     public PineMediaPlayerBean(String mediaCode, String mediaName, Uri mediaUri,
                                int mediaType, Uri mediaImgUri,
-                               IPineSubtitleParser subtitleParser,
-                               IPineBarrageParser barrageParser,
-                               IPineAdvertDisplay advertParser,
+                               List<IPinePlayerPlugin> playerPluginList,
                                IPineMediaDecryptor playerDecryptor) {
         this.mediaCode = mediaCode;
         this.mediaName = mediaName;
@@ -68,9 +62,7 @@ public class PineMediaPlayerBean {
             this.mediaType = MEDIA_TYPE_VIDEO;
         }
         this.mediaImgUri = mediaImgUri;
-        this.subtitleParser = subtitleParser;
-        this.barrageParser = barrageParser;
-        this.advertParser = advertParser;
+        this.playerPluginList = playerPluginList;
         this.playerDecryptor = playerDecryptor;
     }
 
@@ -114,32 +106,16 @@ public class PineMediaPlayerBean {
         this.mediaImgUri = mediaImgUri;
     }
 
-    public IPineSubtitleParser getSubtitleParser() {
-        return subtitleParser;
+    public List<IPinePlayerPlugin> getPlayerPluginList() {
+        return this.playerPluginList;
     }
 
-    public void setSubtitleParser(IPineSubtitleParser subtitleParser) {
-        this.subtitleParser = subtitleParser;
-    }
-
-    public IPineBarrageParser getBarrageParser() {
-        return barrageParser;
-    }
-
-    public void setBarrageParser(IPineBarrageParser barrageParser) {
-        this.barrageParser = barrageParser;
-    }
-
-    public IPineAdvertDisplay getAdvertParser() {
-        return advertParser;
-    }
-
-    public void setAdvertParser(IPineAdvertDisplay advertParser) {
-        this.advertParser = advertParser;
+    public void setPlayerPluginList(List<IPinePlayerPlugin> playerPluginList) {
+        this.playerPluginList = playerPluginList;
     }
 
     public IPineMediaDecryptor getPlayerDecryptor() {
-        return playerDecryptor;
+        return this.playerDecryptor;
     }
 
     public void setPlayerDecryptor(IPineMediaDecryptor playerDecryptor) {
@@ -153,9 +129,7 @@ public class PineMediaPlayerBean {
                 ",mediaUri:" + mediaUri +
                 ",mediaType:" + mediaType +
                 ",mediaImgUri:" + mediaImgUri +
-                ",subtitleParser:" + subtitleParser +
-                ",barrageParser:" + barrageParser +
-                ",advertParser:" + advertParser +
+                ",playerPluginList:" + playerPluginList +
                 ",playerDecryptor:" + playerDecryptor;
     }
 }

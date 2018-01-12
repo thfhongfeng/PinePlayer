@@ -112,12 +112,6 @@ public class PineMediaWidget {
         void updateVolumes();
 
         /**
-         * 更新外挂字幕
-         * @param subtitle
-         */
-        void updateSubtitle(PineSubtitleBean subtitle);
-
-        /**
          * 播放按键RequestFocus
          */
         void pausePlayBtnRequestFocus();

@@ -21,8 +21,9 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.pine.pineplayer.ui.view.AdvanceDecoration;
 import com.pine.pineplayer.decrytor.PineMediaDecryptor;
-import com.pine.player.applet.subtitle.parser.PineLrcParser;
-import com.pine.player.applet.subtitle.parser.PineSrtParser;
+import com.pine.player.applet.IPinePlayerPlugin;
+import com.pine.player.applet.subtitle.plugin.PineLrcParserPlugin;
+import com.pine.player.applet.subtitle.plugin.PineSrtParserPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
@@ -178,62 +179,60 @@ public class PinePlayerActivity extends AppCompatActivity {
         mMediaList.add(pineMediaBean);
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "EncryptMedia",
                 Uri.parse(mBasePath + "/video/Horse_Encrypt.a"),
-                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null, null,
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null,
                 new PineMediaDecryptor());
         pineMediaBean.setMediaCode(String.valueOf(count++));
         mMediaList.add(pineMediaBean);
+        List<IPinePlayerPlugin> pinePlayerPlugins1 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins1.add(new PineSrtParserPlugin(this, mBasePath + "/video/StarryNight.srt", "UTF-8"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaHorizontalSubtitle",
                 Uri.parse(mBasePath + "/video/StarryNight.mp4"),
-                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null,
-                new PineSrtParser(this, mBasePath + "/video/StarryNight.srt", "UTF-8")
-                , null, null, null);
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins1, null);
         mMediaList.add(pineMediaBean);
+        List<IPinePlayerPlugin> pinePlayerPlugins2 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins2.add(new PineSrtParserPlugin(this, mBasePath + "/video/Spout.srt", "UTF-8"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaVerticalSubtitle",
                 Uri.parse(mBasePath + "/video/Spout.mp4"),
-                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null,
-                new PineSrtParser(this, mBasePath + "/video/Spout.srt", "UTF-8")
-                , null, null, null);
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins2, null);
         mMediaList.add(pineMediaBean);
+        List<IPinePlayerPlugin> pinePlayerPlugins3 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins3.add(new PineLrcParserPlugin(this, mBasePath + "/audio/yesterday once more.lrc", "GBK"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaAudioLyric",
                 Uri.parse(mBasePath + "/audio/yesterday once more.mp3"),
-                PineMediaPlayerBean.MEDIA_TYPE_AUDIO, null,
-                new PineLrcParser(this, mBasePath + "/audio/yesterday once more.lrc", "GBK")
-                , null, null, null);
+                PineMediaPlayerBean.MEDIA_TYPE_AUDIO, null,pinePlayerPlugins3, null);
         mMediaList.add(pineMediaBean);
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaAudioImg",
                 Uri.parse(mBasePath + "/audio/HometownScenery.mp3"),
                 PineMediaPlayerBean.MEDIA_TYPE_AUDIO,
-                Uri.parse(mBasePath + "/audio/HometownScenery.jpg"), null, null, null, null);
+                Uri.parse(mBasePath + "/audio/HometownScenery.jpg"), null, null);
         mMediaList.add(pineMediaBean);
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "高铁",
                 Uri.parse(mBasePath + "/video/HighSpeedRail.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO,
-                Uri.parse(mBasePath + "/video/HighSpeedRail.jpg"), null, null, null, null);
+                Uri.parse(mBasePath + "/video/HighSpeedRail.jpg"), null, null);
         mMediaList.add(pineMediaBean);
+        List<IPinePlayerPlugin> pinePlayerPlugins4 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins4.add(new PineLrcParserPlugin(this, mBasePath + "/audio/yesterday once more.lrc", "GBK"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaAudioAll",
                 Uri.parse(mBasePath + "/audio/yesterday once more.mp3"),
                 PineMediaPlayerBean.MEDIA_TYPE_AUDIO,
-                Uri.parse(mBasePath + "/audio/yesterday once more.jpg"),
-                new PineLrcParser(this, mBasePath + "/audio/yesterday once more.lrc", "GBK"),
-                null, null, null);
+                Uri.parse(mBasePath + "/audio/yesterday once more.jpg"),pinePlayerPlugins4, null);
         mMediaList.add(pineMediaBean);
+        List<IPinePlayerPlugin> pinePlayerPlugins5 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins5.add(new PineSrtParserPlugin(this, mBasePath + "/video/Spout.srt", "UTF-8"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaVideoAll",
                 Uri.parse(mBasePath + "/video/Spout.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO,
-                Uri.parse(mBasePath + "/video/Spout.jpg"),
-                new PineSrtParser(this, mBasePath + "/video/Spout.srt", "UTF-8")
-                , null, null, null);
+                Uri.parse(mBasePath + "/video/Spout.jpg"), pinePlayerPlugins5, null);
         mMediaList.add(pineMediaBean);
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++),
                 "MediaLongNameMediaLongNameMediaLongNameMediaLongNameMediaLongNameMediaLongNameMediaLongName",
                 Uri.parse(mBasePath + "/video/StarryNight.mp4"),
-                PineMediaPlayerBean.MEDIA_TYPE_VIDEO,
-                null, null, null, null, null);
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
         mMediaList.add(pineMediaBean);
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaNoFile",
                 Uri.parse(mBasePath + "/video/MediaNoFile.mp4"),
-                PineMediaPlayerBean.MEDIA_TYPE_VIDEO,
-                null, null, null, null, null);
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
         mMediaList.add(pineMediaBean);
     }
 

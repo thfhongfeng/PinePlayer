@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
-import android.text.Html;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,16 +23,18 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.pine.player.R;
+import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineMediaListViewHolder;
-import com.pine.player.widget.viewholder.PineSubtitleViewHolder;
+import com.pine.player.widget.viewholder.PinePluginViewHolder;
 import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -82,10 +83,11 @@ public class PineMediaController extends RelativeLayout
     // 在第一次绘制MediaList之前需要调整它的布局属性以适应Controller布局。
     // 设置此变量是为了防止每次绘制之前重复去调整布局
     private boolean mIsNeedResizeMediaList;
-    private boolean mIsNeedResizeSubtitleView;
+    private boolean mIsNeedResizePluginView;
 
     private PineBackgroundViewHolder mBackgroundViewHolder;
-    private PineSubtitleViewHolder mSubtitleViewHolder;
+    private RelativeLayout mPluginViewContainer;
+    private List<PinePluginViewHolder> mPluginViewHolderList;
     private PineControllerViewHolder mControllerViewHolder;
     private PineWaitingProgressViewHolder mWaitingProgressViewHolder;
     private PineMediaListViewHolder mMediaListViewHolder;
@@ -191,7 +193,7 @@ public class PineMediaController extends RelativeLayout
         @Override
         public boolean onPreDraw() {
             // 在绘制SubtitleView之前需要调整它的布局属性以适应Controller布局。
-            if (mSubtitleViewHolder.getContainer() != null && mIsNeedResizeSubtitleView) {
+            if (mPluginViewContainer != null && mIsNeedResizePluginView) {
                 PineMediaPlayerView.PineMediaViewLayout playerLayoutParams =
                         mPlayer.getMediaAdaptionLayout();
                 if (playerLayoutParams != null
@@ -204,15 +206,15 @@ public class PineMediaController extends RelativeLayout
                         bottomMargin = getMeasuredHeight() - playerLayoutParams.bottom;
                     }
                     RelativeLayout.LayoutParams oldLayoutParams = (RelativeLayout.LayoutParams)
-                            mSubtitleViewHolder.getContainer().getLayoutParams();
+                            mPluginViewContainer.getLayoutParams();
                     if (oldLayoutParams.bottomMargin == bottomMargin) {
-                        mIsNeedResizeSubtitleView = false;
+                        mIsNeedResizePluginView = false;
                     } else {
                         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                                 playerLayoutParams.width, playerLayoutParams.height);
                         layoutParams.bottomMargin = bottomMargin;
                         layoutParams.addRule(CENTER_IN_PARENT);
-                        mSubtitleViewHolder.getContainer().setLayoutParams(layoutParams);
+                        mPluginViewContainer.setLayoutParams(layoutParams);
                     }
                 }
             }
@@ -260,9 +262,6 @@ public class PineMediaController extends RelativeLayout
         mPlayer = player;
         mMediaBean = pineMediaPlayerBean;
         mMediaViewTag = mediaViewTag;
-        if (mAnchor != null) {
-            attachToParentView(mAnchor);
-        }
     }
 
     /**
@@ -282,8 +281,13 @@ public class PineMediaController extends RelativeLayout
         mControllersOnClickListener = mAdapter.onCreateControllersOnClickListener();
         mBackgroundViewHolder
                 = mAdapter.onCreateBackgroundViewHolder(mPlayer.isFullScreenMode());
-        mSubtitleViewHolder
-                = mAdapter.onCreateSubtitleViewHolder(mPlayer.isFullScreenMode());
+        List<IPinePlayerPlugin> pluginList = mMediaBean.getPlayerPluginList();
+        if (pluginList != null && pluginList.size() > 0) {
+            mPluginViewHolderList = new ArrayList<PinePluginViewHolder>();
+            for (int i = 0; i < pluginList.size(); i++) {
+                mPluginViewHolderList.add(pluginList.get(i).createViewHolder(mPlayer.isFullScreenMode()));
+            }
+        }
         mControllerViewHolder
                 = mAdapter.onCreateOutRootControllerViewHolder(mPlayer.isFullScreenMode());
         if (mControllerViewHolder == null) {
@@ -305,15 +309,18 @@ public class PineMediaController extends RelativeLayout
         } else {
             mBackgroundViewHolder = new PineBackgroundViewHolder();
         }
-        // 外挂字幕View
-        if (mSubtitleViewHolder != null || mSubtitleViewHolder.getContainer() != null) {
-            RelativeLayout.LayoutParams subtitleParams = new RelativeLayout.LayoutParams(
+        // 插件View
+        if (mPluginViewHolderList != null) {
+            mPluginViewContainer = new RelativeLayout(getContext());
+            RelativeLayout.LayoutParams pluginContainerParams = new RelativeLayout.LayoutParams(
                     LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-            subtitleParams.addRule(ALIGN_PARENT_BOTTOM);
-            addView(mSubtitleViewHolder.getContainer(), subtitleParams);
-            addPreDrawListener(mSubtitleViewHolder.getContainer(), mSubtitlePreDrawListener);
-        } else {
-            mSubtitleViewHolder = new PineSubtitleViewHolder();
+            pluginContainerParams.addRule(CENTER_IN_PARENT);
+            for (int i = 0; i < mPluginViewHolderList.size(); i++) {
+                mPluginViewContainer.addView(mPluginViewHolderList.get(i).getContainer(),
+                        pluginContainerParams);
+            }
+            addView(mPluginViewContainer, pluginContainerParams);
+            addPreDrawListener(mPluginViewContainer, mSubtitlePreDrawListener);
         }
         // 控制器内置View
         if (mControllerViewHolder != null && mControllerViewHolder.getContainer() != null) {
@@ -341,8 +348,8 @@ public class PineMediaController extends RelativeLayout
         if (mIsFirstAttach) {
             mAnchor.addView(mRoot, layoutParams);
         }
-        if (mSubtitleViewHolder.getContainer() != null) {
-            mIsNeedResizeSubtitleView = true;
+        if (mPluginViewContainer != null) {
+            mIsNeedResizePluginView = true;
         }
         if (mMediaListViewHolder.getContainer() != null) {
             mIsNeedResizeMediaList = true;
@@ -459,7 +466,7 @@ public class PineMediaController extends RelativeLayout
         }
         if (mControllerViewHolder.getContainer().getVisibility() == VISIBLE) {
             try {
-                mIsNeedResizeSubtitleView = true;
+                mIsNeedResizePluginView = true;
                 mHandler.removeMessages(MSG_SHOW_PROGRESS);
                 if (mControllerContainerInRoot) {
                     mControllerViewHolder.getContainer().setVisibility(GONE);
@@ -486,7 +493,7 @@ public class PineMediaController extends RelativeLayout
         if (!(mControllerViewHolder.getContainer().getVisibility() == VISIBLE) ||
                 timeout != mPreFadeOutTime) {
             mPreFadeOutTime = timeout;
-            mIsNeedResizeSubtitleView = true;
+            mIsNeedResizePluginView = true;
             setProgress();
             if (mControllerViewHolder.getPausePlayButton() != null) {
                 mControllerViewHolder.getPausePlayButton().requestFocus();
@@ -534,8 +541,8 @@ public class PineMediaController extends RelativeLayout
         judgeAndChangeRequestedOrientation();
         updateMediaNameText(mPlayer.getMediaPlayerBean());
         installClickListeners();
-        if (mSubtitleViewHolder.getContainer() != null) {
-            mSubtitleViewHolder.getContainer().setVisibility(VISIBLE);
+        if (mPluginViewContainer != null) {
+            mPluginViewContainer.setVisibility(VISIBLE);
         }
         show();
         mHandler.sendEmptyMessageDelayed(MSG_WAITING_FADE_OUT, 200);
@@ -590,8 +597,8 @@ public class PineMediaController extends RelativeLayout
         if (mAnchor == null) {
             return;
         }
-        if (mSubtitleViewHolder.getContainer() != null) {
-            mSubtitleViewHolder.getContainer().setVisibility(GONE);
+        if (mPluginViewContainer != null) {
+            mPluginViewContainer.setVisibility(GONE);
         }
         show(0);
     }
@@ -604,8 +611,8 @@ public class PineMediaController extends RelativeLayout
         if (mWaitingProgressViewHolder.getContainer() != null) {
             mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
         }
-        if (mSubtitleViewHolder.getContainer() != null) {
-            mSubtitleViewHolder.getContainer().setVisibility(GONE);
+        if (mPluginViewContainer != null) {
+            mPluginViewContainer.setVisibility(GONE);
         }
         if (mControllerViewHolder != null) {
             setEnabled(false);
@@ -628,14 +635,6 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         updateVolumesText(getCurVolumes(), mMaxVolumes);
-    }
-
-    @Override
-    public void updateSubtitle(PineSubtitleBean subtitle) {
-        if (mAnchor == null) {
-            return;
-        }
-        updateSubtitleText(subtitle);
     }
 
     @Override
@@ -760,6 +759,9 @@ public class PineMediaController extends RelativeLayout
 
     public void removeAllViews() {
         removeAllViewsInLayout();
+        if (mPluginViewContainer != null) {
+            mPluginViewContainer.removeAllViewsInLayout();
+        }
         requestLayout();
         invalidate();
     }
@@ -1123,27 +1125,6 @@ public class PineMediaController extends RelativeLayout
     }
 
     /**
-     * 更新字幕(默认方式)
-     */
-    public void updateSubtitleText(PineSubtitleBean subtitle) {
-        if (mControllerMonitor == null
-                || !mControllerMonitor.updateSubtitleText(mSubtitleViewHolder
-                .getSubtitleText(), subtitle)) {
-            if (mSubtitleViewHolder.getSubtitleText() == null) {
-                return;
-            }
-            String text = "";
-            if (subtitle != null) {
-                text = subtitle.getTextBody();
-                if (subtitle.getTransBody() != null && !subtitle.getTransBody().isEmpty()) {
-                    text += "<br />" + subtitle.getTransBody();
-                }
-            }
-            ((TextView) mSubtitleViewHolder.getSubtitleText()).setText(Html.fromHtml(text));
-        }
-    }
-
-    /**
      * 更新Media name(默认方式)
      */
     public void updateMediaNameText(PineMediaPlayerBean pineMediaPlayerBean) {
@@ -1233,13 +1214,11 @@ public class PineMediaController extends RelativeLayout
     public class DefaultMediaControllerAdapter extends AbstractMediaControllerAdapter {
         private Activity mDContext;
         private PineBackgroundViewHolder mDBackgroundViewHolder;
-        private PineSubtitleViewHolder mDFullSubtitleViewHolder, mDSubtitleViewHolder;
         private PineControllerViewHolder mDFullControllerViewHolder, mDControllerViewHolder;
         private PineWaitingProgressViewHolder mDWaitingProgressViewHolder;
         private PineMediaListViewHolder mDMediaListViewHolder;
         private RelativeLayout mDBackgroundView;
         private ViewGroup mDFullControllerView, mDControllerView;
-        private ViewGroup mDFullSubtitleView, mDSubtitleView;
         private LinearLayout mDWaitingProgressView;
 
         public DefaultMediaControllerAdapter(Activity context) {
@@ -1265,35 +1244,6 @@ public class PineMediaController extends RelativeLayout
             }
             mDBackgroundViewHolder.setContainer(mDBackgroundView);
             return mDBackgroundViewHolder;
-        }
-
-        @Override
-        public PineSubtitleViewHolder onCreateSubtitleViewHolder(boolean isFullMode) {
-            if (isFullMode) {
-                if (mDFullSubtitleViewHolder == null) {
-                    mDFullSubtitleViewHolder = new PineSubtitleViewHolder();
-                    if (mDFullSubtitleView == null) {
-                        mDFullSubtitleView = (ViewGroup) View.inflate(mDContext,
-                                R.layout.media_subtitle_full, null);
-                    }
-                }
-                mDFullSubtitleViewHolder.setSubtitleText(
-                        mDFullSubtitleView.findViewById(R.id.subtitle_text));
-                mDFullSubtitleViewHolder.setContainer(mDFullSubtitleView);
-                return mDFullSubtitleViewHolder;
-            } else {
-                if (mDSubtitleViewHolder == null) {
-                    mDSubtitleViewHolder = new PineSubtitleViewHolder();
-                    if (mDSubtitleView == null) {
-                        mDSubtitleView = (ViewGroup) View.inflate(mDContext,
-                                R.layout.media_subtitle, null);
-                    }
-                }
-                mDSubtitleViewHolder.setSubtitleText(
-                        mDSubtitleView.findViewById(R.id.subtitle_text));
-                mDSubtitleViewHolder.setContainer(mDSubtitleView);
-                return mDSubtitleViewHolder;
-            }
         }
 
         @Override
@@ -1416,15 +1366,6 @@ public class PineMediaController extends RelativeLayout
          * @return
          */
         public abstract PineBackgroundViewHolder onCreateBackgroundViewHolder(boolean isFullMode);
-
-        /**
-         * 外挂字幕布局的view holder，会被添加到PineMediaPlayerView布局中，
-         * 覆盖在BackgroundView上，请使用透明背景
-         *
-         * @param isFullMode
-         * @return
-         */
-        public abstract PineSubtitleViewHolder onCreateSubtitleViewHolder(boolean isFullMode);
 
         /**
          * Controller内置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
@@ -1560,16 +1501,6 @@ public class PineMediaController extends RelativeLayout
          * @param maxVolumes  最大音量
          */
         public boolean updateVolumesText(View volumesText, int curVolumes, int maxVolumes) {
-            return false;
-        }
-
-        /**
-         * 播放器外挂字幕需要更新时回调
-         *
-         * @param subtitleText 外挂字幕显示控件
-         * @param subtitle     外挂字幕对象PineSubtitleBean
-         */
-        public boolean updateSubtitleText(View subtitleText, PineSubtitleBean subtitle) {
             return false;
         }
 

@@ -27,8 +27,8 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.pine.player.R;
+import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.service.PineMediaSocketService;
 
 import java.io.File;
@@ -36,9 +36,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -56,7 +54,7 @@ public class PineSurfaceView extends SurfaceView {
 
     private final static String TAG = "PineSurfaceView";
 
-    private static final int MSG_SHOW_SUBTITLE = 1;
+    private static final int MSG_PLUGIN_SHOW_REFRESH = 1;
 
     private static final long BACK_PRESSED_EXIT_TIME = 2000;
 
@@ -125,45 +123,25 @@ public class PineSurfaceView extends SurfaceView {
     // 点击回退按键时，使用两次点击的时间间隔限定回退行为
     private long mExitTime = -1l;
 
-    private List<PineSubtitleBean> mSubtitleList;
+    private List<IPinePlayerPlugin> mPinePluginParserList;
 
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                // 每500毫秒更新一次外挂字幕
-                case MSG_SHOW_SUBTITLE:
-                    PineSubtitleBean pineSubtitleBean = calculateSubtitle();
-                    mMediaController.updateSubtitle(pineSubtitleBean);
-                    if (isPlaying() && !mHandler.hasMessages(MSG_SHOW_SUBTITLE)) {
-                        msg = obtainMessage(MSG_SHOW_SUBTITLE);
+                // 每500毫秒刷新一次插件View
+                case MSG_PLUGIN_SHOW_REFRESH:
+                    for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                        mPinePluginParserList.get(i).onRefresh(getCurrentPosition());
+                    }
+                    if (isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_SHOW_REFRESH)) {
+                        msg = obtainMessage(MSG_PLUGIN_SHOW_REFRESH);
                         sendMessageDelayed(msg, 500);
                     }
                     break;
             }
         }
     };
-
-    private PineSubtitleBean mPrePineSubtitleBean;
-
-    private PineSubtitleBean calculateSubtitle() {
-        // 计算外挂字幕位置
-        int curPosition = getCurrentPosition();
-        if (mPrePineSubtitleBean != null && curPosition > mPrePineSubtitleBean.getBeginTime()
-                && curPosition < mPrePineSubtitleBean.getEndTime()) {
-            return mPrePineSubtitleBean;
-        } else {
-            for (Iterator<PineSubtitleBean> iterator = mSubtitleList.iterator(); iterator.hasNext(); ) {
-                mPrePineSubtitleBean = iterator.next();
-                if (curPosition > mPrePineSubtitleBean.getBeginTime()
-                        && curPosition < mPrePineSubtitleBean.getEndTime()) {
-                    iterator.remove();
-                    return mPrePineSubtitleBean;
-                }
-            }
-        }
-        return null;
-    }
 
     protected PineSurfaceView(Context context) {
         super(context);
@@ -306,31 +284,13 @@ public class PineSurfaceView extends SurfaceView {
         }
     }
 
-    private void copySubtitleList(List<PineSubtitleBean> srcList) {
-        if (srcList == null) {
-            mSubtitleList =  null;
-        }
-        if (mSubtitleList != null) {
-            mSubtitleList.clear();
-        } else {
-            mSubtitleList = new ArrayList<PineSubtitleBean>();
-        }
-        for (int i = 0; i < srcList.size(); i++) {
-            if (srcList.get(i) != null) {
-                mSubtitleList.add(srcList.get(i).clone());
+    private void clearPlugin() {
+        Log.d(TAG, "clearPlugin");
+        mHandler.removeMessages(MSG_PLUGIN_SHOW_REFRESH);
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onRelease();
             }
-        }
-    }
-
-    private void clearSubtitle() {
-        Log.d(TAG, "clearSubtitle");
-        mHandler.removeMessages(MSG_SHOW_SUBTITLE);
-        if (mMediaController != null) {
-            mMediaController.updateSubtitle(null);
-        }
-        if (mSubtitleList != null) {
-            mSubtitleList.clear();
-            mSubtitleList = null;
         }
     }
 
@@ -392,9 +352,11 @@ public class PineSurfaceView extends SurfaceView {
             // target state that was there before.
             mCurrentState = STATE_PREPARING;
             attachMediaController();
-            if (mMediaBean.getSubtitleParser() != null) {
-                mSubtitleList = mMediaBean.getSubtitleParser().parse();
-//            copySubtitleList(mMediaBean.getSubtitleParser().parse());
+            mPinePluginParserList = mMediaBean.getPlayerPluginList();
+            if (mPinePluginParserList != null) {
+                for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                    mPinePluginParserList.get(i).onInit();
+                }
             }
         } catch (IOException ex) {
             Log.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
@@ -470,10 +432,10 @@ public class PineSurfaceView extends SurfaceView {
                 Log.d(TAG, "Start media player");
                 mMediaPlayer.start();
                 mMediaController.onMediaPlayerStart();
-                if (mSubtitleList != null) {
-                    // 启动外挂字幕
-                    if (!mHandler.hasMessages(MSG_SHOW_SUBTITLE)) {
-                        mHandler.sendEmptyMessage(MSG_SHOW_SUBTITLE);
+                if (mPinePluginParserList != null && mPinePluginParserList.size() > 0) {
+                    // 启动插件刷新
+                    if (!mHandler.hasMessages(MSG_PLUGIN_SHOW_REFRESH)) {
+                        mHandler.sendEmptyMessage(MSG_PLUGIN_SHOW_REFRESH);
                     }
                 }
                 mCurrentState = STATE_PLAYING;
@@ -490,7 +452,7 @@ public class PineSurfaceView extends SurfaceView {
                 Log.d(TAG, "Pause media player");
                 mMediaPlayer.pause();
                 mMediaController.onMediaPlayerPause();
-                mHandler.removeMessages(MSG_SHOW_SUBTITLE);
+                mHandler.removeMessages(MSG_PLUGIN_SHOW_REFRESH);
                 mCurrentState = STATE_PAUSED;
             }
         }
@@ -621,7 +583,7 @@ public class PineSurfaceView extends SurfaceView {
         if (mMediaPlayer != null) {
             mMediaPlayer.stop();
             mMediaPlayer.release();
-            clearSubtitle();
+            clearPlugin();
             mMediaPlayer = null;
             mCurrentState = STATE_IDLE;
             mTargetState = STATE_IDLE;
@@ -638,7 +600,7 @@ public class PineSurfaceView extends SurfaceView {
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();
             mMediaPlayer.release();
-            clearSubtitle();
+            clearPlugin();
             mMediaPlayer = null;
             mCurrentState = STATE_IDLE;
             if (clearTargetState) {
