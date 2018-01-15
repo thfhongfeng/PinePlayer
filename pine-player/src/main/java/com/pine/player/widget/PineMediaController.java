@@ -49,6 +49,8 @@ public class PineMediaController extends RelativeLayout
     private static final int MSG_SHOW_PROGRESS = 2;
     private static final int MSG_BACKGROUND_FADE_OUT = 3;
     private static final int MSG_WAITING_FADE_OUT = 4;
+    private static final int MSG_PLUGIN_REFRESH = 5;
+    public static final int PLUGIN_REFRESH_TIME_DELAY = 200;
     public static final int DEFAULT_TIMEOUT = 6000;
     private final static String CONTROLLER_TAG = "Controller_Tag";
 
@@ -97,6 +99,8 @@ public class PineMediaController extends RelativeLayout
     // Controller控件本身
     private View mRoot;
 
+    private List<IPinePlayerPlugin> mPinePluginParserList;
+
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -124,6 +128,16 @@ public class PineMediaController extends RelativeLayout
                 case MSG_WAITING_FADE_OUT:
                     if (mWaitingProgressViewHolder.getContainer() != null) {
                         mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    break;
+                // 每500毫秒刷新一次插件View
+                case MSG_PLUGIN_REFRESH:
+                    for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                        mPinePluginParserList.get(i).onRefresh();
+                    }
+                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
+                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
+                        sendMessageDelayed(msg, PLUGIN_REFRESH_TIME_DELAY);
                     }
                     break;
             }
@@ -281,11 +295,12 @@ public class PineMediaController extends RelativeLayout
         mControllersOnClickListener = mAdapter.onCreateControllersOnClickListener();
         mBackgroundViewHolder
                 = mAdapter.onCreateBackgroundViewHolder(mPlayer.isFullScreenMode());
-        List<IPinePlayerPlugin> pluginList = mMediaBean.getPlayerPluginList();
-        if (pluginList != null && pluginList.size() > 0) {
+        mPinePluginParserList = mMediaBean.getPlayerPluginList();
+        if (mPinePluginParserList != null && mPinePluginParserList.size() > 0) {
             mPluginViewHolderList = new ArrayList<PinePluginViewHolder>();
-            for (int i = 0; i < pluginList.size(); i++) {
-                mPluginViewHolderList.add(pluginList.get(i).createViewHolder(mPlayer.isFullScreenMode()));
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPluginViewHolderList.add(mPinePluginParserList.get(i)
+                        .createViewHolder(mPlayer.isFullScreenMode()));
             }
         }
         mControllerViewHolder
@@ -316,8 +331,10 @@ public class PineMediaController extends RelativeLayout
                     LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
             pluginContainerParams.addRule(CENTER_IN_PARENT);
             for (int i = 0; i < mPluginViewHolderList.size(); i++) {
-                mPluginViewContainer.addView(mPluginViewHolderList.get(i).getContainer(),
-                        pluginContainerParams);
+                if (mPluginViewHolderList.get(i).getContainer() != null) {
+                    mPluginViewContainer.addView(mPluginViewHolderList.get(i).getContainer(),
+                            pluginContainerParams);
+                }
             }
             addView(mPluginViewContainer, pluginContainerParams);
             addPreDrawListener(mPluginViewContainer, mSubtitlePreDrawListener);
@@ -356,6 +373,12 @@ public class PineMediaController extends RelativeLayout
         }
         initControllerView();
         mIsFirstAttach = false;
+
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onInit(mPlayer);
+            }
+        }
     }
 
     private void initControllerView() {
@@ -522,6 +545,15 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         updatePausePlayButton();
+        if (mPinePluginParserList != null && mPinePluginParserList.size() > 0) {
+            // 启动插件刷新
+            if (!mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
+                mHandler.sendEmptyMessage(MSG_PLUGIN_REFRESH);
+            }
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onMediaPlayerStart();
+            }
+        }
     }
 
     @Override
@@ -530,6 +562,12 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         updatePausePlayButton();
+        mHandler.removeMessages(MSG_PLUGIN_REFRESH);
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onMediaPlayerPause();
+            }
+        }
     }
 
     @Override
@@ -549,11 +587,20 @@ public class PineMediaController extends RelativeLayout
         if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO) {
             mHandler.sendEmptyMessageDelayed(MSG_BACKGROUND_FADE_OUT, 200);
         }
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onMediaPlayerPrepared();
+            }
+        }
     }
 
     @Override
     public void onMediaPlayerInfo(int what, int extra) {
-
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onMediaPlayerInfo(what, extra);
+            }
+        }
     }
 
     private boolean mPausedByBufferingUpdate;
@@ -601,6 +648,11 @@ public class PineMediaController extends RelativeLayout
             mPluginViewContainer.setVisibility(GONE);
         }
         show(0);
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onMediaPlayerComplete();
+            }
+        }
     }
 
     @Override
@@ -618,15 +670,30 @@ public class PineMediaController extends RelativeLayout
             setEnabled(false);
             show(0);
         }
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onMediaPlayerError(framework_err, impl_err);
+            }
+        }
     }
 
     @Override
     public void onAbnormalComplete() {
-
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onAbnormalComplete();
+            }
+        }
     }
 
     @Override
     public void onMediaPlayerRelease(boolean clearTargetState) {
+        mHandler.removeMessages(MSG_PLUGIN_REFRESH);
+        if (mPinePluginParserList != null) {
+            for (int i = 0; i < mPinePluginParserList.size(); i++) {
+                mPinePluginParserList.get(i).onRelease();
+            }
+        }
     }
 
     @Override

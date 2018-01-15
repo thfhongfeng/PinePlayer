@@ -6,27 +6,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.pine.player.PineConstants;
 import com.pine.player.R;
-import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by tanghongfeng on 2017/9/28.
  */
 
-public class PineLrcParserPlugin implements IPinePlayerPlugin {
+public class PineLrcParserPlugin extends PineSubtitlePlugin {
 
     /**
      * [ar:艺人名] [ti:曲名] [al:专辑名] [by:编者（指编辑LRC歌词的人）] [offset:时间补偿值]
@@ -50,55 +43,46 @@ public class PineLrcParserPlugin implements IPinePlayerPlugin {
     // parse target offset
     private final String TagXTrans = "[x-trans]";
 
-    private Context mContext;
-    private String mLrcPath;
-    private int mLrcPathType;
-    private String mCharset;
     private PineSubtitleBean mLastTextBean;
 
-    private List<PineSubtitleBean> mSubtitleBeanList;
-    private PineSubtitleBean mPrePineSubtitleBean;
     private PinePluginViewHolder mFullPluginViewHolder, mPluginViewHolder, mCurViewHolder;
 
-    public PineLrcParserPlugin(Context context, String lrcPath, String charset) {
-        mContext = context;
-        mLrcPath = lrcPath;
-        mLrcPathType = PineConstants.PATH_STORAGE;
-        mCharset = charset;
+    public PineLrcParserPlugin(Context context, String subtitleFilePath, String charset) {
+        super(context, subtitleFilePath, charset);
     }
 
-    public PineLrcParserPlugin(Context context, String lrcPath, int pathType, String charset) {
-        mContext = context;
-        mLrcPath = lrcPath;
-        mLrcPathType = pathType;
-        mCharset = charset;
+    public PineLrcParserPlugin(Context context, String subtitleFilePath, int pathType, String charset) {
+        super(context, subtitleFilePath, pathType, charset);
     }
 
     @Override
-    public void onInit() {
-        if (mLrcPath == null && mLrcPath == "") {
-            return;
+    public PinePluginViewHolder createViewHolder(Context context, boolean isFullScreen) {
+        if (isFullScreen) {
+            if (mFullPluginViewHolder == null) {
+                mFullPluginViewHolder = new PinePluginViewHolder();
+                ViewGroup view = (ViewGroup) View.inflate(context,
+                        R.layout.media_subtitle_full, null);
+                mFullPluginViewHolder.setContainer(view);
+            }
+            mCurViewHolder = mFullPluginViewHolder;
+        } else {
+            if (mPluginViewHolder == null) {
+                mPluginViewHolder = new PinePluginViewHolder();
+                ViewGroup view = (ViewGroup) View.inflate(context,
+                        R.layout.media_subtitle, null);
+                mPluginViewHolder.setContainer(view);
+            }
+            mCurViewHolder = mPluginViewHolder;
         }
-        InputStream inputStream = null;
-        List<PineSubtitleBean> retList = null;
+        return mCurViewHolder;
+    }
+
+    @Override
+    public List<PineSubtitleBean> parseSubtitleBufferedReader(BufferedReader bufferedReader) {
+        List<PineSubtitleBean> retList = new ArrayList<PineSubtitleBean>();
+        String line = null;
         try {
-            switch (mLrcPathType) {
-                case PineConstants.PATH_ASSETS:
-                    inputStream = mContext.getAssets().open(mLrcPath);
-                    break;
-                case PineConstants.PATH_STORAGE:
-                    inputStream = new FileInputStream(mLrcPath);
-                    break;
-            }
-            if (inputStream == null) {
-                return;
-            }
-//            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream,
-//                    FileUtils.getTextFileEncode(mContext, mLrcPath, mLrcPathType)));
-            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, mCharset));
-            String line = null;
-            retList = new ArrayList<PineSubtitleBean>();
-            while ((line = br.readLine()) != null) {
+            while ((line = bufferedReader.readLine()) != null) {
                 if (line.indexOf(TagXTrans) != -1 && retList.size() > 0) {
                     PineSubtitleBean item = retList.get(retList.size() - 1);
                     if (item.getType() == PineSubtitleBean.TEXT_ZONE) {
@@ -123,66 +107,18 @@ public class PineLrcParserPlugin implements IPinePlayerPlugin {
             if (mLastTextBean != null) {
                 mLastTextBean.setEndTime(mLastTextBean.getBeginTime() + 5 * 1000);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return;
         } catch (IOException e) {
             e.printStackTrace();
-            return;
+            return null;
         }
-        mSubtitleBeanList = retList;
-    }
-
-    @Override
-    public PinePluginViewHolder createViewHolder(boolean isFullScreen) {
-        if (isFullScreen) {
-            if (mFullPluginViewHolder == null) {
-                mFullPluginViewHolder = new PinePluginViewHolder();
-                ViewGroup view = (ViewGroup) View.inflate(mContext,
-                        R.layout.media_subtitle_full, null);
-                mFullPluginViewHolder.setContainer(view);
-            }
-            mCurViewHolder = mFullPluginViewHolder;
-        } else {
-            if (mPluginViewHolder == null) {
-                mPluginViewHolder = new PinePluginViewHolder();
-                ViewGroup view = (ViewGroup) View.inflate(mContext,
-                        R.layout.media_subtitle, null);
-                mPluginViewHolder.setContainer(view);
-            }
-            mCurViewHolder = mPluginViewHolder;
-        }
-        return mCurViewHolder;
-    }
-
-    @Override
-    public void onRefresh(int position) {
-        if (mSubtitleBeanList == null) {
-            return;
-        }
-        if (mPrePineSubtitleBean != null && position > mPrePineSubtitleBean.getBeginTime()
-                && position < mPrePineSubtitleBean.getEndTime()) {
-            updateSubtitleText(mPrePineSubtitleBean);
-        } else {
-            for (Iterator<PineSubtitleBean> iterator = mSubtitleBeanList.iterator(); iterator.hasNext(); ) {
-                mPrePineSubtitleBean = iterator.next();
-                if (position > mPrePineSubtitleBean.getBeginTime()
-                        && position < mPrePineSubtitleBean.getEndTime()) {
-                    updateSubtitleText(mPrePineSubtitleBean);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onRelease() {
-        updateSubtitleText(null);
+        return retList;
     }
 
     /**
      * 更新字幕
      */
-    private void updateSubtitleText(PineSubtitleBean subtitle) {
+    @Override
+    public void updateSubtitleText(PineSubtitleBean subtitle) {
         if (mCurViewHolder == null || mCurViewHolder.getContainer() == null) {
             return;
         }
@@ -195,7 +131,6 @@ public class PineLrcParserPlugin implements IPinePlayerPlugin {
         }
         ((TextView) mCurViewHolder.getContainer().findViewById(R.id.subtitle_text)).setText(Html.fromHtml(text));
     }
-
 
     private PineSubtitleBean analyzeLine(String line) {
         PineSubtitleBean item = null;

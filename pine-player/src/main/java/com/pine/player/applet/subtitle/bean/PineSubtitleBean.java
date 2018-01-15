@@ -33,7 +33,7 @@ public class PineSubtitleBean {
     private String transBody;
     // 字幕开始时间戳
     private long beginTime;
-    // 字幕开始结束戳
+    // 字幕结束时间戳
     private long endTime;
 
     public int getType() {
