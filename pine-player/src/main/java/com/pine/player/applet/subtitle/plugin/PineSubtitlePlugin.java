@@ -51,10 +51,13 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
     }
 
     @Override
-    public void onInit(PineMediaWidget.IPineMediaPlayer player) {
+    public void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
+                       PineMediaWidget.IPineMediaController controller,
+                       boolean isPlayerReset, boolean isResumeState) {
         if (mSubtitleFilePath == null && mSubtitleFilePath == "") {
             return;
         }
+        mContext = context;
         InputStream inputStream = null;
         try {
             switch (mSubtitleFileType) {
@@ -124,12 +127,11 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
     }
 
     @Override
-    public void onRefresh() {
+    public void onTime(long position) {
         if (mSubtitleBeanList == null) {
             return;
         }
         boolean isFound = false;
-        int position = mPlayer.getCurrentPosition();
         if (mPreSubtitleBean == null || position > mPreSubtitleBean.getEndTime()) {
             PineSubtitleBean tmpBean = null;
             for (Iterator<PineSubtitleBean> iterator = mSubtitleBeanIteratorList.iterator(); iterator.hasNext(); ) {

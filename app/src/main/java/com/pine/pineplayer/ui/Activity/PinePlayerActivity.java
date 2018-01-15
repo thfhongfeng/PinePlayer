@@ -1,15 +1,16 @@
 package com.pine.pineplayer.ui.Activity;
 
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextPaint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,18 +20,20 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.pine.pineplayer.ui.view.AdvanceDecoration;
+import com.pine.pineplayer.PinePlayerApp;
+import com.pine.pineplayer.R;
 import com.pine.pineplayer.decrytor.PineMediaDecryptor;
+import com.pine.pineplayer.ui.view.AdvanceDecoration;
+import com.pine.pineplayer.utils.FileUtil;
 import com.pine.player.applet.IPinePlayerPlugin;
+import com.pine.player.applet.advert.bean.PineAdvertBean;
+import com.pine.player.applet.advert.plugin.PineAdvertPlugin;
+import com.pine.player.applet.advert.plugin.PineImageAdvertPlugin;
 import com.pine.player.applet.subtitle.plugin.PineLrcParserPlugin;
 import com.pine.player.applet.subtitle.plugin.PineSrtParserPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
-
-import com.pine.pineplayer.PinePlayerApp;
-import com.pine.pineplayer.R;
-import com.pine.pineplayer.utils.FileUtil;
 import com.pine.player.widget.PineMediaWidget;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineMediaListViewHolder;
@@ -148,9 +151,7 @@ public class PinePlayerActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                FileUtil.unZipAssets(PinePlayerApp.getAppContext(), "video.zip",
-                        mBasePath, true, "GBK");
-                FileUtil.unZipAssets(PinePlayerApp.getAppContext(), "audio.zip",
+                FileUtil.unZipAssets(PinePlayerApp.getAppContext(), "resource.zip",
                         mBasePath, true, "GBK");
                 mHandler.sendEmptyMessage(GET_MEDIA_LIST_DONE);
             }
@@ -161,79 +162,194 @@ public class PinePlayerActivity extends AppCompatActivity {
         mMediaList = new ArrayList<PineMediaPlayerBean>();
         PineMediaPlayerBean pineMediaBean;
         int count = 1000;
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaHorizontal",
-                Uri.parse(mBasePath + "/video/StarryNight.mp4"),
+        // 横屏视频
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "Horizontal",
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
         mMediaList.add(pineMediaBean);
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaVertical",
-                Uri.parse(mBasePath + "/video/Spout.mp4"),
+        // 竖屏视频
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "Vertical",
+                Uri.parse(mBasePath + "/resource/Spout.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
         mMediaList.add(pineMediaBean);
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaWebm",
-                Uri.parse(mBasePath + "/video/Webm.webm"),
+        // Webm格式视频
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "Webm",
+                Uri.parse(mBasePath + "/resource/Webm.webm"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
         mMediaList.add(pineMediaBean);
+        // mp3
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "AudioMp3",
-                Uri.parse(mBasePath + "/audio/HometownScenery.mp3"),
+                Uri.parse(mBasePath + "/resource/HometownScenery.mp3"),
                 PineMediaPlayerBean.MEDIA_TYPE_AUDIO);
         mMediaList.add(pineMediaBean);
+        // 加密视频
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "EncryptMedia",
-                Uri.parse(mBasePath + "/video/Horse_Encrypt.a"),
+                Uri.parse(mBasePath + "/resource/Horse_Encrypt.a"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null,
                 new PineMediaDecryptor());
         pineMediaBean.setMediaCode(String.valueOf(count++));
         mMediaList.add(pineMediaBean);
+        // 横屏+srt字幕的视频
         List<IPinePlayerPlugin> pinePlayerPlugins1 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins1.add(new PineSrtParserPlugin(this, mBasePath + "/video/StarryNight.srt", "UTF-8"));
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaHorizontalSubtitle",
-                Uri.parse(mBasePath + "/video/StarryNight.mp4"),
+        pinePlayerPlugins1.add(new PineSrtParserPlugin(this, mBasePath + "/resource/StarryNight.srt", "UTF-8"));
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "HorizontalSrt",
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins1, null);
         mMediaList.add(pineMediaBean);
+        // 竖屏+srt字幕的视频
         List<IPinePlayerPlugin> pinePlayerPlugins2 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins2.add(new PineSrtParserPlugin(this, mBasePath + "/video/Spout.srt", "UTF-8"));
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaVerticalSubtitle",
-                Uri.parse(mBasePath + "/video/Spout.mp4"),
+        pinePlayerPlugins2.add(new PineSrtParserPlugin(this, mBasePath + "/resource/Spout.srt", "UTF-8"));
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "VerticalSrt",
+                Uri.parse(mBasePath + "/resource/Spout.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins2, null);
         mMediaList.add(pineMediaBean);
+        // lrc字幕的音频
         List<IPinePlayerPlugin> pinePlayerPlugins3 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins3.add(new PineLrcParserPlugin(this, mBasePath + "/audio/yesterday once more.lrc", "GBK"));
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaAudioLyric",
-                Uri.parse(mBasePath + "/audio/yesterday once more.mp3"),
-                PineMediaPlayerBean.MEDIA_TYPE_AUDIO, null,pinePlayerPlugins3, null);
+        pinePlayerPlugins3.add(new PineLrcParserPlugin(this, mBasePath + "/resource/yesterday once more.lrc", "GBK"));
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "AudioLrc",
+                Uri.parse(mBasePath + "/resource/yesterday once more.mp3"),
+                PineMediaPlayerBean.MEDIA_TYPE_AUDIO, null, pinePlayerPlugins3, null);
         mMediaList.add(pineMediaBean);
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaAudioImg",
-                Uri.parse(mBasePath + "/audio/HometownScenery.mp3"),
+        // 有背景图的音频
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "AudioImg",
+                Uri.parse(mBasePath + "/resource/HometownScenery.mp3"),
                 PineMediaPlayerBean.MEDIA_TYPE_AUDIO,
-                Uri.parse(mBasePath + "/audio/HometownScenery.jpg"), null, null);
+                Uri.parse(mBasePath + "/resource/HometownScenery.jpg"), null, null);
         mMediaList.add(pineMediaBean);
+        // 有背景图的视频
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "高铁",
-                Uri.parse(mBasePath + "/video/HighSpeedRail.mp4"),
+                Uri.parse(mBasePath + "/resource/HighSpeedRail.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO,
-                Uri.parse(mBasePath + "/video/HighSpeedRail.jpg"), null, null);
+                Uri.parse(mBasePath + "/resource/HighSpeedRail.jpg"), null, null);
         mMediaList.add(pineMediaBean);
+
+        List<PineAdvertBean> pineAdvertBeans;
+        List<PineAdvertBean> pineAllImgAdvertBeans = new ArrayList<PineAdvertBean>();
+        PineAdvertPlugin pineAllImgAdvertPlugin;
+        // 暂停图片广告
+        pineAdvertBeans = new ArrayList<PineAdvertBean>();
+        PineAdvertBean pineImagePauseAdvertBean = getAdvertBean(1, PineAdvertBean.TYPE_PAUSE,
+                PineAdvertBean.CONTENT_IMAGE, true,
+                Uri.parse(mBasePath + "/resource/ImgPauseAdvert.jpg"),
+                0, 0);
+        pineAdvertBeans.add(pineImagePauseAdvertBean);
+        PineAdvertPlugin pineImagePauseAdvertPlugin = new PineImageAdvertPlugin(this, pineAdvertBeans);
+        pineAllImgAdvertBeans.add(pineImagePauseAdvertBean);
+        // 开头图片广告
+        pineAdvertBeans = new ArrayList<PineAdvertBean>();
+        PineAdvertBean pineImageHeadAdvertBean = getAdvertBean(2, PineAdvertBean.TYPE_HEAD,
+                PineAdvertBean.CONTENT_IMAGE, false,
+                Uri.parse(mBasePath + "/resource/ImgHeadAdvert.jpg"),
+                0, 8000);
+        pineAdvertBeans.add(pineImageHeadAdvertBean);
+        PineAdvertPlugin pineImageHeadAdvertPlugin = new PineImageAdvertPlugin(this, pineAdvertBeans);
+        pineAllImgAdvertBeans.add(pineImageHeadAdvertBean);
+        // 结尾图片广告
+        pineAdvertBeans = new ArrayList<PineAdvertBean>();
+        PineAdvertBean pineImageCompleteAdvertBean = getAdvertBean(3, PineAdvertBean.TYPE_COMPLETE,
+                PineAdvertBean.CONTENT_IMAGE, false,
+                Uri.parse(mBasePath + "/resource/ImgCompleteAdvert.jpg"),
+                0, 8000);
+        pineAdvertBeans.add(pineImageCompleteAdvertBean);
+        PineAdvertPlugin pineImageCompleteAdvertPlugin = new PineImageAdvertPlugin(this, pineAdvertBeans);
+        pineAllImgAdvertBeans.add(pineImageCompleteAdvertBean);
+        // 定时图片广告
+        pineAdvertBeans = new ArrayList<PineAdvertBean>();
+        PineAdvertBean pineImageTimeAdvertBean1 = getAdvertBean(4, PineAdvertBean.TYPE_TIME,
+                PineAdvertBean.CONTENT_IMAGE, false,
+                Uri.parse(mBasePath + "/resource/ImgTimeAdvert1.jpg"),
+                5000, 8000);
+        pineAdvertBeans.add(pineImageTimeAdvertBean1);
+        pineAllImgAdvertBeans.add(pineImageTimeAdvertBean1);
+        PineAdvertBean pineImageTimeAdvertBean2 = getAdvertBean(5, PineAdvertBean.TYPE_TIME,
+                PineAdvertBean.CONTENT_IMAGE, true,
+                Uri.parse(mBasePath + "/resource/ImgTimeAdvert2.jpg"),
+                20000, 8000);
+        pineAdvertBeans.add(pineImageTimeAdvertBean2);
+        pineAllImgAdvertBeans.add(pineImageTimeAdvertBean2);
+        PineAdvertPlugin pineImageTimeAdvertPlugin = new PineImageAdvertPlugin(this, pineAdvertBeans);
+
+        pineAllImgAdvertPlugin = new PineImageAdvertPlugin(this, pineAllImgAdvertBeans);
+
+        // 有暂停图片广告的视频
         List<IPinePlayerPlugin> pinePlayerPlugins4 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins4.add(new PineLrcParserPlugin(this, mBasePath + "/audio/yesterday once more.lrc", "GBK"));
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaAudioAll",
-                Uri.parse(mBasePath + "/audio/yesterday once more.mp3"),
-                PineMediaPlayerBean.MEDIA_TYPE_AUDIO,
-                Uri.parse(mBasePath + "/audio/yesterday once more.jpg"),pinePlayerPlugins4, null);
+        pinePlayerPlugins4.add(pineImagePauseAdvertPlugin);
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgPauseAdvert",
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins4, null);
         mMediaList.add(pineMediaBean);
+        // 有开头图片广告的视频
         List<IPinePlayerPlugin> pinePlayerPlugins5 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins5.add(new PineSrtParserPlugin(this, mBasePath + "/video/Spout.srt", "UTF-8"));
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaVideoAll",
-                Uri.parse(mBasePath + "/video/Spout.mp4"),
-                PineMediaPlayerBean.MEDIA_TYPE_VIDEO,
-                Uri.parse(mBasePath + "/video/Spout.jpg"), pinePlayerPlugins5, null);
+        pinePlayerPlugins5.add(pineImageHeadAdvertPlugin);
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgHeadAdvert",
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins5, null);
         mMediaList.add(pineMediaBean);
+        // 有结尾图片广告的视频
+        List<IPinePlayerPlugin> pinePlayerPlugins6 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins6.add(pineImageCompleteAdvertPlugin);
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgCompleteAdvert",
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins6, null);
+        mMediaList.add(pineMediaBean);
+        // 有定时图片广告的视频
+        List<IPinePlayerPlugin> pinePlayerPlugins7 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins7.add(pineImageTimeAdvertPlugin);
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgTimeAdvert",
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins7, null);
+        mMediaList.add(pineMediaBean);
+        // 开头图片广告+暂停图片广告+结尾图片广告+定时图片广告+srt字幕的视频
+        List<IPinePlayerPlugin> pinePlayerPlugins8 = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPlugins8.add(new PineSrtParserPlugin(this, mBasePath + "/resource/StarryNight.srt", "UTF-8"));
+        pinePlayerPlugins8.add(pineAllImgAdvertPlugin);
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgPluginAllSrt",
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins8, null);
+        mMediaList.add(pineMediaBean);
+        // 开头图片广告+暂停图片广告+结尾图片广告+lrc字幕+背景图的音频
+        List<IPinePlayerPlugin> pinePlayerPluginsAudioAll = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPluginsAudioAll.add(new PineLrcParserPlugin(this, mBasePath + "/resource/yesterday once more.lrc", "GBK"));
+        pinePlayerPluginsAudioAll.add(pineAllImgAdvertPlugin);
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "AudioAll",
+                Uri.parse(mBasePath + "/resource/yesterday once more.mp3"),
+                PineMediaPlayerBean.MEDIA_TYPE_AUDIO,
+                Uri.parse(mBasePath + "/resource/yesterday once more.jpg"), pinePlayerPluginsAudioAll, null);
+        mMediaList.add(pineMediaBean);
+        // 开头图片广告+暂停图片广告+结尾图片广告+srt字幕+背景图的视频
+        List<IPinePlayerPlugin> pinePlayerPluginsVideoAll = new ArrayList<IPinePlayerPlugin>();
+        pinePlayerPluginsVideoAll.add(new PineSrtParserPlugin(this, mBasePath + "/resource/Spout.srt", "UTF-8"));
+        pinePlayerPluginsVideoAll.add(pineAllImgAdvertPlugin);
+        ;
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "VideoAll",
+                Uri.parse(mBasePath + "/resource/Spout.mp4"),
+                PineMediaPlayerBean.MEDIA_TYPE_VIDEO,
+                Uri.parse(mBasePath + "/resource/Spout.jpg"), pinePlayerPluginsVideoAll, null);
+        mMediaList.add(pineMediaBean);
+        // 超长名字的视频
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++),
                 "MediaLongNameMediaLongNameMediaLongNameMediaLongNameMediaLongNameMediaLongNameMediaLongName",
-                Uri.parse(mBasePath + "/video/StarryNight.mp4"),
+                Uri.parse(mBasePath + "/resource/StarryNight.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
         mMediaList.add(pineMediaBean);
-        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "MediaNoFile",
-                Uri.parse(mBasePath + "/video/MediaNoFile.mp4"),
+        // 空视频（视频文件不存在）
+        pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "NullFile",
+                Uri.parse(mBasePath + "/resource/MediaNoFile.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
         mMediaList.add(pineMediaBean);
+    }
+
+    private PineAdvertBean getAdvertBean(int order, int type, int contentType, boolean isRepeat,
+                                         Uri uri, int time, int duration) {
+        PineAdvertBean pinePauseAdvertBean = new PineAdvertBean();
+        pinePauseAdvertBean.setOrder(order);
+        pinePauseAdvertBean.setType(type);
+        pinePauseAdvertBean.setContentType(contentType);
+        pinePauseAdvertBean.setRepeat(isRepeat);
+        pinePauseAdvertBean.setUri(uri);
+        pinePauseAdvertBean.setDurationTime(duration);
+        pinePauseAdvertBean.setPositionTime(time);
+        return pinePauseAdvertBean;
     }
 
     private void initVideoRecycleView() {
@@ -270,9 +386,6 @@ public class PinePlayerActivity extends AppCompatActivity {
         mCurrentVideoPosition = position;
         mVideoView.setMedia(pineMediaPlayerBean);
         mVideoView.start();
-        if (mVideoListInPlayerAdapter != null) {
-            mVideoListInPlayerAdapter.itemSelected(mCurrentVideoPosition);
-        }
     }
 
     private int findPositionInList(String id) {
@@ -302,32 +415,26 @@ public class PinePlayerActivity extends AppCompatActivity {
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(PinePlayerActivity.this)
                     .inflate(R.layout.item_video_in_player, parent, false);
-            // 为RecyclerView的item view设计事件监听机制
-            view.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View view) {
-                    if (mVideoView != null) {
-                        int position = (int) view.getTag();
-                        videoSelected((int) view.getTag());
-                    }
-                }
-            });
             VideoViewHolder viewHolder = new VideoViewHolder(view);
             return viewHolder;
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
             VideoViewHolder myHolder = (VideoViewHolder) holder;
             PineMediaPlayerBean itemData = mData.get(position);
             if (myHolder.mItemTv != null) {
                 myHolder.mItemTv.setText(itemData.getMediaName());
             }
-            myHolder.itemView.setTag(position);
-            if (mCurrentVideoPosition == position) {
-                itemSelected(myHolder.itemView);
-            }
+            // 为RecyclerView的item view设计事件监听机制
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View view) {
+                    videoSelected(position);
+                    itemSelected(holder.itemView);
+                }
+            });
         }
 
         @Override
@@ -340,6 +447,8 @@ public class PinePlayerActivity extends AppCompatActivity {
         }
 
         private void itemSelected(View item) {
+            Log.d(TAG, "itemSelected mPreSelectedView:" + mPreSelectedView
+                    + ", item:" + item);
             if (mPreSelectedView != null) {
                 mPreSelectedView.setSelected(false);
                 TextView preItemText = (TextView) mPreSelectedView
@@ -354,13 +463,6 @@ public class PinePlayerActivity extends AppCompatActivity {
             TextPaint textPaint = itemText.getPaint();
             textPaint.setFakeBoldText(true);
             mPreSelectedView = item;
-        }
-
-        public void itemSelected(int position) {
-            View item = mRecyclerView.findViewWithTag(position);
-            if (item != null) {
-                itemSelected(item);
-            }
         }
     }
 

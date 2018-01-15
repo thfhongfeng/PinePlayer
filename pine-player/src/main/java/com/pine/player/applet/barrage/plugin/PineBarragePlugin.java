@@ -1,5 +1,7 @@
 package com.pine.player.applet.barrage.plugin;
 
+import android.content.Context;
+
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.widget.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
@@ -11,7 +13,9 @@ import com.pine.player.widget.viewholder.PinePluginViewHolder;
 public class PineBarragePlugin implements IPinePlayerPlugin {
 
     @Override
-    public void onInit(PineMediaWidget.IPineMediaPlayer player) {
+    public void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
+                       PineMediaWidget.IPineMediaController controller,
+                       boolean isPlayerReset, boolean isResumeState) {
 
     }
 
@@ -56,7 +60,7 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     }
 
     @Override
-    public void onRefresh() {
+    public void onTime(long position) {
 
     }
 

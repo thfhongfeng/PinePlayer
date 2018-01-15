@@ -1,7 +1,8 @@
 package com.pine.player.applet.advert.plugin;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -11,7 +12,6 @@ import com.pine.player.applet.advert.bean.PineAdvertBean;
 import com.pine.player.widget.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 
 /**
@@ -57,13 +57,9 @@ public class PineImageAdvertPlugin extends PineAdvertPlugin {
             return;
         }
         mCurViewHolder.getContainer().setVisibility(View.VISIBLE);
-        try {
-            ((ImageView) mCurViewHolder.getContainer().findViewById(R.id.advert_iv)).setImageDrawable(
-                    Drawable.createFromStream(context.getContentResolver()
-                            .openInputStream(advertBean.getUri()), null));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        Bitmap bitmap = BitmapFactory.decodeFile(advertBean.getUri().getPath());
+        ((ImageView) mCurViewHolder.getContainer().findViewById(R.id.advert_iv))
+                .setImageBitmap(bitmap);
     }
 
     @Override

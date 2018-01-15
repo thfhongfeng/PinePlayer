@@ -144,7 +144,7 @@ public class PineSurfaceView extends SurfaceView {
             if (mIsDelayOpenMedia) {
                 mIsDelayOpenMedia = false;
                 mLocalService.setPlayerDecryptor(mMediaBean.getPlayerDecryptor());
-                openMedia();
+                openMedia(false);
                 requestLayout();
                 invalidate();
             }
@@ -182,17 +182,22 @@ public class PineSurfaceView extends SurfaceView {
             mMediaController.hide();
         }
         mMediaController = controller;
-        attachMediaController();
+        attachMediaController(true, false);
     }
 
-    // 挂载控制器界面
-    private void attachMediaController() {
+    /**
+     * 挂载控制器界面
+     * @param isPlayerReset 本此attach是否重置了MediaPlayer
+     * @param isResumeState 本此attach是否是为了恢复状态
+     */
+    private void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
         if (mMediaPlayer != null && mMediaController != null && mMediaPlayerProxy != null
                 && mMediaBean != null && mMediaPlayerProxy instanceof RelativeLayout) {
             this.setTag("PineMediaView");
             mMediaController.setMediaPlayer(mMediaPlayerProxy,
                     mMediaBean, "PineMediaView");
-            mMediaController.attachToParentView((RelativeLayout) mMediaPlayerProxy);
+            mMediaController.attachToParentView((RelativeLayout) mMediaPlayerProxy,
+                    isPlayerReset, isResumeState);
         }
     }
 
@@ -249,7 +254,7 @@ public class PineSurfaceView extends SurfaceView {
             mShouldPlayWhenPrepared = false;
         }
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
-            openMedia();
+            openMedia(resumeState);
             requestLayout();
             invalidate();
         } else {
@@ -260,8 +265,9 @@ public class PineSurfaceView extends SurfaceView {
 
     /**
      * 打开多媒体
+     * @param isResumeState 是否是为了恢复状态而重新打开
      */
-    protected void openMedia() {
+    protected void openMedia(boolean isResumeState) {
         if (mMediaBean == null || mMediaBean.getMediaUri() == null
                 || mSurfaceHolder == null) {
             return;
@@ -315,7 +321,7 @@ public class PineSurfaceView extends SurfaceView {
             // we don't set the target state here either, but preserve the
             // target state that was there before.
             mCurrentState = STATE_PREPARING;
-            attachMediaController();
+            attachMediaController(true, isResumeState);
         } catch (IOException ex) {
             Log.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
             mCurrentState = STATE_ERROR;
@@ -415,7 +421,7 @@ public class PineSurfaceView extends SurfaceView {
     }
 
     protected void resume() {
-        openMedia();
+        openMedia(true);
     }
 
     protected void resetMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
@@ -781,7 +787,7 @@ public class PineSurfaceView extends SurfaceView {
         public void surfaceCreated(SurfaceHolder holder) {
             Log.d(TAG, "surfaceCreated");
             mSurfaceHolder = holder;
-            openMedia();
+            openMedia(true);
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {

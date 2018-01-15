@@ -27,8 +27,10 @@ public class PineMediaWidget {
         /**
          * 挂载控制器到播放器上
          * @param parent
+         * @param isPlayerReset 本此attach是否重置了MediaPlayer
+         * @param isResumeState 本此attach是否是为了恢复状态
          */
-        void attachToParentView(RelativeLayout parent);
+        void attachToParentView(RelativeLayout parent, boolean isPlayerReset, boolean isResumeState);
 
         /**
          * 播放和暂停切换
@@ -121,6 +123,22 @@ public class PineMediaWidget {
          * @param enabled
          */
         void setControllerEnabled(boolean enabled);
+
+        /**
+         * 分别设置各个控制器部件是否可用
+         * @param enabledPlayerPause
+         * @param enabledProgressBar
+         * @param enabledToggleFullScreen
+         * @param enabledLock
+         * @param enabledFastForward
+         * @param enabledFastBackward
+         * @param enabledNext
+         * @param enabledPrev
+         */
+        void setControllerEnabled(boolean enabledPlayerPause, boolean enabledProgressBar,
+                                  boolean enabledToggleFullScreen, boolean enabledLock,
+                                  boolean enabledFastForward, boolean enabledFastBackward,
+                                  boolean enabledNext, boolean enabledPrev);
 
         /**
          * 控制器是否显示

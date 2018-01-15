@@ -12,19 +12,21 @@ public class PineAdvertBean {
     // 广告类型-暂停广告
     public static final int TYPE_PAUSE = 1;
     // 广告类型-开头广告
-    public static final int TYPE_START = 2;
+    public static final int TYPE_HEAD = 2;
     // 广告类型-结尾广告
     public static final int TYPE_COMPLETE = 3;
 
     // 广告内容类别-视频广告
-    public static final int TYPE_VIDEO = 0;
+    public static final int CONTENT_TYPE_VIDEO = 0;
     // 广告内容类别-图片广告
-    public static final int TYPE_IMAGE = 1;
+    public static final int CONTENT_IMAGE = 1;
 
     // 广告类别
     private int type;
     // 广告标识
     private int order;
+    // 是否重复播放
+    private boolean repeat;
     // 广告Uri
     private Uri uri;
     // 广告内容类别
@@ -48,6 +50,14 @@ public class PineAdvertBean {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public boolean isRepeat() {
+        return repeat;
+    }
+
+    public void setRepeat(boolean repeat) {
+        this.repeat = repeat;
     }
 
     public Uri getUri() {
