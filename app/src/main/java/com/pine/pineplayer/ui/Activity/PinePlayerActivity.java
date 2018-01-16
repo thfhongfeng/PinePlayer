@@ -1,5 +1,6 @@
 package com.pine.pineplayer.ui.Activity;
 
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -402,8 +403,7 @@ public class PinePlayerActivity extends AppCompatActivity {
 
     // 自定义RecyclerView的数据Adapter
     class VideoListAdapter extends RecyclerView.Adapter {
-
-        private View mPreSelectedView;
+        private VideoViewHolder mPreSelectedViewHolder;
         private List<PineMediaPlayerBean> mData;
         private RecyclerView mRecyclerView;
 
@@ -421,18 +421,33 @@ public class PinePlayerActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
-            VideoViewHolder myHolder = (VideoViewHolder) holder;
+            final VideoViewHolder myHolder = (VideoViewHolder) holder;
             PineMediaPlayerBean itemData = mData.get(position);
             if (myHolder.mItemTv != null) {
                 myHolder.mItemTv.setText(itemData.getMediaName());
+            }
+            boolean isSelected = position == mCurrentVideoPosition;
+            myHolder.itemView.setSelected(isSelected);
+            myHolder.mItemTv.setSelected(isSelected);
+            myHolder.mTextPaint.setFakeBoldText(isSelected);
+            if (isSelected) {
+                mPreSelectedViewHolder = myHolder;
             }
             // 为RecyclerView的item view设计事件监听机制
             holder.itemView.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View view) {
+                    myHolder.itemView.setSelected(true);
+                    myHolder.mItemTv.setSelected(true);
+                    myHolder.mTextPaint.setFakeBoldText(true);
+                    if (mPreSelectedViewHolder != null) {
+                        mPreSelectedViewHolder.itemView.setSelected(false);
+                        mPreSelectedViewHolder.mItemTv.setSelected(false);
+                        mPreSelectedViewHolder.mTextPaint.setFakeBoldText(false);
+                    }
+                    mPreSelectedViewHolder = myHolder;
                     videoSelected(position);
-                    itemSelected(holder.itemView);
                 }
             });
         }
@@ -445,35 +460,17 @@ public class PinePlayerActivity extends AppCompatActivity {
         public void setData(List<PineMediaPlayerBean> data) {
             this.mData = data;
         }
-
-        private void itemSelected(View item) {
-            Log.d(TAG, "itemSelected mPreSelectedView:" + mPreSelectedView
-                    + ", item:" + item);
-            if (mPreSelectedView != null) {
-                mPreSelectedView.setSelected(false);
-                TextView preItemText = (TextView) mPreSelectedView
-                        .findViewById(R.id.rv_video_item_text);
-                preItemText.setSelected(false);
-                TextPaint preTextPaint = preItemText.getPaint();
-                preTextPaint.setFakeBoldText(false);
-            }
-            item.setSelected(true);
-            TextView itemText = (TextView) item.findViewById(R.id.rv_video_item_text);
-            itemText.setSelected(true);
-            TextPaint textPaint = itemText.getPaint();
-            textPaint.setFakeBoldText(true);
-            mPreSelectedView = item;
-        }
     }
 
     // 自定义的ViewHolder，持有每个Item的的所有界面元素
     class VideoViewHolder extends RecyclerView.ViewHolder {
         public TextView mItemTv;
-        public ImageView mItemImg;
+        public TextPaint mTextPaint;
 
         public VideoViewHolder(View view) {
             super(view);
             mItemTv = (TextView) view.findViewById(R.id.rv_video_item_text);
+            mTextPaint = mItemTv.getPaint();
         }
     }
 }
