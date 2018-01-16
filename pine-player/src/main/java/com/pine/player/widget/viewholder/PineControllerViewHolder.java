@@ -20,11 +20,12 @@ public final class PineControllerViewHolder {
     // 由用户自行定制）
     private View bottomControllerView;
 
-
     // 退出按键
     private View goBackButton;
     // 播放media名称显示控件
     private View mediaNameText;
+    // 倍速控件
+    private View speedButton;
     // 播放列表按键
     private View mediaListButton;
     // 锁定按键
@@ -92,6 +93,14 @@ public final class PineControllerViewHolder {
 
     public void setMediaNameText(View mediaNameText) {
         this.mediaNameText = mediaNameText;
+    }
+
+    public View getSpeedButton() {
+        return speedButton;
+    }
+
+    public void setSpeedButton(View speedButton) {
+        this.speedButton = speedButton;
     }
 
     public View getMediaListButton() {

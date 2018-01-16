@@ -157,6 +157,18 @@ public class PineMediaWidget {
      * 播放器接口，主要提供给播放控制器使用
      */
     public static interface IPineMediaPlayer {
+
+        /**
+         * 获取播放倍速
+         */
+        float getSpeed();
+
+        /**
+         * 设置播放倍速
+         * @param speed
+         */
+        void setSpeed(float speed);
+
         /**
          * 开始播放
          */

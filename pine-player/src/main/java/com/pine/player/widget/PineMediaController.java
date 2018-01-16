@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -397,6 +398,12 @@ public class PineMediaController extends RelativeLayout
                 mPinePluginList.get(i).onInit(mContext, mPlayer, this, isPlayerReset, isResumeState);
             }
         }
+
+        if (mControllerViewHolder.getSpeedButton() != null) {
+            if (!isResumeState && isPlayerReset) {
+                updateSpeedButton();
+            }
+        }
     }
 
     private void initControllerView() {
@@ -426,6 +433,12 @@ public class PineMediaController extends RelativeLayout
     }
 
     private void installClickListeners() {
+        if (mControllerViewHolder.getSpeedButton() != null) {
+            mControllerViewHolder.getSpeedButton().requestFocus();
+            mControllerViewHolder.getSpeedButton().setOnClickListener(mSpeedListener);
+            mControllerViewHolder.getSpeedButton().setEnabled(mSpeedListener != null);
+            mControllerViewHolder.getSpeedButton().setVisibility(View.VISIBLE);
+        }
         if (mControllerViewHolder.getPausePlayButton() != null) {
             mControllerViewHolder.getPausePlayButton().requestFocus();
             mControllerViewHolder.getPausePlayButton().setOnClickListener(mPausePlayListener);
@@ -693,6 +706,7 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void onAbnormalComplete() {
+        show(0);
         if (mPinePluginList != null) {
             for (int i = 0; i < mPinePluginList.size(); i++) {
                 mPinePluginList.get(i).onAbnormalComplete();
@@ -748,7 +762,6 @@ public class PineMediaController extends RelativeLayout
         }
         int position = mPlayer.getCurrentPosition();
         int duration = mPlayer.getDuration();
-        Log.d(TAG, "setProgress position:" + position + ", duration:" + duration);
         if (mPlayer.getMediaPlayerState() == PineSurfaceView.STATE_PLAYBACK_COMPLETED) {
             position = duration;
         }
@@ -920,6 +933,23 @@ public class PineMediaController extends RelativeLayout
         }
     };
 
+    private final View.OnClickListener mSpeedListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersOnClickListener == null
+                    || !mControllersOnClickListener.onSpeedBtnClick(v, mPlayer)) {
+                float speed = mPlayer.getSpeed() + 1.0f;
+                if (speed >= 4.0f) {
+                    speed = 0.5f;
+                } else if (speed == 1.5f) {
+                    speed = 1.0f;
+                }
+                mPlayer.setSpeed(speed);
+                updateSpeedButton();
+            }
+        }
+    };
+
     private final View.OnClickListener mPausePlayListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -997,10 +1027,12 @@ public class PineMediaController extends RelativeLayout
             if (mControllersOnClickListener == null
                     || !mControllersOnClickListener.onFullScreenBtnClick(v, mPlayer)) {
                 mPlayer.toggleFullScreenMode(mIsControllerLocked);
-                mControllerViewHolder.getFullScreenButton().setSelected(!mPlayer.isFullScreenMode());
                 attachToParentView(mAnchor, false, true);
                 judgeAndChangeRequestedOrientation();
+
                 updateMediaNameText(mPlayer.getMediaPlayerBean());
+                updateSpeedButton();
+                mControllerViewHolder.getFullScreenButton().setSelected(!mPlayer.isFullScreenMode());
                 if (mPlayer.isInPlaybackState()) {
                     installClickListeners();
                     show();
@@ -1169,6 +1201,23 @@ public class PineMediaController extends RelativeLayout
     /**
      * 更新播放/暂停按键显示状态(默认方式)
      */
+    private void updateSpeedButton() {
+        if (mControllerMonitor == null
+                || !mControllerMonitor.updateSpeedButton(mControllerViewHolder
+                .getSpeedButton(), mPlayer)) {
+            if (mControllerViewHolder.getSpeedButton() == null) {
+                return;
+            }
+            if (mControllerViewHolder.getSpeedButton() instanceof TextView) {
+                ((TextView) mControllerViewHolder.getSpeedButton())
+                        .setText(String.format("%.1fX", mPlayer.getSpeed()));
+            }
+        }
+    }
+
+    /**
+     * 更新播放/暂停按键显示状态(默认方式)
+     */
     private void updatePausePlayButton() {
         if (mControllerMonitor == null
                 || !mControllerMonitor.updatePausePlayButton(mControllerViewHolder
@@ -1190,7 +1239,9 @@ public class PineMediaController extends RelativeLayout
             if (mControllerViewHolder.getCurrentTimeText() == null) {
                 return;
             }
-            ((TextView) mControllerViewHolder.getCurrentTimeText()).setText(stringForTime(position));
+            if (mControllerViewHolder.getCurrentTimeText() instanceof TextView) {
+                ((TextView) mControllerViewHolder.getCurrentTimeText()).setText(stringForTime(position));
+            }
         }
     }
 
@@ -1204,7 +1255,9 @@ public class PineMediaController extends RelativeLayout
             if (mControllerViewHolder.getEndTimeText() == null) {
                 return;
             }
-            ((TextView) mControllerViewHolder.getEndTimeText()).setText(stringForTime(duration));
+            if (mControllerViewHolder.getEndTimeText() instanceof TextView) {
+                ((TextView) mControllerViewHolder.getEndTimeText()).setText(stringForTime(duration));
+            }
         }
     }
 
@@ -1218,8 +1271,10 @@ public class PineMediaController extends RelativeLayout
             if (mControllerViewHolder.getVolumesText() == null) {
                 return;
             }
-            ((TextView) mControllerViewHolder.getVolumesText())
-                    .setText(volumesPercentFormat(curVolumes, maxVolumes));
+            if (mControllerViewHolder.getVolumesText() instanceof TextView) {
+                ((TextView) mControllerViewHolder.getVolumesText())
+                        .setText(volumesPercentFormat(curVolumes, maxVolumes));
+            }
         }
     }
 
@@ -1233,8 +1288,10 @@ public class PineMediaController extends RelativeLayout
             if (mControllerViewHolder.getMediaNameText() == null) {
                 return;
             }
-            ((TextView) mControllerViewHolder.getMediaNameText())
-                    .setText(pineMediaPlayerBean.getMediaName());
+            if (mControllerViewHolder.getMediaNameText() instanceof TextView) {
+                ((TextView) mControllerViewHolder.getMediaNameText())
+                        .setText(pineMediaPlayerBean.getMediaName());
+            }
         }
     }
 
@@ -1330,9 +1387,9 @@ public class PineMediaController extends RelativeLayout
                 mDBackgroundViewHolder = new PineBackgroundViewHolder();
                 if (mDBackgroundView == null) {
                     ImageView backgroundView = new ImageView(mContext);
-                    backgroundView.setBackgroundResource(android.R.color.black);
+                    backgroundView.setBackgroundResource(android.R.color.darker_gray);
                     mDBackgroundView = new RelativeLayout(mContext);
-                    mDBackgroundView.setBackgroundResource(android.R.color.black);
+                    mDBackgroundView.setBackgroundResource(android.R.color.darker_gray);
                     mDBackgroundView.setLayoutTransition(new LayoutTransition());
                     RelativeLayout.LayoutParams backgroundParams = new RelativeLayout.LayoutParams(
                             LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -1401,6 +1458,11 @@ public class PineMediaController extends RelativeLayout
             viewHolder.setEndTimeText(root.findViewById(R.id.end_time_text));
             viewHolder.setVolumesText(root.findViewById(R.id.volumes_text));
             viewHolder.setFullScreenButton(root.findViewById(R.id.full_screen_btn));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                viewHolder.setSpeedButton(root.findViewById(R.id.media_speed_text));
+            } else {
+                root.findViewById(R.id.media_speed_text).setVisibility(GONE);
+            }
             viewHolder.setMediaNameText(root.findViewById(R.id.media_name_text));
             viewHolder.setLockControllerButton(root.findViewById(R.id.lock_screen_btn));
         }
@@ -1565,6 +1627,16 @@ public class PineMediaController extends RelativeLayout
         /**
          * 播放器播放状态发生改变时回调
          *
+         * @param speedBtn 播放倍速控件
+         * @param player       播放器
+         */
+        public boolean updateSpeedButton(View speedBtn, PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        /**
+         * 播放器播放状态发生改变时回调
+         *
          * @param pausePlayBtn 播放暂停控件
          * @param player       播放器
          */
@@ -1656,6 +1728,12 @@ public class PineMediaController extends RelativeLayout
         }
 
         @Override
+        public boolean onSpeedBtnClick(View speedBtn,
+                                            PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
         public boolean onFullScreenBtnClick(View fullScreenBtn,
                                             PineMediaWidget.IPineMediaPlayer player) {
             return false;
@@ -1731,6 +1809,14 @@ public class PineMediaController extends RelativeLayout
          * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
          */
         boolean onVolumesBtnClick(View volumesBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param speedBtn  倍速按键
+         * @param player   播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onSpeedBtnClick(View speedBtn, PineMediaWidget.IPineMediaPlayer player);
 
         /**
          * @param fullScreenBtn 全屏按键

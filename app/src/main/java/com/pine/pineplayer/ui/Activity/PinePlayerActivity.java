@@ -91,13 +91,14 @@ public class PinePlayerActivity extends AppCompatActivity {
             @Override
             public PineBackgroundViewHolder onCreateBackgroundViewHolder(boolean isFullMode) {
                 Uri imgUri = mMediaList.get(mCurrentVideoPosition).getMediaImgUri();
-                if (imgUri == null) {
-                    return null;
-                }
                 ImageView mediaBackgroundView = new ImageView(PinePlayerActivity.this);
                 mediaBackgroundView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                ImageLoader.getInstance().displayImage("file://" + imgUri.getPath(),
-                        mediaBackgroundView);
+                if (imgUri == null) {
+                    mediaBackgroundView.setBackgroundResource(android.R.color.darker_gray);
+                } else {
+                    ImageLoader.getInstance().displayImage("file://" + imgUri.getPath(),
+                            mediaBackgroundView);
+                }
                 RelativeLayout relativeLayout = new RelativeLayout(PinePlayerActivity.this);
                 relativeLayout.addView(mediaBackgroundView,
                         new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,

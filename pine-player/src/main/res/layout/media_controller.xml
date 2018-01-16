@@ -25,10 +25,19 @@
             android:paddingBottom="2dp"
             android:textColor="@color/pine_controller_text"
             android:textSize="@dimen/pine_media_name_text" />
-        <View
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/media_speed_text"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1"></View>
+            android:paddingEnd="10dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingStart="10dp"
+            android:gravity="right|center_vertical"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/pine_controller_text"
+            android:text="@string/pine_media_speed_1x"></TextView>
     </LinearLayout>
 
     <RelativeLayout

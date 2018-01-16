@@ -53,7 +53,7 @@ public class PineSurfaceView extends SurfaceView {
     private static final long BACK_PRESSED_EXIT_TIME = 2000;
 
     // 是否使用5.0之后的新API，该API支持本地流播放
-    private static final boolean USE_NEW_API = false;
+    private static final boolean USE_NEW_API = true;
     // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
     private static final int SERVICE_STATE_DISCONNECTED = 1;
     private static final int SERVICE_STATE_CONNECTING = 2;
@@ -116,6 +116,7 @@ public class PineSurfaceView extends SurfaceView {
     private boolean mIsFullScreenMode;
     // 点击回退按键时，使用两次点击的时间间隔限定回退行为
     private long mExitTime = -1l;
+    private float mSpeed = 1.0f;
 
     protected PineSurfaceView(Context context) {
         super(context);
@@ -282,7 +283,9 @@ public class PineSurfaceView extends SurfaceView {
 
         AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-
+        if (!isResumeState) {
+            mSpeed = 1.0f;
+        }
         try {
             mMediaPlayer = new MediaPlayer();
             if (mAudioSession != 0) {
@@ -388,6 +391,19 @@ public class PineSurfaceView extends SurfaceView {
                 mMediaBytes = null;
             }
         });
+    }
+
+    protected float getSpeed() {
+        return mSpeed;
+    }
+
+    protected void setSpeed(float speed) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mSpeed = speed;
+            mShouldPlayWhenPrepared = isPlaying();
+            mSeekWhenPrepared = getCurrentPosition();
+            openMedia(true);
+        }
     }
 
     protected void start() {
@@ -818,7 +834,9 @@ public class PineSurfaceView extends SurfaceView {
 
             // Get the capabilities of the player for this stream
             setMetaData(mp);
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(mSpeed));
+            }
             if (mMediaPlayerListener != null) {
                 mMediaPlayerListener.onPrepared();
             }
@@ -907,7 +925,7 @@ public class PineSurfaceView extends SurfaceView {
                     Log.d(TAG, "onCompletion currentPos:" + currentPos
                             + ", duration:" + duration
                             + ", bufferPercentage:" + bufferPercentage);
-                    if (currentPos != duration && bufferPercentage < 100) {
+                    if (currentPos != duration && bufferPercentage > 0 && bufferPercentage < 100) {
                         mCurrentState = STATE_ERROR;
                         mTargetState = STATE_PLAYING;
                         mSeekWhenPrepared = currentPos;

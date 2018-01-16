@@ -40,6 +40,17 @@
             android:textColor="@color/pine_controller_text"
             android:textSize="@dimen/pine_full_media_name_text" />
 
+        <TextView
+            android:id="@+id/media_speed_text"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="3dp"
+            android:gravity="right|center_vertical"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/pine_controller_text"
+            android:text="@string/pine_media_speed_1x"></TextView>
+
         <ImageView
             android:id="@+id/media_list_btn"
             android:layout_width="wrap_content"

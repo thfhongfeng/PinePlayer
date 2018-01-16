@@ -2,6 +2,19 @@
     <string name="app_name">PinePlayer</string>
 
     <string name="pine_media_view_layout_incorrect">PineMediaView必须外包一层RelativeLayout，否则将导致显示异常</string>
-
     <string name="pine_media_back_pressed_toast">再按一次退出播放</string>
+
+    <string-array name="pine_media_speed_text_arr">
+        <item>倍速</item>
+        <item>0.5X</item>
+        <item>2.0X</item>
+        <item>3.0X</item>
+    </string-array>
+    <integer-array name="pine_media_speed_arr">
+        <item>10</item>
+        <item>5</item>
+        <item>20</item>
+        <item>30</item>
+    </integer-array>
+    <string name="pine_media_speed_1x">1.0X</string>
 </resources>

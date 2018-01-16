@@ -92,9 +92,21 @@ public class PineMediaPlayerView extends RelativeLayout
     public boolean onTouchEvent(MotionEvent ev) {
         return true;
     }
+
     /**
      * ----------------   PineMediaWidget.IPineMediaPlayer impl begin   --------------
      **/
+
+    @Override
+    public float getSpeed() {
+        return mPineSurfaceView.getSpeed();
+    }
+
+    @Override
+    public void setSpeed(float speed) {
+        mPineSurfaceView.setSpeed(speed);
+    }
+
     @Override
     public void start() {
         mPineSurfaceView.start();
