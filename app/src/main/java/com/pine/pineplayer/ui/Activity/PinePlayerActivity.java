@@ -439,15 +439,15 @@ public class PinePlayerActivity extends AppCompatActivity {
 
                 @Override
                 public void onClick(View view) {
-                    myHolder.itemView.setSelected(true);
-                    myHolder.mItemTv.setSelected(true);
-                    myHolder.mTextPaint.setFakeBoldText(true);
                     if (mPreSelectedViewHolder != null) {
                         mPreSelectedViewHolder.itemView.setSelected(false);
                         mPreSelectedViewHolder.mItemTv.setSelected(false);
                         mPreSelectedViewHolder.mTextPaint.setFakeBoldText(false);
                     }
                     mPreSelectedViewHolder = myHolder;
+                    myHolder.itemView.setSelected(true);
+                    myHolder.mItemTv.setSelected(true);
+                    myHolder.mTextPaint.setFakeBoldText(true);
                     videoSelected(position);
                 }
             });

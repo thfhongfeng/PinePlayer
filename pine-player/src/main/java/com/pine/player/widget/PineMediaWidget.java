@@ -126,6 +126,7 @@ public class PineMediaWidget {
 
         /**
          * 分别设置各个控制器部件是否可用
+         * @param enabledSpeed
          * @param enabledPlayerPause
          * @param enabledProgressBar
          * @param enabledToggleFullScreen
@@ -135,7 +136,7 @@ public class PineMediaWidget {
          * @param enabledNext
          * @param enabledPrev
          */
-        void setControllerEnabled(boolean enabledPlayerPause, boolean enabledProgressBar,
+        void setControllerEnabled(boolean enabledSpeed, boolean enabledPlayerPause, boolean enabledProgressBar,
                                   boolean enabledToggleFullScreen, boolean enabledLock,
                                   boolean enabledFastForward, boolean enabledFastBackward,
                                   boolean enabledNext, boolean enabledPrev);

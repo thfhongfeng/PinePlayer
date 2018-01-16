@@ -114,9 +114,12 @@ public class PineMediaController extends RelativeLayout
                 // 进度条更新消息
                 case MSG_SHOW_PROGRESS:
                     pos = setProgress();
-                    if (!mDragging && mPlayer.isPlaying()) {
+                    if (!mDragging && isShowing() &&
+                            (mPlayer.isPlaying() || mPlayer.isPause())) {
                         msg = obtainMessage(MSG_SHOW_PROGRESS);
-                        sendMessageDelayed(msg, 1000 - (pos % 1000));
+                        int sum = (int) mPlayer.getSpeed();
+                        sum = sum < 1 ? 1: sum;
+                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
                     }
                     break;
                 // 背景延迟隐藏消失
@@ -584,6 +587,10 @@ public class PineMediaController extends RelativeLayout
                 mPinePluginList.get(i).onMediaPlayerStart();
             }
         }
+        if (isShowing()) {
+            mHandler.removeMessages(MSG_SHOW_PROGRESS);
+            mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
+        }
     }
 
     @Override
@@ -783,11 +790,11 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void setControllerEnabled(boolean enabled) {
-        setControllerEnabled(enabled, enabled, enabled, enabled, enabled, enabled, enabled, enabled);
+        setControllerEnabled(enabled, enabled, enabled, enabled, enabled, enabled, enabled, enabled, enabled);
     }
 
     @Override
-    public void setControllerEnabled(boolean enabledPlayerPause, boolean enabledProgressBar,
+    public void setControllerEnabled(boolean enabledSpeed, boolean enabledPlayerPause, boolean enabledProgressBar,
                                      boolean enabledToggleFullScreen, boolean enabledLock,
                                      boolean enabledFastForward, boolean enabledFastBackward,
                                      boolean enabledNext, boolean enabledPrev) {
@@ -802,6 +809,9 @@ public class PineMediaController extends RelativeLayout
                 + ", enabledFastBackward: " + enabledFastBackward
                 + ", enabledNext: " + enabledNext
                 + ", enabledPrev: " + enabledPrev);
+        if (mControllerViewHolder.getSpeedButton() != null) {
+            mControllerViewHolder.getSpeedButton().setEnabled(enabledSpeed);
+        }
         if (mControllerViewHolder.getPausePlayButton() != null) {
             mControllerViewHolder.getPausePlayButton().setEnabled(enabledPlayerPause);
         }

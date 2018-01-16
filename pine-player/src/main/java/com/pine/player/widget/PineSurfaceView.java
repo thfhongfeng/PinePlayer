@@ -53,7 +53,7 @@ public class PineSurfaceView extends SurfaceView {
     private static final long BACK_PRESSED_EXIT_TIME = 2000;
 
     // 是否使用5.0之后的新API，该API支持本地流播放
-    private static final boolean USE_NEW_API = true;
+    private static final boolean USE_NEW_API = false;
     // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
     private static final int SERVICE_STATE_DISCONNECTED = 1;
     private static final int SERVICE_STATE_CONNECTING = 2;
@@ -374,7 +374,6 @@ public class PineSurfaceView extends SurfaceView {
             @Override
             public long getSize() throws IOException {
                 if (mSize < 0) {
-                    final File file = new File(mMediaBean.getMediaUri().getPath());
                     if (file.exists()) {
                         mSize = file.length();
                     }
