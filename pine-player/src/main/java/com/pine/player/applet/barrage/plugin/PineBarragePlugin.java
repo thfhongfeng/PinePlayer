@@ -20,8 +20,13 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     }
 
     @Override
-    public PinePluginViewHolder createViewHolder(boolean isFullScreen) {
+    public PinePluginViewHolder createViewHolder(Context context, boolean isFullScreen) {
         return null;
+    }
+
+    @Override
+    public int getContainerType() {
+        return IPinePlayerPlugin.TYPE_MATCH_SURFACE;
     }
 
     @Override

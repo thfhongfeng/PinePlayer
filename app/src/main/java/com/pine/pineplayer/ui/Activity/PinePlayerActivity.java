@@ -50,9 +50,11 @@ public class PinePlayerActivity extends AppCompatActivity {
     private PineMediaPlayerView mVideoView;
     private ViewGroup mVideoListContainerInPlayer;
     private RecyclerView mVideoListInPlayerRv;
+    private RecyclerView mVideoListInDetailRv;
 
     private PineMediaController mController;
     private VideoListAdapter mVideoListInPlayerAdapter;
+    private VideoListAdapter mVideoListInDetailAdapter;
 
     private int mCurrentVideoPosition = -1;
     private List<PineMediaPlayerBean> mMediaList;
@@ -78,6 +80,7 @@ public class PinePlayerActivity extends AppCompatActivity {
                 .inflate(R.layout.video_recycler_view_full, null);
         mVideoListInPlayerRv = mVideoListContainerInPlayer
                 .findViewById(R.id.video_recycler_view_in_player);
+        mVideoListInDetailRv = (RecyclerView) findViewById(R.id.media_list_rv);
         mController = new PineMediaController(this);
         mController.setMediaControllerAdapter(mController.new DefaultMediaControllerAdapter(
                 this) {
@@ -370,10 +373,26 @@ public class PinePlayerActivity extends AppCompatActivity {
                 new AdvanceDecoration(PinePlayerActivity.this,
                         R.drawable.rv_divider, 2, AdvanceDecoration.VERTICAL, true));
         // 设置适配器
-        mVideoListInPlayerAdapter = new VideoListAdapter(mVideoListInPlayerRv);
+        mVideoListInPlayerAdapter = new VideoListAdapter(mVideoListInPlayerRv,
+                VideoListAdapter.LIST_IN_PLAYER);
         mVideoListInPlayerRv.setAdapter(mVideoListInPlayerAdapter);
         mVideoListInPlayerAdapter.setData(mMediaList);
         mVideoListInPlayerAdapter.notifyDataSetChanged();
+
+        mVideoListInDetailRv.setHasFixedSize(true);
+        llm = new LinearLayoutManager(this) {
+            @Override
+            public boolean canScrollVertically() {
+                return false;
+            }
+        };
+        mVideoListInDetailRv.setLayoutManager(llm);
+        mVideoListInDetailAdapter = new VideoListAdapter(mVideoListInDetailRv,
+                VideoListAdapter.LIST_IN_DETAIL);
+        mVideoListInDetailRv.setAdapter(mVideoListInDetailAdapter);
+        mVideoListInDetailAdapter.setData(mMediaList);
+        mVideoListInDetailAdapter.notifyDataSetChanged();
+        mVideoListInDetailRv.setFocusable(false);
     }
 
     private void videoSelected(int position) {
@@ -404,18 +423,31 @@ public class PinePlayerActivity extends AppCompatActivity {
 
     // 自定义RecyclerView的数据Adapter
     class VideoListAdapter extends RecyclerView.Adapter {
+        private static final int LIST_IN_PLAYER = 1;
+        private static final int LIST_IN_DETAIL = 2;
+        private int mListType;
         private VideoViewHolder mPreSelectedViewHolder;
         private List<PineMediaPlayerBean> mData;
         private RecyclerView mRecyclerView;
 
-        public VideoListAdapter(RecyclerView view) {
+        public VideoListAdapter(RecyclerView view, int type) {
             this.mRecyclerView = view;
+            this.mListType = type;
         }
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(PinePlayerActivity.this)
-                    .inflate(R.layout.item_video_in_player, parent, false);
+            View view = null;
+            switch (mListType) {
+                case LIST_IN_DETAIL:
+                    view = LayoutInflater.from(PinePlayerActivity.this)
+                            .inflate(R.layout.item_video_in_detail, parent, false);
+                    break;
+                default:
+                    view = LayoutInflater.from(PinePlayerActivity.this)
+                            .inflate(R.layout.item_video_in_player, parent, false);
+                    break;
+            }
             VideoViewHolder viewHolder = new VideoViewHolder(view);
             return viewHolder;
         }
@@ -429,6 +461,9 @@ public class PinePlayerActivity extends AppCompatActivity {
             }
             boolean isSelected = position == mCurrentVideoPosition;
             myHolder.itemView.setSelected(isSelected);
+            if (myHolder.mItemImg != null) {
+                myHolder.mItemImg.setSelected(isSelected);
+            }
             myHolder.mItemTv.setSelected(isSelected);
             myHolder.mTextPaint.setFakeBoldText(isSelected);
             if (isSelected) {
@@ -441,11 +476,17 @@ public class PinePlayerActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     if (mPreSelectedViewHolder != null) {
                         mPreSelectedViewHolder.itemView.setSelected(false);
+                        if (mPreSelectedViewHolder.mItemImg != null) {
+                            mPreSelectedViewHolder.mItemImg.setSelected(false);
+                        }
                         mPreSelectedViewHolder.mItemTv.setSelected(false);
                         mPreSelectedViewHolder.mTextPaint.setFakeBoldText(false);
                     }
                     mPreSelectedViewHolder = myHolder;
                     myHolder.itemView.setSelected(true);
+                    if (myHolder.mItemImg != null) {
+                        myHolder.mItemImg.setSelected(true);
+                    }
                     myHolder.mItemTv.setSelected(true);
                     myHolder.mTextPaint.setFakeBoldText(true);
                     videoSelected(position);
@@ -465,11 +506,13 @@ public class PinePlayerActivity extends AppCompatActivity {
 
     // 自定义的ViewHolder，持有每个Item的的所有界面元素
     class VideoViewHolder extends RecyclerView.ViewHolder {
+        public ImageView mItemImg;
         public TextView mItemTv;
         public TextPaint mTextPaint;
 
         public VideoViewHolder(View view) {
             super(view);
+            mItemImg = (ImageView) view.findViewById(R.id.rv_video_item_img);
             mItemTv = (TextView) view.findViewById(R.id.rv_video_item_text);
             mTextPaint = mItemTv.getPaint();
         }

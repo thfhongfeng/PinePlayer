@@ -782,6 +782,27 @@ public class PineSurfaceView extends SurfaceView {
         return super.onKeyDown(keyCode, event);
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (mMediaController != null) {
+                    if (isPlaying() || isPause()) {
+                        mMediaController.toggleMediaControlsVisibility();
+                    } else {
+                        mMediaController.show(0);
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
 
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format,
@@ -809,7 +830,9 @@ public class PineSurfaceView extends SurfaceView {
             Log.d(TAG, "surfaceDestroyed");
             // after we return from this we can't use the surface any more
             mSurfaceHolder = null;
-            if (mMediaController != null) mMediaController.hide();
+            if (mMediaController != null) {
+                mMediaController.hide();
+            }
             release(true);
         }
     };

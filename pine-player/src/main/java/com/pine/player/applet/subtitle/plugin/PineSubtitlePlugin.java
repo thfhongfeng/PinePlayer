@@ -87,8 +87,8 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
     }
 
     @Override
-    public PinePluginViewHolder createViewHolder(boolean isFullScreen) {
-        return createViewHolder(mContext, isFullScreen);
+    public int getContainerType() {
+        return IPinePlayerPlugin.TYPE_MATCH_SURFACE;
     }
 
     @Override
@@ -168,8 +168,6 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
         updateSubtitleText(null);
         mContext = null;
     }
-
-    public abstract PinePluginViewHolder createViewHolder(Context context, boolean isFullScreen);
 
     public abstract List<PineSubtitleBean> parseSubtitleBufferedReader(BufferedReader bufferedReader);
 

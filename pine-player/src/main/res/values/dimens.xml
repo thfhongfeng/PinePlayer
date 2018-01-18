@@ -11,8 +11,8 @@
     <dimen name="pine_media_name_text">14sp</dimen>
     <dimen name="pine_controller_text">12sp</dimen>
 
-    <dimen name="pine_full_subtitle_margin">30dp</dimen>
-    <dimen name="pine_subtitle_margin">20dp</dimen>
+    <dimen name="pine_full_subtitle_margin">20dp</dimen>
+    <dimen name="pine_subtitle_margin">10dp</dimen>
     <dimen name="pine_full_subtitle_text">16sp</dimen>
     <dimen name="pine_subtitle_text">14sp</dimen>
 </resources>

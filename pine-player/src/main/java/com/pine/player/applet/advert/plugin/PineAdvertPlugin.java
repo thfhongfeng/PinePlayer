@@ -121,8 +121,8 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
     }
 
     @Override
-    public PinePluginViewHolder createViewHolder(boolean isFullScreen) {
-        return createViewHolder(mContext, isFullScreen);
+    public int getContainerType() {
+        return IPinePlayerPlugin.TYPE_MATCH_CONTROLLER;
     }
 
     @Override
@@ -255,8 +255,6 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
         return mIsPlayingHeadAdvert || mIsPlayingPauseAdvert ||
                 mIsPlayingCompleteAdvert || mIsPlayingTimeAdvert;
     }
-
-    public abstract PinePluginViewHolder createViewHolder(Context context, boolean isFullScreen);
 
     public abstract void playAdvert(Context context, PineMediaWidget.IPineMediaPlayer player,
                                     PineAdvertBean advertBean, int advertType);
