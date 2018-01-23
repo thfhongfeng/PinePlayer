@@ -124,7 +124,7 @@ public class PineMediaWidget {
         /**
          * 更新音量显示
          */
-        void updateVolumes();
+        void updateVolumesText();
 
         /**
          * 播放按键RequestFocus

@@ -747,7 +747,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
                     || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE
                     || keyCode == KeyEvent.KEYCODE_CAMERA) {
                 // don't show the controls for volume adjustment
-                mMediaController.updateVolumes();
+                mMediaController.updateVolumesText();
                 return super.dispatchKeyEvent(event);
             } else if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
                 if (uniqueDown && mCurrentState == STATE_PLAYING

@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -17,6 +18,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -60,6 +63,7 @@ public class PineMediaController extends RelativeLayout
 
     private final Activity mContext;
     private AudioManager mAudioManager;
+    private Window mWindow;
     private int mMaxVolumes;
 
     // 播放器
@@ -169,6 +173,7 @@ public class PineMediaController extends RelativeLayout
         mContext = context;
         mUseFastForward = true;
         mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        mWindow = mContext.getWindow();
         mMaxVolumes = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         mGestureDetector = new GestureDetector(context, this);
     }
@@ -180,6 +185,7 @@ public class PineMediaController extends RelativeLayout
         mContext = context;
         mUseFastForward = useFastForward;
         mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        mWindow = mContext.getWindow();
         mMaxVolumes = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         mGestureDetector = new GestureDetector(context, this);
     }
@@ -302,6 +308,39 @@ public class PineMediaController extends RelativeLayout
 
     private int getCurVolumes() {
         return mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    /**
+     * 获取系统当前亮度
+     * @return
+     */
+    private int getSystemBrightness() {
+        int brightValue = 0;
+        try {
+            brightValue = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        return brightValue;
+    }
+
+    /**
+     * 获取应用当前亮度
+     * @return  0.0（暗）～1.0（亮）
+     */
+    private float getAppBrightness() {
+        WindowManager.LayoutParams layoutParams = mWindow.getAttributes();
+        return layoutParams.screenBrightness;
+    }
+
+    /**
+     *
+     * @param brightnessValue 0（暗）～255（亮）(screenBrightness = -1.0f表示恢复为系统亮度)
+     */
+    private void setAppBrightness(int brightnessValue) {
+        WindowManager.LayoutParams layoutParams = mWindow.getAttributes();
+        layoutParams.screenBrightness = (brightnessValue < 0 ? -1.0f : brightnessValue / 255f);
+        mWindow.setAttributes(layoutParams);
     }
 
     /**
@@ -777,7 +816,7 @@ public class PineMediaController extends RelativeLayout
     }
 
     @Override
-    public void updateVolumes() {
+    public void updateVolumesText() {
         if (mAnchor == null) {
             return;
         }
@@ -1179,7 +1218,7 @@ public class PineMediaController extends RelativeLayout
      */
     private void updateControllerVisibility(boolean needShow) {
         if (mControllerMonitor == null
-                || !mControllerMonitor.updateControllerVisibility(needShow,
+                || !mControllerMonitor.onControllerVisibilityUpdate(needShow,
                 this, mPlayer, mControllerViewHolder)) {
             if (needShow) {
                 if (mControllerViewHolder.getTopControllerView() != null) {
@@ -1282,7 +1321,7 @@ public class PineMediaController extends RelativeLayout
      */
     private void updateSpeedButton() {
         if (mControllerMonitor == null
-                || !mControllerMonitor.updateSpeedButton(mControllerViewHolder
+                || !mControllerMonitor.onSpeedUpdate(mControllerViewHolder
                 .getSpeedButton(), mPlayer)) {
             if (mControllerViewHolder.getSpeedButton() == null) {
                 return;
@@ -1299,7 +1338,7 @@ public class PineMediaController extends RelativeLayout
      */
     private void updatePausePlayButton() {
         if (mControllerMonitor == null
-                || !mControllerMonitor.updatePausePlayButton(mControllerViewHolder
+                || !mControllerMonitor.onPausePlayUpdate(mControllerViewHolder
                 .getPausePlayButton(), mPlayer)) {
             if (mControllerViewHolder.getPausePlayButton() == null) {
                 return;
@@ -1313,7 +1352,7 @@ public class PineMediaController extends RelativeLayout
      */
     public void updateCurrentTimeText(int position) {
         if (mControllerMonitor == null
-                || !mControllerMonitor.updateCurrentTimeText(mControllerViewHolder
+                || !mControllerMonitor.onCurrentTimeUpdate(mControllerViewHolder
                 .getCurrentTimeText(), position)) {
             if (mControllerViewHolder.getCurrentTimeText() == null) {
                 return;
@@ -1329,7 +1368,7 @@ public class PineMediaController extends RelativeLayout
      */
     public void updateEndTimeText(int duration) {
         if (mControllerMonitor == null
-                || !mControllerMonitor.updateEndTimeText(mControllerViewHolder
+                || !mControllerMonitor.onEndTimeUpdate(mControllerViewHolder
                 .getEndTimeText(), duration)) {
             if (mControllerViewHolder.getEndTimeText() == null) {
                 return;
@@ -1345,7 +1384,7 @@ public class PineMediaController extends RelativeLayout
      */
     public void updateVolumesText(int curVolumes, int maxVolumes) {
         if (mControllerMonitor == null
-                || !mControllerMonitor.updateVolumesText(mControllerViewHolder
+                || !mControllerMonitor.onVolumesUpdate(mControllerViewHolder
                 .getVolumesText(), curVolumes, maxVolumes)) {
             if (mControllerViewHolder.getVolumesText() == null) {
                 return;
@@ -1362,7 +1401,7 @@ public class PineMediaController extends RelativeLayout
      */
     public void updateMediaNameText(PineMediaPlayerBean pineMediaPlayerBean) {
         if (mControllerMonitor == null
-                || !mControllerMonitor.updateMediaNameText(mControllerViewHolder
+                || !mControllerMonitor.onMediaNameUpdate(mControllerViewHolder
                 .getMediaNameText(), pineMediaPlayerBean)) {
             if (mControllerViewHolder.getMediaNameText() == null) {
                 return;
@@ -1371,6 +1410,12 @@ public class PineMediaController extends RelativeLayout
                 ((TextView) mControllerViewHolder.getMediaNameText())
                         .setText(pineMediaPlayerBean.getMediaName());
             }
+        }
+    }
+
+    public void updateBrightnessText(int brightValue) {
+        if (mControllerMonitor == null
+                || !mControllerMonitor.onBrightnessUpdate(brightValue)) {
         }
     }
 
@@ -1422,8 +1467,10 @@ public class PineMediaController extends RelativeLayout
 
     private boolean mDraggingX, mDraggingY, mStartDragging;
     private int mStartVolumeByDragging;
+    private int mStartBrightnessByDragging;
     private float mPreX, mPreY;
     private final float INSTANCE_PER_VOLUME = 40.0f;
+    private final float INSTANCE_PER_BRIGHTNESS = 1.0f;
     private final float INSTANCE_DEVIATION = 20.0f;
 
     @Override
@@ -1432,7 +1479,6 @@ public class PineMediaController extends RelativeLayout
             mControllersActionListener.onScreenDown(e);
         }
         mStartDragging = false;
-        mStartVolumeByDragging = getCurVolumes();
         mPreX = e.getX();
         mPreY = e.getY();
         return true;
@@ -1479,9 +1525,22 @@ public class PineMediaController extends RelativeLayout
                 }
                 if (mDraggingX != mDraggingY) {
                     if (mDraggingX) {
+                        if (!mStartDragging) {
+                            mStartVolumeByDragging = getCurVolumes();
+                        }
                         onScrollAction(true, curX - downX);
                     } else if (mDraggingY) {
-                        onScrollAction(false, curY - downY);
+                        if (!mStartDragging) {
+                            float appBright = getAppBrightness();
+                            int systemBrightness = getSystemBrightness();
+                            if (appBright < 0.0f) {
+                                mStartBrightnessByDragging = systemBrightness;
+                            } else {
+                                int appBrightness = ((int) (appBright * 255));
+                                mStartBrightnessByDragging = appBrightness > 255 ? 255 : appBrightness;
+                            }
+                        }
+                        onScrollAction(false, downY - curY );
                     }
                 }
                 mStartDragging = true;
@@ -1513,15 +1572,21 @@ public class PineMediaController extends RelativeLayout
             int amount = (int) (changeDistance / INSTANCE_PER_VOLUME);
             if (amount != 0) {
                 int newVolume = mStartVolumeByDragging + amount;
-                int maxVolume =  mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-                if (newVolume >= 0 && newVolume <= maxVolume) {
+                if (newVolume >= 0 && newVolume <= mMaxVolumes) {
                     mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume,
                             AudioManager.FLAG_PLAY_SOUND | AudioManager.FLAG_SHOW_UI);
-                    updateVolumes();
+                    updateVolumesText();
                 }
             }
         } else {
-
+            int amount = (int) (changeDistance / INSTANCE_PER_BRIGHTNESS);
+            if (amount != 0) {
+                int newBrightness = mStartBrightnessByDragging + amount;
+                if (newBrightness >= 0 && newBrightness <= 255) {
+                    setAppBrightness(newBrightness);
+                    updateBrightnessText(newBrightness);
+                }
+            }
         }
     }
 
@@ -1762,7 +1827,7 @@ public class PineMediaController extends RelativeLayout
          * @return true-消耗了该事件，阻止播放控制器默认的行为;
          * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
          */
-        public boolean updateControllerVisibility(
+        public boolean onControllerVisibilityUpdate(
                 boolean needShow, PineMediaWidget.IPineMediaController controller,
                 PineMediaWidget.IPineMediaPlayer player, PineControllerViewHolder viewHolder) {
             return false;
@@ -1793,7 +1858,7 @@ public class PineMediaController extends RelativeLayout
          * @param speedBtn 播放倍速控件
          * @param player       播放器
          */
-        public boolean updateSpeedButton(View speedBtn, PineMediaWidget.IPineMediaPlayer player) {
+        public boolean onSpeedUpdate(View speedBtn, PineMediaWidget.IPineMediaPlayer player) {
             return false;
         }
 
@@ -1803,7 +1868,7 @@ public class PineMediaController extends RelativeLayout
          * @param pausePlayBtn 播放暂停控件
          * @param player       播放器
          */
-        public boolean updatePausePlayButton(View pausePlayBtn, PineMediaWidget.IPineMediaPlayer player) {
+        public boolean onPausePlayUpdate(View pausePlayBtn, PineMediaWidget.IPineMediaPlayer player) {
             return false;
         }
 
@@ -1813,7 +1878,7 @@ public class PineMediaController extends RelativeLayout
          * @param currentTimeText 播放时间显示控件
          * @param currentTime     当前播放器播放时间
          */
-        public boolean updateCurrentTimeText(View currentTimeText, int currentTime) {
+        public boolean onCurrentTimeUpdate(View currentTimeText, int currentTime) {
             return false;
         }
 
@@ -1823,7 +1888,7 @@ public class PineMediaController extends RelativeLayout
          * @param endTimeText 播放总时长显示控件
          * @param endTime     播放总时长
          */
-        public boolean updateEndTimeText(View endTimeText, int endTime) {
+        public boolean onEndTimeUpdate(View endTimeText, int endTime) {
             return false;
         }
 
@@ -1834,7 +1899,7 @@ public class PineMediaController extends RelativeLayout
          * @param curVolumes  当前音量
          * @param maxVolumes  最大音量
          */
-        public boolean updateVolumesText(View volumesText, int curVolumes, int maxVolumes) {
+        public boolean onVolumesUpdate(View volumesText, int curVolumes, int maxVolumes) {
             return false;
         }
 
@@ -1844,7 +1909,16 @@ public class PineMediaController extends RelativeLayout
          * @param mediaNameText media名称显示控件
          * @param mediaEntity   media实体
          */
-        public boolean updateMediaNameText(View mediaNameText, PineMediaPlayerBean mediaEntity) {
+        public boolean onMediaNameUpdate(View mediaNameText, PineMediaPlayerBean mediaEntity) {
+            return false;
+        }
+
+        /**
+         * 播放器亮度发生改变时回调
+         * @param brightValue 0（暗）～255（亮）(screenBrightness = -1.0f表示恢复为系统亮度)
+         * @return
+         */
+        public boolean onBrightnessUpdate(int brightValue) {
             return false;
         }
     }
