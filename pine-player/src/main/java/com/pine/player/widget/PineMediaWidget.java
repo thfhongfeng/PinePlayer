@@ -1,5 +1,6 @@
 package com.pine.player.widget;
 
+import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.pine.player.bean.PineMediaPlayerBean;
@@ -16,21 +17,33 @@ public class PineMediaWidget {
      * 播放控制器接口，主要提供给播放器使用
      */
     public static interface IPineMediaController {
+
         /**
          * 设置播放器
          * @param player   播放器
-         * @param videoViewTag   播放Tag
          */
-        void setMediaPlayer(IPineMediaPlayer player, PineMediaPlayerBean pineMediaPlayerBean,
-                            String videoViewTag);
+        void setMediaPlayer(IPineMediaPlayer player);
+
+        /**
+         * 设置播放器控件Anchor View
+         * @param view
+         */
+        void setAnchorView(ViewGroup view);
+
+        /**
+         * 设置播放内容
+         * @param pineMediaPlayerBean
+         * @param videoViewTag
+         */
+        void setMedia(PineMediaPlayerBean pineMediaPlayerBean,
+                       String videoViewTag);
 
         /**
          * 挂载控制器到播放器上
-         * @param parent
          * @param isPlayerReset 本此attach是否重置了MediaPlayer
          * @param isResumeState 本此attach是否是为了恢复状态
          */
-        void attachToParentView(RelativeLayout parent, boolean isPlayerReset, boolean isResumeState);
+        void attachToParentView(boolean isPlayerReset, boolean isResumeState);
 
         /**
          * 播放和暂停切换
@@ -204,9 +217,9 @@ public class PineMediaWidget {
                                  Map<String, String> headers);
 
         /**
-         * Activity onPause事件
+         * 保存播放状态和进度
          */
-        void onActivityPaused();
+        void savePlayerState();
 
         /**
          * 获取播放总时长

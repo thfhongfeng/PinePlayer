@@ -21,7 +21,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.pine.player.R;
@@ -46,14 +45,14 @@ import java.util.Random;
  * 且该全屏布局必须是RelativeLayout,FrameLayout,LinearLayout中的一种
  */
 
-public class PineSurfaceView extends SurfaceView {
+public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPineMediaPlayer {
 
     private final static String TAG = "PineSurfaceView";
 
     private static final long BACK_PRESSED_EXIT_TIME = 2000;
 
     // 是否使用5.0之后的新API，该API支持本地流播放
-    private static final boolean USE_NEW_API = false;
+    private static final boolean USE_NEW_API = true;
     // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
     private static final int SERVICE_STATE_DISCONNECTED = 1;
     private static final int SERVICE_STATE_CONNECTING = 2;
@@ -102,8 +101,6 @@ public class PineSurfaceView extends SurfaceView {
     private int mSurfaceHeight;
     // 播放器的控制器
     private PineMediaWidget.IPineMediaController mMediaController;
-    // 播放器外层包裹的一层RelativeLayout
-    private PineMediaWidget.IPineMediaPlayer mMediaPlayerProxy;
     private PineMediaWidget.PineMediaPlayerListener mMediaPlayerListener;
     private int mCurrentBufferPercentage;
     // 记录播放位置，在界面切换等情况下，自动恢复到之前的播放位置
@@ -174,10 +171,6 @@ public class PineSurfaceView extends SurfaceView {
         mTargetState = STATE_IDLE;
     }
 
-    protected void setProxy(PineMediaWidget.IPineMediaPlayer mediaPlayer) {
-        mMediaPlayerProxy = mediaPlayer;
-    }
-
     protected void setMediaController(PineMediaWidget.IPineMediaController controller) {
         if (mMediaController != null) {
             mMediaController.hide();
@@ -192,13 +185,10 @@ public class PineSurfaceView extends SurfaceView {
      * @param isResumeState 本此attach是否是为了恢复状态
      */
     private void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
-        if (mMediaPlayer != null && mMediaController != null && mMediaPlayerProxy != null
-                && mMediaBean != null && mMediaPlayerProxy instanceof RelativeLayout) {
+        if (mMediaPlayer != null && mMediaController != null && mMediaBean != null) {
             this.setTag("PineMediaView");
-            mMediaController.setMediaPlayer(mMediaPlayerProxy,
-                    mMediaBean, "PineMediaView");
-            mMediaController.attachToParentView((RelativeLayout) mMediaPlayerProxy,
-                    isPlayerReset, isResumeState);
+            mMediaController.setMedia(mMediaBean, "PineMediaView");
+            mMediaController.attachToParentView(isPlayerReset, isResumeState);
         }
     }
 
@@ -392,11 +382,13 @@ public class PineSurfaceView extends SurfaceView {
         });
     }
 
-    protected float getSpeed() {
+    @Override
+    public float getSpeed() {
         return mSpeed;
     }
 
-    protected void setSpeed(float speed) {
+    @Override
+    public void setSpeed(float speed) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mSpeed = speed;
             mShouldPlayWhenPrepared = isPlaying();
@@ -405,7 +397,8 @@ public class PineSurfaceView extends SurfaceView {
         }
     }
 
-    protected void start() {
+    @Override
+    public void start() {
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
             if (isInPlaybackState()) {
                 Log.d(TAG, "Start media player");
@@ -419,7 +412,8 @@ public class PineSurfaceView extends SurfaceView {
         }
     }
 
-    protected void pause() {
+    @Override
+    public void pause() {
         if (isInPlaybackState()) {
             if (mMediaPlayer.isPlaying()) {
                 Log.d(TAG, "Pause media player");
@@ -431,26 +425,36 @@ public class PineSurfaceView extends SurfaceView {
         mTargetState = STATE_PAUSED;
     }
 
-    protected void suspend() {
+    @Override
+    public void suspend() {
         release(false);
     }
 
-    protected void resume() {
+    @Override
+    public void resume() {
         openMedia(true);
     }
 
-    protected void resetMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
+    @Override
+    public void release() {
+        release(true);
+    }
+
+    @Override
+    public void resetMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
                                        Map<String, String> headers) {
         setMedia(pineMediaPlayerBean, headers, true);
     }
 
-    protected void onActivityPaused() {
+    @Override
+    public void savePlayerState() {
         mShouldPlayWhenPrepared = isPlaying();
         mSeekWhenPrepared = getCurrentPosition();
         pause();
     }
 
-    protected int getDuration() {
+    @Override
+    public int getDuration() {
         if (isInPlaybackState()) {
             return mMediaPlayer.getDuration();
         }
@@ -458,26 +462,31 @@ public class PineSurfaceView extends SurfaceView {
         return -1;
     }
 
-    protected int getCurrentPosition() {
+    @Override
+    public int getCurrentPosition() {
         if (isInPlaybackState()) {
             return mMediaPlayer.getCurrentPosition();
         }
         return 0;
     }
 
-    protected int getMediaViewWidth() {
+    @Override
+    public int getMediaViewWidth() {
         return mMediaWidth;
     }
 
-    protected int getMediaViewHeight() {
+    @Override
+    public int getMediaViewHeight() {
         return mMediaHeight;
     }
 
-    protected PineMediaPlayerBean getMediaPlayerBean() {
+    @Override
+    public PineMediaPlayerBean getMediaPlayerBean() {
         return mMediaBean;
     }
 
-    protected void seekTo(int msc) {
+    @Override
+    public void seekTo(int msc) {
         if (isInPlaybackState()) {
             mMediaPlayer.seekTo(msc);
             mSeekWhenPrepared = 0;
@@ -486,51 +495,62 @@ public class PineSurfaceView extends SurfaceView {
         }
     }
 
-    protected boolean isPlaying() {
+    @Override
+    public boolean isPlaying() {
         return isInPlaybackState() && mMediaPlayer.isPlaying();
     }
 
-    protected boolean isPause() {
+    @Override
+    public boolean isPause() {
         return isInPlaybackState() && mCurrentState == STATE_PAUSED;
     }
 
-    public void toggleFullScreenMode() {
+    @Override
+    public void toggleFullScreenMode(boolean isLocked) {
         mIsFullScreenMode = !mIsFullScreenMode;
     }
 
+    @Override
     public boolean isFullScreenMode() {
         return mIsFullScreenMode;
     }
 
-    protected int getBufferPercentage() {
+    @Override
+    public int getBufferPercentage() {
         if (mMediaPlayer != null) {
             return mCurrentBufferPercentage;
         }
         return 0;
     }
 
-    protected int getMediaPlayerState() {
+    @Override
+    public int getMediaPlayerState() {
         return mCurrentState;
     }
 
     // 获取MediaView在onMeasure中调整后的布局属性，只有在onMeasure之后获取才有效
-    protected PineMediaPlayerView.PineMediaViewLayout getMediaAdaptionLayout() {
+    @Override
+    public PineMediaPlayerView.PineMediaViewLayout getMediaAdaptionLayout() {
         return mAdaptionMediaLayout;
     }
 
-    protected boolean canPause() {
+    @Override
+    public boolean canPause() {
         return mCanPause;
     }
 
-    protected boolean canSeekBackward() {
+    @Override
+    public boolean canSeekBackward() {
         return mCanSeekBack;
     }
 
-    protected boolean canSeekForward() {
+    @Override
+    public boolean canSeekForward() {
         return mCanSeekForward;
     }
 
-    protected int getAudioSessionId() {
+    @Override
+    public int getAudioSessionId() {
         if (mAudioSession == 0) {
             MediaPlayer foo = new MediaPlayer();
             mAudioSession = foo.getAudioSessionId();
@@ -539,11 +559,13 @@ public class PineSurfaceView extends SurfaceView {
         return mAudioSession;
     }
 
-    protected void setMediaPlayerListener(PineMediaWidget.PineMediaPlayerListener listener) {
+    @Override
+    public void setMediaPlayerListener(PineMediaWidget.PineMediaPlayerListener listener) {
         mMediaPlayerListener = listener;
     }
 
-    protected boolean isInPlaybackState() {
+    @Override
+    public boolean isInPlaybackState() {
         return (mMediaPlayer != null &&
                 mCurrentState != STATE_ERROR &&
                 mCurrentState != STATE_IDLE &&

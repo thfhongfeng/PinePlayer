@@ -128,7 +128,7 @@ public class PinePlayerActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        mVideoView.onActivityPaused();
+        mVideoView.savePlayerState();
     }
 
     @Override

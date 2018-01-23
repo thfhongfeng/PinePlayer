@@ -2,6 +2,7 @@ package com.pine.player.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -32,24 +33,20 @@ public class PineMediaPlayerView extends RelativeLayout
     public PineMediaPlayerView(Context context) {
         super(context);
         mContext = context;
-        initView(context);
     }
 
     public PineMediaPlayerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
-        initView(context);
     }
 
     public PineMediaPlayerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
-        initView(context);
     }
 
     private void initView(Context context) {
         mPineSurfaceView = new PineSurfaceView(context);
-        mPineSurfaceView.setProxy(this);
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         layoutParams.addRule(CENTER_IN_PARENT);
@@ -60,7 +57,6 @@ public class PineMediaPlayerView extends RelativeLayout
                 // 在第一次绘制之前保存布局layoutParams
                 if (!mPineSurfaceView.isFullScreenMode() && mHalfAnchorLayout == null) {
                     mHalfAnchorLayout = getLayoutParams();
-
                 }
                 getViewTreeObserver().removeOnPreDrawListener(this);
                 return true;
@@ -69,7 +65,12 @@ public class PineMediaPlayerView extends RelativeLayout
     }
 
     public void setMediaController(PineMediaWidget.IPineMediaController controller) {
+        if (mPineSurfaceView == null) {
+            initView(mContext);
+        }
         mPineSurfaceView.setMediaController(controller);
+        controller.setAnchorView(this);
+        controller.setMediaPlayer(this);
     }
 
     public void setLocalStreamMode(boolean isLocalStream) {
@@ -91,6 +92,19 @@ public class PineMediaPlayerView extends RelativeLayout
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         return true;
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        Log.d(TAG, "Attached to window");
+        super.onAttachedToWindow();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        Log.d(TAG, "Detach to window");
+        mPineSurfaceView = null;
+        super.onDetachedFromWindow();
     }
 
     /**
@@ -139,8 +153,8 @@ public class PineMediaPlayerView extends RelativeLayout
     }
 
     @Override
-    public void onActivityPaused() {
-        mPineSurfaceView.onActivityPaused();
+    public void savePlayerState() {
+        mPineSurfaceView.savePlayerState();
     }
 
     @Override
@@ -185,7 +199,7 @@ public class PineMediaPlayerView extends RelativeLayout
 
     @Override
     public void toggleFullScreenMode(boolean isLocked) {
-        mPineSurfaceView.toggleFullScreenMode();
+        mPineSurfaceView.toggleFullScreenMode(isLocked);
         ViewGroup.LayoutParams layoutParams;
         if (mPineSurfaceView.isFullScreenMode()) {
             if (getParent() instanceof RelativeLayout) {
