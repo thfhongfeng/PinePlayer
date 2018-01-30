@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.pine.pineplayer.ui.Activity.PinePlayerActivity"
+            android:name="com.pine.pineplayer.ui.activity.PinePlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/pine_player"
             android:screenOrientation="portrait"
