@@ -72,7 +72,7 @@ public class PineMediaController extends RelativeLayout
     private AbstractMediaControllerAdapter mAdapter;
     // 播放实体
     private PineMediaPlayerBean mMediaBean;
-    private ControllersActionListener mControllersActionListener;
+    private IControllersActionListener mControllersActionListener;
     private ControllerMonitor mControllerMonitor;
 
     private int mPreFadeOutTime;
@@ -862,6 +862,7 @@ public class PineMediaController extends RelativeLayout
                 // use long to avoid overflow
                 long pos = max * position / duration;
                 mControllerViewHolder.getPlayProgressBar().setProgress((int) pos);
+                Log.d(TAG, "setProgress pos:" + pos);
             }
             int percent = mPlayer.getBufferPercentage();
             mControllerViewHolder.getPlayProgressBar().setSecondaryProgress(percent * (int) max / 100);
@@ -1161,6 +1162,9 @@ public class PineMediaController extends RelativeLayout
                             && mBackgroundViewHolder.getContainer() != null) {
                         mBackgroundViewHolder.getContainer().setVisibility(GONE);
                     }
+                }
+                if (!mPlayer.isFullScreenMode()) {
+                    setAppBrightness(-1);
                 }
             }
         }
@@ -1470,7 +1474,7 @@ public class PineMediaController extends RelativeLayout
     private int mStartBrightnessByDragging;
     private float mPreX, mPreY;
     private final float INSTANCE_PER_VOLUME = 40.0f;
-    private final float INSTANCE_PER_BRIGHTNESS = 1.0f;
+    private final float INSTANCE_PER_BRIGHTNESS = 2.0f;
     private final float INSTANCE_DEVIATION = 20.0f;
 
     @Override
@@ -1508,7 +1512,7 @@ public class PineMediaController extends RelativeLayout
     public boolean onScroll(MotionEvent downEvent, MotionEvent curEvent, float distanceX, float distanceY) {
         if (mControllersActionListener == null
                 || !mControllersActionListener.onScreenScroll(downEvent, curEvent, distanceX, distanceY)) {
-            if (mPlayer.isPlaying() || mPlayer.isPause()) {
+            if (mPlayer.isInPlaybackState() && mPlayer.isFullScreenMode()) {
                 float downX = downEvent.getX();
                 float downY = downEvent.getY();
                 float curX = curEvent.getX();
