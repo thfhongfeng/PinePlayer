@@ -23,6 +23,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
+import com.pine.player.PineConstants;
 import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.PineMediaSocketService;
@@ -725,21 +726,21 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
                     || keyCode == KeyEvent.KEYCODE_SPACE) {
                 if (uniqueDown) {
                     mMediaController.doPauseResume();
-                    mMediaController.show(PineMediaController.DEFAULT_TIMEOUT);
+                    mMediaController.show(PineConstants.DEFAULT_SHOW_TIMEOUT);
                     mMediaController.pausePlayBtnRequestFocus();
                 }
                 return true;
             } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
                 if (uniqueDown && !mMediaPlayer.isPlaying()) {
                     start();
-                    mMediaController.show(PineMediaController.DEFAULT_TIMEOUT);
+                    mMediaController.show(PineConstants.DEFAULT_SHOW_TIMEOUT);
                 }
                 return true;
             } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
                     || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
                 if (uniqueDown && mMediaPlayer.isPlaying()) {
                     pause();
-                    mMediaController.show(PineMediaController.DEFAULT_TIMEOUT);
+                    mMediaController.show(PineConstants.DEFAULT_SHOW_TIMEOUT);
                 }
                 return true;
             } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN

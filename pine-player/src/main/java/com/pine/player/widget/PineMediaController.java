@@ -27,6 +27,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.pine.player.PineConstants;
 import com.pine.player.R;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
@@ -55,8 +56,7 @@ public class PineMediaController extends RelativeLayout
     private static final int MSG_BACKGROUND_FADE_OUT = 3;
     private static final int MSG_WAITING_FADE_OUT = 4;
     private static final int MSG_PLUGIN_REFRESH = 5;
-    public static final int PLUGIN_REFRESH_TIME_DELAY = 100;
-    public static final int DEFAULT_TIMEOUT = 6000;
+
     private final static String CONTROLLER_TAG = "Controller_Tag";
 
     private String mMediaViewTag;
@@ -77,7 +77,7 @@ public class PineMediaController extends RelativeLayout
 
     private int mPreFadeOutTime;
     // 播放控制器自动隐藏时间
-    private int mFadeOutTime = DEFAULT_TIMEOUT;
+    private int mFadeOutTime = PineConstants.DEFAULT_SHOW_TIMEOUT;
     // 进度条是否正在拖动
     private boolean mDragging;
     // 控制器是否以getControllerView方式被内置在Media View上
@@ -156,7 +156,7 @@ public class PineMediaController extends RelativeLayout
                     }
                     if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
                         msg = obtainMessage(MSG_PLUGIN_REFRESH);
-                        sendMessageDelayed(msg, PLUGIN_REFRESH_TIME_DELAY);
+                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
                     }
                     break;
             }
@@ -1045,7 +1045,7 @@ public class PineMediaController extends RelativeLayout
             setProgress();
             updatePausePlayButton();
 
-            show(DEFAULT_TIMEOUT);
+            show(PineConstants.DEFAULT_SHOW_TIMEOUT);
 
             // Ensure that progress is properly updated in the future,
             // the call to show() does not guarantee this because it is a
@@ -1077,7 +1077,7 @@ public class PineMediaController extends RelativeLayout
             if (mControllersActionListener == null
                     || !mControllersActionListener.onPlayPauseBtnClick(v, mPlayer)) {
                 doPauseResume();
-                show(DEFAULT_TIMEOUT);
+                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
                 updatePausePlayButton();
             }
         }
@@ -1092,7 +1092,7 @@ public class PineMediaController extends RelativeLayout
                 pos -= 5000; // milliseconds
                 mPlayer.seekTo(pos);
                 setProgress();
-                show(DEFAULT_TIMEOUT);
+                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
             }
         }
     };
@@ -1106,7 +1106,7 @@ public class PineMediaController extends RelativeLayout
                 pos += 15000; // milliseconds
                 mPlayer.seekTo(pos);
                 setProgress();
-                show(DEFAULT_TIMEOUT);
+                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
             }
         }
     };
@@ -1192,7 +1192,8 @@ public class PineMediaController extends RelativeLayout
                     mMediaListViewHolder.getContainer()
                             .setVisibility(!isMediaListLastSelected ? VISIBLE : GONE);
                 }
-                show(!isMediaListLastSelected || !mPlayer.isInPlaybackState() ? 0 : DEFAULT_TIMEOUT);
+                show(!isMediaListLastSelected || !mPlayer.isInPlaybackState() ? 0 :
+                        PineConstants.DEFAULT_SHOW_TIMEOUT);
             }
         }
     };
@@ -1447,7 +1448,7 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public boolean onTrackballEvent(MotionEvent ev) {
-        show(DEFAULT_TIMEOUT);
+        show(PineConstants.DEFAULT_SHOW_TIMEOUT);
         return false;
     }
 

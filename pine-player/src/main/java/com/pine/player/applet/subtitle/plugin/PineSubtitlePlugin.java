@@ -6,7 +6,6 @@ import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.widget.PineMediaWidget;
-import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -29,10 +28,9 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
     private int mSubtitleFileType;
     private String mCharset;
 
+    // 字幕列表，按时间升序排列
     private List<PineSubtitleBean> mSubtitleBeanList;
-    private List<PineSubtitleBean> mSubtitleBeanIteratorList;
-    private PineSubtitleBean mPreSubtitleBean;
-    private int mPreSubtitleBeanIndex = -1;
+    private int mPreSubtitleBeanIndex = 0;
 
     private PineMediaWidget.IPineMediaPlayer mPlayer;
 
@@ -73,15 +71,12 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
             }
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, mCharset));
             mSubtitleBeanList = parseSubtitleBufferedReader(br);
-            mSubtitleBeanIteratorList = new ArrayList<>(mSubtitleBeanList);
             mPlayer = player;
         } catch (FileNotFoundException e) {
             mSubtitleBeanList = null;
-            mSubtitleBeanIteratorList = null;
             e.printStackTrace();
         } catch (IOException e) {
             mSubtitleBeanList = null;
-            mSubtitleBeanIteratorList = null;
             e.printStackTrace();
         }
     }
@@ -128,30 +123,25 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
 
     @Override
     public void onTime(long position) {
-        if (mSubtitleBeanList == null) {
+        if (mSubtitleBeanList == null || mSubtitleBeanList.size() < 1) {
             return;
         }
         boolean isFound = false;
-        if (mPreSubtitleBean == null || position > mPreSubtitleBean.getEndTime()) {
-            PineSubtitleBean tmpBean = null;
-            for (Iterator<PineSubtitleBean> iterator = mSubtitleBeanIteratorList.iterator(); iterator.hasNext(); ) {
-                tmpBean = iterator.next();
-                if (position > tmpBean.getBeginTime()
-                        && position < tmpBean.getEndTime()) {
-                    iterator.remove();
-                    mPreSubtitleBeanIndex = mSubtitleBeanList.indexOf(tmpBean);
-                    mPreSubtitleBean = tmpBean;
+        PineSubtitleBean preBean = mSubtitleBeanList.get(mPreSubtitleBeanIndex);
+        PineSubtitleBean tmpBean = null;
+        if (position > preBean.getEndTime()) {
+            for (int i = mPreSubtitleBeanIndex; i < mSubtitleBeanList.size(); i++) {
+                tmpBean = mSubtitleBeanList.get(i);
+                if (position >= tmpBean.getBeginTime() && position < tmpBean.getEndTime()) {
+                    mPreSubtitleBeanIndex = i;
                     isFound = true;
                     break;
                 }
             }
-        } else if (position < mPreSubtitleBean.getBeginTime()) {
-            PineSubtitleBean tmpBean = null;
+        } else if (position < preBean.getBeginTime()) {
             for (int i = mPreSubtitleBeanIndex; i >= 0; i--) {
                 tmpBean = mSubtitleBeanList.get(i);
-                mSubtitleBeanIteratorList.add(0, tmpBean);
                 if (position > tmpBean.getBeginTime() && position < tmpBean.getEndTime()) {
-                    mPreSubtitleBean = mSubtitleBeanList.get(i);
                     mPreSubtitleBeanIndex = i;
                     isFound = true;
                     break;
@@ -160,7 +150,7 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
         } else {
             isFound = true;
         }
-        updateSubtitleText(isFound ? mPreSubtitleBean : null);
+        updateSubtitleText(isFound ? mSubtitleBeanList.get(mPreSubtitleBeanIndex) : null);
     }
 
     @Override

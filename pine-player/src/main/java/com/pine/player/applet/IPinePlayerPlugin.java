@@ -13,10 +13,10 @@ public interface IPinePlayerPlugin {
     int TYPE_MATCH_CONTROLLER = 1;
     int TYPE_MATCH_SURFACE = 2;
 
+    PinePluginViewHolder createViewHolder(Context context, boolean isFullScreen);
     void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
                 PineMediaWidget.IPineMediaController controller,
                 boolean isPlayerReset, boolean isResumeState);
-    PinePluginViewHolder createViewHolder(Context context, boolean isFullScreen);
     int getContainerType();
     void onMediaPlayerPrepared();
     void onMediaPlayerStart();
