@@ -16,6 +16,7 @@ import com.pine.player.applet.barrage.bean.PartialDisplayBarrageNode;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by tanghongfeng on 2018/2/1.
@@ -70,23 +71,23 @@ public class BarrageCanvasView extends RelativeLayout {
         if (node == null) {
             return false;
         }
-        ObjectAnimator animator = null;
         LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT);
         lp.topMargin = node.getStartPixIndex();
+        int translationX = getWidth() + width + 40;
         if (pineBarrageBean.getDirection() == PineBarrageBean.FROM_RIGHT_TO_LEFT) {
-            animator = ObjectAnimator.ofFloat(textView, "translationX", 0, -(getWidth() + width + 40));
+            translationX = -translationX;
             lp.leftMargin = getWidth() + 20;
         } else if (pineBarrageBean.getDirection() == PineBarrageBean.FROM_LEFT_TO_RIGHT) {
-            animator = ObjectAnimator.ofFloat(textView, "translationX", 0, getWidth() + width + 40);
             lp.leftMargin = -width - 20;
         } else {
             return false;
         }
+        ObjectAnimator animator = ObjectAnimator.ofFloat(textView, "translationX", 0, translationX);
         textView.setLayoutParams(lp);
         addView(textView);
 
-        animator.setDuration(pineBarrageBean.getDuration());
+        animator.setDuration(Math.abs(pineBarrageBean.getDuration() / getWidth() * translationX));
         final LinearInterpolator linearInterpolator = new LinearInterpolator();
         animator.setInterpolator(linearInterpolator);
         animator.start();
