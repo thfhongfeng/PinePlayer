@@ -4,9 +4,9 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Color;
 import android.text.Html;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.RelativeLayout;
@@ -14,9 +14,9 @@ import android.widget.TextView;
 
 import com.pine.player.applet.barrage.bean.PartialDisplayBarrageNode;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
+import com.pine.player.util.LogUtils;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by tanghongfeng on 2018/2/1.
@@ -61,6 +61,7 @@ public class BarrageCanvasView extends RelativeLayout {
 
     public boolean addBarrageItemView(final PineBarrageBean pineBarrageBean) {
         final TextView textView = new TextView(mContext);
+        textView.setTextColor(Color.WHITE);
         textView.setText(Html.fromHtml(pineBarrageBean.getTextBody()));
         int w = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
         int h = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
@@ -159,7 +160,7 @@ public class BarrageCanvasView extends RelativeLayout {
     private PartialDisplayBarrageNode getMatchedNode(int height) {
         PartialDisplayBarrageNode node = mDisplayableHeadNode;
         while (node != null && node.getUntilNextRemainderPix() < height) {
-            Log.d(TAG, "node: " + node);
+            LogUtils.d(TAG, "node: " + node);
             node = node.getNextNode();
         }
         if (node != null) {
@@ -180,7 +181,7 @@ public class BarrageCanvasView extends RelativeLayout {
             if (newNode.getNextNode() != null) {
                 newNode.getNextNode().setPreNode(newNode);
             }
-            Log.d(TAG, "matched node:" + newNode);
+            LogUtils.d(TAG, "matched node:" + newNode);
             return newNode;
         } else {
             return null;
@@ -198,7 +199,7 @@ public class BarrageCanvasView extends RelativeLayout {
         if (node.getNextNode() != null) {
             node.getNextNode().setPreNode(preNode);
         }
-        Log.d(TAG, "freeNodeSpace node:" + node + ", after free, pre node:" + preNode);
+        LogUtils.d(TAG, "freeNodeSpace node:" + node + ", after free, pre node:" + preNode);
         node.setStartPixIndex(-1);
         node.setNodeUsedPix(-1);
         node.setUntilNextRemainderPix(-1);

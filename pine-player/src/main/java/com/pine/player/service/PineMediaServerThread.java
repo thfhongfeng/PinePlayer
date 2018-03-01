@@ -1,9 +1,9 @@
 package com.pine.player.service;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.pine.player.decrytor.IPineMediaDecryptor;
+import com.pine.player.util.LogUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +41,7 @@ public class PineMediaServerThread implements Runnable {
     private IPineMediaDecryptor mPlayerDecryptor;
 
     public PineMediaServerThread(int port) {
-        Log.d(TAG, "construct");
+        LogUtils.d(TAG, "construct");
         try {
             mIsStop = new AtomicBoolean(false);
             mIsNeedReponse = new AtomicBoolean(false);
@@ -61,7 +61,7 @@ public class PineMediaServerThread implements Runnable {
     }
 
     public void release() {
-        Log.d(TAG, "release");
+        LogUtils.d(TAG, "release");
         mIsStop.set(true);
         if (null != mSelector) {
             try {
@@ -86,7 +86,7 @@ public class PineMediaServerThread implements Runnable {
 
     @Override
     public void run() {
-        Log.d(TAG, "run");
+        LogUtils.d(TAG, "run");
         while (!mIsStop.get() && mSelector != null) {
             try {
                 mSelector.select(TIME_OUT);
@@ -96,7 +96,7 @@ public class PineMediaServerThread implements Runnable {
                     try {
                         handleClientRequest(key);
                     } catch (IOException e) {
-                        Log.d(TAG, e.getMessage());
+                        LogUtils.d(TAG, e.getMessage());
                         if (null != key) {
                             key.cancel();
                         }
@@ -108,14 +108,14 @@ public class PineMediaServerThread implements Runnable {
                     keys.remove();
                 }
             } catch (IOException e) {
-                Log.d(TAG, e.getMessage());
+                LogUtils.d(TAG, e.getMessage());
             }
         }
         release();
     }
 
     private void handleClientRequest(SelectionKey key) throws IOException {
-        Log.d(TAG, "handleClientRequest key:" + key);
+        LogUtils.d(TAG, "handleClientRequest key:" + key);
         if (key.isValid()) {
             // 处理新请求
             if (key.isAcceptable()) {

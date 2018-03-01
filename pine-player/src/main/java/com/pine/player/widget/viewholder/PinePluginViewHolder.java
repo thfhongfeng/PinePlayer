@@ -1,6 +1,5 @@
 package com.pine.player.widget.viewholder;
 
-import android.view.View;
 import android.view.ViewGroup;
 
 import com.pine.player.applet.IPinePlayerPlugin;

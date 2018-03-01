@@ -4,9 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.pine.player.decrytor.IPineMediaDecryptor;
+import com.pine.player.util.LogUtils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,16 +18,14 @@ import java.util.concurrent.ThreadFactory;
 
 public class PineMediaSocketService extends Service {
 
-    private final static String TAG = "PineMediaSocketService";
-
     public final static String PINE_MEDIA_SOCKET_PORT_KEY = "port_key";
-
+    private final static String TAG = "PineMediaSocketService";
     private ExecutorService mThreads;
     private PineMediaServerThread mPineMediaServerThread;
 
     @Override
     public IBinder onBind(Intent intent) {
-        int port = intent.getIntExtra( PINE_MEDIA_SOCKET_PORT_KEY, 0);
+        int port = intent.getIntExtra(PINE_MEDIA_SOCKET_PORT_KEY, 0);
         if (mPineMediaServerThread == null && port > 0) {
             mPineMediaServerThread = new PineMediaServerThread(port);
             mThreads.submit(mPineMediaServerThread);
@@ -37,7 +35,7 @@ public class PineMediaSocketService extends Service {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate");
+        LogUtils.d(TAG, "onCreate");
         super.onCreate();
         mThreads = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
@@ -50,7 +48,7 @@ public class PineMediaSocketService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy");
+        LogUtils.d(TAG, "onDestroy");
         if (mPineMediaServerThread != null) {
             mPineMediaServerThread.release();
             mPineMediaServerThread = null;

@@ -16,7 +16,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -27,6 +26,7 @@ import com.pine.player.PineConstants;
 import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.PineMediaSocketService;
+import com.pine.player.util.LogUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,18 +47,6 @@ import java.util.Random;
  */
 
 public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPineMediaPlayer {
-
-    private final static String TAG = "PineSurfaceView";
-
-    private static final long BACK_PRESSED_EXIT_TIME = 2000;
-
-    // 是否使用5.0之后的新API，该API支持本地流播放
-    private static final boolean USE_NEW_API = true;
-    // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
-    private static final int SERVICE_STATE_DISCONNECTED = 1;
-    private static final int SERVICE_STATE_CONNECTING = 2;
-    private static final int SERVICE_STATE_CONNECTED = 3;
-
     // 播放器状态
     public static final int STATE_ERROR = -1;
     public static final int STATE_IDLE = 0;
@@ -67,11 +55,17 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     public static final int STATE_PLAYING = 3;
     public static final int STATE_PAUSED = 4;
     public static final int STATE_PLAYBACK_COMPLETED = 5;
-
+    private final static String TAG = "PineSurfaceView";
+    private static final long BACK_PRESSED_EXIT_TIME = 2000;
+    // 是否使用5.0之后的新API，该API支持本地流播放
+    private static final boolean USE_NEW_API = true;
+    // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
+    private static final int SERVICE_STATE_DISCONNECTED = 1;
+    private static final int SERVICE_STATE_CONNECTING = 2;
+    private static final int SERVICE_STATE_CONNECTED = 3;
     private final int PINE_MEDIA_DEFAULT_PORT = 18888;
     private final String MEDIA_LOCAL_SOCKET_URL = "http://127.0.0.1:";
     private int mSocketPort = PINE_MEDIA_DEFAULT_PORT;
-
 
     private int mCurrentState = STATE_IDLE;
     private int mTargetState = STATE_IDLE;
@@ -95,6 +89,17 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     private MediaPlayer mMediaPlayer = null;
     private int mAudioSession;
     private int mMediaWidth, mMediaHeight;
+    MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
+            new MediaPlayer.OnVideoSizeChangedListener() {
+                public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                    mMediaWidth = mp.getVideoWidth();
+                    mMediaHeight = mp.getVideoHeight();
+                    if (mMediaWidth != 0 && mMediaHeight != 0) {
+                        getHolder().setFixedSize(mMediaWidth, mMediaHeight);
+                        requestLayout();
+                    }
+                }
+            };
     // MediaView在onMeasure中调整后的布局属性，只有在onMeasure之后获取才有效
     private PineMediaPlayerView.PineMediaViewLayout mAdaptionMediaLayout =
             new PineMediaPlayerView.PineMediaViewLayout();
@@ -116,28 +121,184 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     private long mExitTime = -1l;
     private float mSpeed = 1.0f;
 
-    protected PineSurfaceView(Context context) {
-        super(context);
-        mContext = context;
-        initMediaView();
-    }
+    MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
+        public void onPrepared(MediaPlayer mp) {
+            LogUtils.d(TAG, "onPrepared");
+            mCurrentState = STATE_PREPARED;
 
-    protected PineSurfaceView(Context context, AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
+            // Get the capabilities of the player for this stream
+            setMetaData(mp);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(mSpeed));
+            }
+            if (mMediaPlayerListener != null) {
+                mMediaPlayerListener.onPrepared();
+            }
+            if (mMediaController != null) {
+                mMediaController.setControllerEnabled(true);
+                mMediaController.onMediaPlayerPrepared();
+            }
+            mMediaWidth = mp.getVideoWidth();
+            mMediaHeight = mp.getVideoHeight();
 
-    protected PineSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        mContext = context;
-        initMediaView();
-    }
+            int seekToPosition = mSeekWhenPrepared;  // mSeekWhenPrepared may be changed after seekTo() call
+            if (seekToPosition != 0) {
+                seekTo(seekToPosition);
+            }
+            if (mMediaWidth != 0 && mMediaHeight != 0) {
+                //LogUtils.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
+                getHolder().setFixedSize(mMediaWidth, mMediaHeight);
+                if (mSurfaceWidth == mMediaWidth && mSurfaceHeight == mMediaHeight) {
+                    // We didn't actually change the size (it was already at the size
+                    // we need), so we won't get a "surface changed" callback, so
+                    // start the media here instead of in the callback.
+                    if (mTargetState == STATE_PLAYING || mShouldPlayWhenPrepared) {
+                        mShouldPlayWhenPrepared = false;
+                        start();
+                        if (mMediaController != null) {
+                            mMediaController.show();
+                        }
+                    } else if (!isPlaying() &&
+                            (seekToPosition != 0 || getCurrentPosition() > 0)) {
+                        if (mMediaController != null) {
+                            // Show the media controls when we're paused into a media and make 'em stick.
+                            mMediaController.show(0);
+                        }
+                    }
+                }
+            } else {
+                // We don't know the media size yet, but should start anyway.
+                // The media size might be reported to us later.
+                if (mTargetState == STATE_PLAYING) {
+                    start();
+                }
+            }
+            requestFocus();
+        }
+    };
+
+    private MediaPlayer.OnCompletionListener mCompletionListener =
+            new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    int currentPos = getCurrentPosition();
+                    int duration = getDuration();
+                    int bufferPercentage = getBufferPercentage();
+                    LogUtils.d(TAG, "onCompletion currentPos:" + currentPos
+                            + ", duration:" + duration
+                            + ", bufferPercentage:" + bufferPercentage);
+                    if (currentPos != duration && bufferPercentage > 0 && bufferPercentage < 100) {
+                        mCurrentState = STATE_ERROR;
+                        mTargetState = STATE_PLAYING;
+                        mSeekWhenPrepared = currentPos;
+                        mShouldPlayWhenPrepared = true;
+                        if (mMediaController != null) {
+                            mMediaController.onAbnormalComplete();
+                        }
+                        if (mMediaPlayerListener != null) {
+                            mMediaPlayerListener.onAbnormalComplete();
+                        }
+                    } else {
+                        mCurrentState = STATE_PLAYBACK_COMPLETED;
+                        mTargetState = STATE_PLAYBACK_COMPLETED;
+                        if (mMediaController != null) {
+                            mMediaController.onMediaPlayerComplete();
+                        }
+                        if (mMediaPlayerListener != null) {
+                            mMediaPlayerListener.onCompletion();
+                        }
+                    }
+                }
+            };
+
+    private MediaPlayer.OnInfoListener mInfoListener =
+            new MediaPlayer.OnInfoListener() {
+                @Override
+                public boolean onInfo(MediaPlayer mp, int what, int extra) {
+                    LogUtils.d(TAG, "onInfo what: " + what + ", extra:" + extra);
+                    if (mMediaController != null) {
+                        mMediaController.onMediaPlayerInfo(what, extra);
+                    }
+                    if (mMediaPlayerListener != null) {
+                        mMediaPlayerListener.onInfo(what, extra);
+                    }
+                    return true;
+                }
+            };
+
+    private MediaPlayer.OnErrorListener mErrorListener =
+            new MediaPlayer.OnErrorListener() {
+                public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
+                    LogUtils.d(TAG, "Error: " + framework_err + "," + impl_err);
+                    mCurrentState = STATE_ERROR;
+                    mTargetState = STATE_ERROR;
+                    if (mMediaController != null) {
+                        mMediaController.onMediaPlayerError(framework_err, impl_err);
+                    }
+                    release(true);
+                    /* If an error handler has been supplied, use it and finish. */
+                    if (mMediaPlayerListener != null) {
+                        if (mMediaPlayerListener.onError(framework_err, impl_err)) {
+                            return true;
+                        }
+                    }
+
+                    /* Otherwise, pop up an error dialog so the user knows that
+                     * something bad has happened. Only try and pop up the dialog
+                     * if we're attached to a window. When we're going away and no
+                     * longer have a window, don't bother showing the user an error.
+                     */
+                    if (getWindowToken() != null) {
+                        Resources r = mContext.getResources();
+                        int messageId;
+
+                        if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
+                            messageId = Resources.getSystem()
+                                    .getIdentifier("VideoView_error_text_invalid_progressive_playback",
+                                            "string", "android");
+                        } else {
+                            messageId = Resources.getSystem()
+                                    .getIdentifier("VideoView_error_text_unknown",
+                                            "string", "android");
+                        }
+
+                        new AlertDialog.Builder(mContext)
+                                .setMessage(messageId)
+                                .setPositiveButton(Resources.getSystem()
+                                                .getIdentifier("VideoView_error_button",
+                                                        "string", "android"),
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int whichButton) {
+                                                /* If we get here, there is no onError listener, so
+                                                 * at least inform them that the media is over.
+                                                 */
+                                                if (mMediaPlayerListener != null) {
+                                                    mMediaPlayerListener.onCompletion();
+                                                }
+                                            }
+                                        })
+                                .setCancelable(false)
+                                .show();
+                    }
+                    return true;
+                }
+            };
+
+    private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
+            new MediaPlayer.OnBufferingUpdateListener() {
+                public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                    mCurrentBufferPercentage = percent;
+                    if (mMediaController != null) {
+                        mMediaController.onBufferingUpdate(percent);
+                    }
+                }
+            };
 
     // 本地播放流服务（用于低于M版本的本地流播放方案）
     protected ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "Local service connected");
+            LogUtils.d(TAG, "Local service connected");
             mLocalService = ((PineMediaSocketService.MyBinder) service).getService();
             mLocalServiceState = SERVICE_STATE_CONNECTED;
             if (mIsDelayOpenMedia) {
@@ -155,11 +316,60 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG, "Local service disconnected!");
+            LogUtils.d(TAG, "Local service disconnected!");
             mLocalService = null;
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
     };
+
+    SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
+        public void surfaceChanged(SurfaceHolder holder, int format,
+                                   int w, int h) {
+            LogUtils.d(TAG, "surfaceChanged");
+            mSurfaceWidth = w;
+            mSurfaceHeight = h;
+            boolean isValidState = (mTargetState == STATE_PLAYING);
+            boolean hasValidSize = (mMediaWidth == w && mMediaHeight == h);
+            if (mMediaPlayer != null && isValidState && hasValidSize) {
+                if (mSeekWhenPrepared != 0) {
+                    seekTo(mSeekWhenPrepared);
+                }
+                start();
+            }
+        }
+
+        public void surfaceCreated(SurfaceHolder holder) {
+            LogUtils.d(TAG, "surfaceCreated");
+            mSurfaceHolder = holder;
+            openMedia(true);
+        }
+
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            LogUtils.d(TAG, "surfaceDestroyed");
+            // after we return from this we can't use the surface any more
+            mSurfaceHolder = null;
+            if (mMediaController != null) {
+                mMediaController.hide();
+            }
+            release(true);
+        }
+    };
+
+    protected PineSurfaceView(Context context) {
+        super(context);
+        mContext = context;
+        initMediaView();
+    }
+
+    protected PineSurfaceView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    protected PineSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        mContext = context;
+        initMediaView();
+    }
 
     private void initMediaView() {
         mMediaWidth = 0;
@@ -182,6 +392,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     /**
      * 挂载控制器界面
+     *
      * @param isPlayerReset 本此attach是否重置了MediaPlayer
      * @param isResumeState 本此attach是否是为了恢复状态
      */
@@ -212,7 +423,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             Intent intent = new Intent("media.socket.server");
             intent.setPackage(mContext.getPackageName());
             intent.putExtra(PineMediaSocketService.PINE_MEDIA_SOCKET_PORT_KEY, mSocketPort);
-            Log.d(TAG, "Bind local service");
+            LogUtils.d(TAG, "Bind local service");
             mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
         }
     }
@@ -257,6 +468,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     /**
      * 打开多媒体
+     *
      * @param isResumeState 是否是为了恢复状态而重新打开
      */
     protected void openMedia(boolean isResumeState) {
@@ -267,7 +479,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
         if (isNeedLocalService() && mLocalServiceState != SERVICE_STATE_CONNECTED) {
             return;
         }
-        Log.d(TAG, "Open Media mUri:" + mMediaBean.getMediaUri());
+        LogUtils.d(TAG, "Open Media mUri:" + mMediaBean.getMediaUri());
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
         release(false);
@@ -317,13 +529,13 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             mCurrentState = STATE_PREPARING;
             attachMediaController(true, isResumeState);
         } catch (IOException ex) {
-            Log.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
+            LogUtils.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
             return;
         } catch (IllegalArgumentException ex) {
-            Log.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
+            LogUtils.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
@@ -402,7 +614,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     public void start() {
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
             if (isInPlaybackState()) {
-                Log.d(TAG, "Start media player");
+                LogUtils.d(TAG, "Start media player");
                 mMediaPlayer.start();
                 mMediaController.onMediaPlayerStart();
                 mCurrentState = STATE_PLAYING;
@@ -417,7 +629,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     public void pause() {
         if (isInPlaybackState()) {
             if (mMediaPlayer.isPlaying()) {
-                Log.d(TAG, "Pause media player");
+                LogUtils.d(TAG, "Pause media player");
                 mMediaPlayer.pause();
                 mMediaController.onMediaPlayerPause();
                 mCurrentState = STATE_PAUSED;
@@ -443,7 +655,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     @Override
     public void resetMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
-                                       Map<String, String> headers) {
+                                    Map<String, String> headers) {
         setMedia(pineMediaPlayerBean, headers, true);
     }
 
@@ -574,7 +786,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     }
 
     protected void stopPlayback() {
-        Log.d(TAG, "stopPlayback");
+        LogUtils.d(TAG, "stopPlayback");
         if (mMediaPlayer != null) {
             mMediaPlayer.stop();
             mMediaPlayer.release();
@@ -590,7 +802,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     * release the media player in any state
     */
     protected void release(boolean clearTargetState) {
-        Log.d(TAG, "release clearTargetState:" + clearTargetState);
+        LogUtils.d(TAG, "release clearTargetState:" + clearTargetState);
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();
             mMediaPlayer.release();
@@ -614,15 +826,15 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     @Override
     protected void onAttachedToWindow() {
-        Log.d(TAG, "Attached to window");
+        LogUtils.d(TAG, "Attached to window");
         super.onAttachedToWindow();
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        Log.d(TAG, "Detach from window");
+        LogUtils.d(TAG, "Detach from window");
         if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
-            Log.d(TAG, "Unbind local service");
+            LogUtils.d(TAG, "Unbind local service");
             mContext.unbindService(mServiceConnection);
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
@@ -647,10 +859,10 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
                 // for compatibility, we adjust size based on aspect ratio
                 if (mMediaWidth * height < width * mMediaHeight) {
-                    //Log.i("@@@", "image too wide, correcting");
+                    //LogUtils.i("@@@", "image too wide, correcting");
                     width = height * mMediaWidth / mMediaHeight;
                 } else if (mMediaWidth * height > width * mMediaHeight) {
-                    //Log.i("@@@", "image too tall, correcting");
+                    //LogUtils.i("@@@", "image too tall, correcting");
                     height = width * mMediaHeight / mMediaWidth;
                 }
             } else if (widthSpecMode == MeasureSpec.EXACTLY) {
@@ -703,7 +915,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     @Override
     public void draw(Canvas canvas) {
-        Log.d(TAG, "draw");
+        LogUtils.d(TAG, "draw");
         super.draw(canvas);
     }
 
@@ -827,107 +1039,6 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
         return true;
     }
 
-    SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
-        public void surfaceChanged(SurfaceHolder holder, int format,
-                                   int w, int h) {
-            Log.d(TAG, "surfaceChanged");
-            mSurfaceWidth = w;
-            mSurfaceHeight = h;
-            boolean isValidState = (mTargetState == STATE_PLAYING);
-            boolean hasValidSize = (mMediaWidth == w && mMediaHeight == h);
-            if (mMediaPlayer != null && isValidState && hasValidSize) {
-                if (mSeekWhenPrepared != 0) {
-                    seekTo(mSeekWhenPrepared);
-                }
-                start();
-            }
-        }
-
-        public void surfaceCreated(SurfaceHolder holder) {
-            Log.d(TAG, "surfaceCreated");
-            mSurfaceHolder = holder;
-            openMedia(true);
-        }
-
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            Log.d(TAG, "surfaceDestroyed");
-            // after we return from this we can't use the surface any more
-            mSurfaceHolder = null;
-            if (mMediaController != null) {
-                mMediaController.hide();
-            }
-            release(true);
-        }
-    };
-
-    MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
-            new MediaPlayer.OnVideoSizeChangedListener() {
-                public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-                    mMediaWidth = mp.getVideoWidth();
-                    mMediaHeight = mp.getVideoHeight();
-                    if (mMediaWidth != 0 && mMediaHeight != 0) {
-                        getHolder().setFixedSize(mMediaWidth, mMediaHeight);
-                        requestLayout();
-                    }
-                }
-            };
-
-    MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
-        public void onPrepared(MediaPlayer mp) {
-            Log.d(TAG, "onPrepared");
-            mCurrentState = STATE_PREPARED;
-
-            // Get the capabilities of the player for this stream
-            setMetaData(mp);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(mSpeed));
-            }
-            if (mMediaPlayerListener != null) {
-                mMediaPlayerListener.onPrepared();
-            }
-            if (mMediaController != null) {
-                mMediaController.setControllerEnabled(true);
-                mMediaController.onMediaPlayerPrepared();
-            }
-            mMediaWidth = mp.getVideoWidth();
-            mMediaHeight = mp.getVideoHeight();
-
-            int seekToPosition = mSeekWhenPrepared;  // mSeekWhenPrepared may be changed after seekTo() call
-            if (seekToPosition != 0) {
-                seekTo(seekToPosition);
-            }
-            if (mMediaWidth != 0 && mMediaHeight != 0) {
-                //Log.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
-                getHolder().setFixedSize(mMediaWidth, mMediaHeight);
-                if (mSurfaceWidth == mMediaWidth && mSurfaceHeight == mMediaHeight) {
-                    // We didn't actually change the size (it was already at the size
-                    // we need), so we won't get a "surface changed" callback, so
-                    // start the media here instead of in the callback.
-                    if (mTargetState == STATE_PLAYING || mShouldPlayWhenPrepared) {
-                        mShouldPlayWhenPrepared = false;
-                        start();
-                        if (mMediaController != null) {
-                            mMediaController.show();
-                        }
-                    } else if (!isPlaying() &&
-                            (seekToPosition != 0 || getCurrentPosition() > 0)) {
-                        if (mMediaController != null) {
-                            // Show the media controls when we're paused into a media and make 'em stick.
-                            mMediaController.show(0);
-                        }
-                    }
-                }
-            } else {
-                // We don't know the media size yet, but should start anyway.
-                // The media size might be reported to us later.
-                if (mTargetState == STATE_PLAYING) {
-                    start();
-                }
-            }
-            requestFocus();
-        }
-    };
-
     private void setMetaData(MediaPlayer mediaPlayer) {
         mCanPause = true;
         mCanSeekBack = mCanSeekForward = false;
@@ -960,120 +1071,4 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             e.printStackTrace();
         }
     }
-
-    private MediaPlayer.OnCompletionListener mCompletionListener =
-            new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    int currentPos = getCurrentPosition();
-                    int duration = getDuration();
-                    int bufferPercentage = getBufferPercentage();
-                    Log.d(TAG, "onCompletion currentPos:" + currentPos
-                            + ", duration:" + duration
-                            + ", bufferPercentage:" + bufferPercentage);
-                    if (currentPos != duration && bufferPercentage > 0 && bufferPercentage < 100) {
-                        mCurrentState = STATE_ERROR;
-                        mTargetState = STATE_PLAYING;
-                        mSeekWhenPrepared = currentPos;
-                        mShouldPlayWhenPrepared = true;
-                        if (mMediaController != null) {
-                            mMediaController.onAbnormalComplete();
-                        }
-                        if (mMediaPlayerListener != null) {
-                            mMediaPlayerListener.onAbnormalComplete();
-                        }
-                    } else {
-                        mCurrentState = STATE_PLAYBACK_COMPLETED;
-                        mTargetState = STATE_PLAYBACK_COMPLETED;
-                        if (mMediaController != null) {
-                            mMediaController.onMediaPlayerComplete();
-                        }
-                        if (mMediaPlayerListener != null) {
-                            mMediaPlayerListener.onCompletion();
-                        }
-                    }
-                }
-            };
-
-    private MediaPlayer.OnInfoListener mInfoListener =
-            new MediaPlayer.OnInfoListener() {
-                @Override
-                public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                    Log.d(TAG, "onInfo what: " + what + ", extra:" + extra);
-                    if (mMediaController != null) {
-                        mMediaController.onMediaPlayerInfo(what, extra);
-                    }
-                    if (mMediaPlayerListener != null) {
-                        mMediaPlayerListener.onInfo(what, extra);
-                    }
-                    return true;
-                }
-            };
-
-    private MediaPlayer.OnErrorListener mErrorListener =
-            new MediaPlayer.OnErrorListener() {
-                public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
-                    Log.d(TAG, "Error: " + framework_err + "," + impl_err);
-                    mCurrentState = STATE_ERROR;
-                    mTargetState = STATE_ERROR;
-                    if (mMediaController != null) {
-                        mMediaController.onMediaPlayerError(framework_err, impl_err);
-                    }
-                    release(true);
-                    /* If an error handler has been supplied, use it and finish. */
-                    if (mMediaPlayerListener != null) {
-                        if (mMediaPlayerListener.onError(framework_err, impl_err)) {
-                            return true;
-                        }
-                    }
-
-                    /* Otherwise, pop up an error dialog so the user knows that
-                     * something bad has happened. Only try and pop up the dialog
-                     * if we're attached to a window. When we're going away and no
-                     * longer have a window, don't bother showing the user an error.
-                     */
-                    if (getWindowToken() != null) {
-                        Resources r = mContext.getResources();
-                        int messageId;
-
-                        if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
-                            messageId = Resources.getSystem()
-                                    .getIdentifier("VideoView_error_text_invalid_progressive_playback",
-                                            "string", "android");
-                        } else {
-                            messageId = Resources.getSystem()
-                                    .getIdentifier("VideoView_error_text_unknown",
-                                            "string", "android");
-                        }
-
-                        new AlertDialog.Builder(mContext)
-                                .setMessage(messageId)
-                                .setPositiveButton(Resources.getSystem()
-                                                .getIdentifier("VideoView_error_button",
-                                                        "string", "android"),
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int whichButton) {
-                                                /* If we get here, there is no onError listener, so
-                                                 * at least inform them that the media is over.
-                                                 */
-                                                if (mMediaPlayerListener != null) {
-                                                    mMediaPlayerListener.onCompletion();
-                                                }
-                                            }
-                                        })
-                                .setCancelable(false)
-                                .show();
-                    }
-                    return true;
-                }
-            };
-
-    private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
-            new MediaPlayer.OnBufferingUpdateListener() {
-                public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                    mCurrentBufferPercentage = percent;
-                    if (mMediaController != null) {
-                        mMediaController.onBufferingUpdate(percent);
-                    }
-                }
-            };
 }

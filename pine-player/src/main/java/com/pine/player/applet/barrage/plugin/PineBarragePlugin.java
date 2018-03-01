@@ -3,12 +3,12 @@ package com.pine.player.applet.barrage.plugin;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.barrage.BarrageCanvasView;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
@@ -49,14 +49,12 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
         mBarrageCanvasView.setBarrageItemViewListener(new BarrageCanvasView.IBarrageItemViewListener() {
             @Override
             public void onItemViewAnimatorEnd(PineBarrageBean pineBarrageBean) {
-                clearPineBarrageBeanState(pineBarrageBean);
-                mShownBarrageList.remove(pineBarrageBean);
+                clearPineBarrageBean(pineBarrageBean);
             }
 
             @Override
             public void onAnimationCancel(PineBarrageBean pineBarrageBean) {
-                clearPineBarrageBeanState(pineBarrageBean);
-                mShownBarrageList.remove(pineBarrageBean);
+                clearPineBarrageBean(pineBarrageBean);
             }
         });
         return viewHolder;
@@ -144,9 +142,9 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
             PineBarrageBean pineBarrageBean = null;
             for (int i = 0; i < positionBarrageList.size(); i++) {
                 pineBarrageBean = positionBarrageList.get(i);
-                Log.d(TAG, "onTime add barrage text:" + pineBarrageBean.getTextBody());
+                LogUtils.d(TAG, "onTime prepare to add barrage text:" + pineBarrageBean.getTextBody());
                 if (mBarrageCanvasView.addBarrageItemView(pineBarrageBean)) {
-                    Log.d(TAG, "onTime barrage added text:" + pineBarrageBean.getTextBody());
+                    LogUtils.d(TAG, "onTime barrage added text:" + pineBarrageBean.getTextBody());
                     pineBarrageBean.setShow(true);
                     mShownBarrageList.add(pineBarrageBean);
                 }
@@ -168,7 +166,7 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
             mPreFirstPDBIndex = 0;
             mPreLastPDBIndex = 0;
         }
-        Log.d(TAG, "setBarrageData mBarrageList:" + mBarrageList);
+        LogUtils.d(TAG, "setBarrageData mBarrageList:" + mBarrageList);
     }
 
     private void clear() {
@@ -180,15 +178,16 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     }
 
     private void resetBarrage() {
-        for (int i = 0; i < mShownBarrageList.size(); i++) {
-            PineBarrageBean pineBarrageBean = mShownBarrageList.get(i);
+        LogUtils.d(TAG, "resetBarrage");
+        while (mShownBarrageList.size() > 0) {
+            PineBarrageBean pineBarrageBean = mShownBarrageList.get(0);
             ObjectAnimator animator = pineBarrageBean.getAnimator();
             if (animator != null && (animator.isRunning() ||
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
                             && animator.isPaused())) {
                 animator.cancel();
             }
-            clearPineBarrageBeanState(pineBarrageBean);
+            clearPineBarrageBean(pineBarrageBean);
         }
         mShownBarrageList.clear();
         if (mBarrageCanvasView != null) {
@@ -196,13 +195,15 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
         }
     }
 
-    private void clearPineBarrageBeanState(PineBarrageBean pineBarrageBean) {
-        if (pineBarrageBean != null) {
+    private void clearPineBarrageBean(PineBarrageBean pineBarrageBean) {
+        if (pineBarrageBean != null && pineBarrageBean.isShow()) {
+            LogUtils.d(TAG, "clearPineBarrageBeanState pineBarrageBean:" + pineBarrageBean.getTextBody());
             pineBarrageBean.setPartialDisplayBarrageNode(null);
             pineBarrageBean.setShow(false);
             pineBarrageBean.setItemView(null);
             pineBarrageBean.setAnimator(null);
         }
+        mShownBarrageList.remove(pineBarrageBean);
     }
 
     private List<PineBarrageBean> findNeedAddBarrageList(long position) {
@@ -230,11 +231,15 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
                         break;
                     }
                 }
-                if (lastFoundIndex > 0) {
+                if (lastFoundIndex >= 0) {
                     mPreLastPDBIndex = lastFoundIndex;
                     mPreFirstPDBIndex = mPreLastPDBIndex - countMatchSize + 1;
-                    Log.d(TAG, "findNeedAddBarrageList mPreFirstPDBIndex :" +
-                            mPreFirstPDBIndex + ", mPreLastPDBIndex:" + mPreLastPDBIndex);
+                    LogUtils.d(TAG, "findNeedAddBarrageList after index " + lastFoundIndex +
+                            ", found index rang firstPDBIndex :" + mPreFirstPDBIndex +
+                            ", lastPDBIndex:" + mPreLastPDBIndex +
+                            ", position preLastPosition:" + preLastPosition +
+                            ", position:" + position +
+                            ". actual found size (exclude is already show):" + resultList.size());
                 }
             } else if (preFirstPosition >= position) {
                 for (int i = mPreFirstPDBIndex; i >= 0; i--) {
@@ -249,11 +254,15 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
                         break;
                     }
                 }
-                if (lastFoundIndex > 0) {
+                if (lastFoundIndex >= 0) {
                     mPreFirstPDBIndex = lastFoundIndex;
                     mPreLastPDBIndex = mPreFirstPDBIndex + countMatchSize - 1;
-                    Log.d(TAG, "findNeedAddBarrageList mPreFirstPDBIndex :" +
-                            mPreFirstPDBIndex + ", mPreLastPDBIndex:" + mPreLastPDBIndex);
+                    LogUtils.d(TAG, "findNeedAddBarrageList before index " + lastFoundIndex +
+                            ", found index rang firstPDBIndex :" + mPreFirstPDBIndex +
+                            ", lastPDBIndex:" + mPreLastPDBIndex +
+                            ", position preLastPosition:" + preLastPosition +
+                            ", position:" + position +
+                            ". actual found size (exclude is already show):" + resultList.size());
                 }
                 int resultSize = resultList.size();
                 for (int i = 0; i < resultSize / 2; i++) {

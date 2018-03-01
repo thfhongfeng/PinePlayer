@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -31,6 +30,7 @@ import com.pine.player.PineConstants;
 import com.pine.player.R;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineMediaListViewHolder;
@@ -58,14 +58,14 @@ public class PineMediaController extends RelativeLayout
     private static final int MSG_PLUGIN_REFRESH = 5;
 
     private final static String CONTROLLER_TAG = "Controller_Tag";
-
-    private String mMediaViewTag;
-
     private final Activity mContext;
+    private final float INSTANCE_PER_VOLUME = 40.0f;
+    private final float INSTANCE_PER_BRIGHTNESS = 2.0f;
+    private final float INSTANCE_DEVIATION = 20.0f;
+    private String mMediaViewTag;
     private AudioManager mAudioManager;
     private Window mWindow;
     private int mMaxVolumes;
-
     // 播放器
     private PineMediaWidget.IPineMediaPlayer mPlayer;
     // 控制器适配器
@@ -73,8 +73,34 @@ public class PineMediaController extends RelativeLayout
     // 播放实体
     private PineMediaPlayerBean mMediaBean;
     private IControllersActionListener mControllersActionListener;
-    private ControllerMonitor mControllerMonitor;
+    private final View.OnClickListener mNextListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onNextBtnClick(v, mPlayer)) {
 
+            }
+        }
+    };
+    private final View.OnClickListener mPrevListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onPreBtnClick(v, mPlayer)) {
+
+            }
+        }
+    };
+    private final View.OnClickListener mGoBackListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onGoBackBtnClick(v, mPlayer)) {
+
+            }
+        }
+    };
+    private ControllerMonitor mControllerMonitor;
     private int mPreFadeOutTime;
     // 播放控制器自动隐藏时间
     private int mFadeOutTime = PineConstants.DEFAULT_SHOW_TIMEOUT;
@@ -92,7 +118,6 @@ public class PineMediaController extends RelativeLayout
     // 设置此变量是为了防止每次绘制之前重复去调整布局
     private boolean mIsNeedResizeMediaList;
     private boolean mIsNeedResizeSurfacePluginView;
-
     private PineBackgroundViewHolder mBackgroundViewHolder;
     // 插件View容器
     private RelativeLayout mPluginViewContainer;
@@ -102,94 +127,34 @@ public class PineMediaController extends RelativeLayout
     private RelativeLayout mSurfacePluginViewContainer;
     private List<PinePluginViewHolder> mPluginViewHolderList;
     private PineControllerViewHolder mControllerViewHolder;
-    private PineWaitingProgressViewHolder mWaitingProgressViewHolder;
-    private PineMediaListViewHolder mMediaListViewHolder;
-
-    private PineMediaPlayerView.PineMediaViewLayout mAdaptionControllerLayout =
-            new PineMediaPlayerView.PineMediaViewLayout();
-
-    // Controller控件的当前父布局
-    private RelativeLayout mAnchor;
-    // Controller控件本身
-    private View mRoot;
-    private GestureDetector mGestureDetector;
-
-    private List<IPinePlayerPlugin> mPinePluginList;
-
-    private final Handler mHandler = new Handler() {
+    private final View.OnClickListener mSpeedListener = new View.OnClickListener() {
         @Override
-        public void handleMessage(Message msg) {
-            int pos;
-            switch (msg.what) {
-                // 控制器自动隐藏消息
-                case MSG_FADE_OUT:
-                    hide();
-                    break;
-                // 进度条更新消息
-                case MSG_SHOW_PROGRESS:
-                    pos = setProgress();
-                    if (!mDragging && isShowing() &&
-                            (mPlayer.isPlaying() || mPlayer.isPause())) {
-                        msg = obtainMessage(MSG_SHOW_PROGRESS);
-                        int sum = (int) mPlayer.getSpeed();
-                        sum = sum < 1 ? 1: sum;
-                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
-                    }
-                    break;
-                // 背景延迟隐藏消失
-                case MSG_BACKGROUND_FADE_OUT:
-                    if (mBackgroundViewHolder.getContainer() != null) {
-                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
-                    }
-                    break;
-                // 加载等待界面延迟隐藏消失
-                case MSG_WAITING_FADE_OUT:
-                    if (mWaitingProgressViewHolder.getContainer() != null) {
-                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
-                        setControllerEnabled(true);
-                    }
-                    break;
-                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
-                case MSG_PLUGIN_REFRESH:
-                    for (int i = 0; i < mPinePluginList.size(); i++) {
-                        mPinePluginList.get(i).onTime(mPlayer.getCurrentPosition());
-                    }
-                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
-                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
-                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
-                    }
-                    break;
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onSpeedBtnClick(v, mPlayer)) {
+                float speed = mPlayer.getSpeed() + 1.0f;
+                if (speed >= 4.0f) {
+                    speed = 0.5f;
+                } else if (speed == 1.5f) {
+                    speed = 1.0f;
+                }
+                mPlayer.setSpeed(speed);
+                updateSpeedButton();
             }
         }
     };
-
-    public PineMediaController(Activity context) {
-        this(context, true);
-    }
-
-    public PineMediaController(Activity context, AttributeSet attrs) {
-        super(context, attrs);
-        mRoot = this;
-        mContext = context;
-        mUseFastForward = true;
-        mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        mWindow = mContext.getWindow();
-        mMaxVolumes = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        mGestureDetector = new GestureDetector(context, this);
-    }
-
-    public PineMediaController(Activity context, boolean useFastForward) {
-        super(context);
-        mRoot = this;
-        mRoot.setTag(CONTROLLER_TAG);
-        mContext = context;
-        mUseFastForward = useFastForward;
-        mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        mWindow = mContext.getWindow();
-        mMaxVolumes = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        mGestureDetector = new GestureDetector(context, this);
-    }
-
+    private final View.OnClickListener mVolumesListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onVolumesBtnClick(v, mPlayer)) {
+                mControllerViewHolder.getVolumesButton().setSelected(
+                        !mControllerViewHolder.getVolumesButton().isSelected());
+            }
+        }
+    };
+    private PineWaitingProgressViewHolder mWaitingProgressViewHolder;
+    private PineMediaListViewHolder mMediaListViewHolder;
     ViewTreeObserver.OnPreDrawListener mMediaListPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
 
         @Override
@@ -224,61 +189,298 @@ public class PineMediaController extends RelativeLayout
             return true;
         }
     };
-
+    private PineMediaPlayerView.PineMediaViewLayout mAdaptionControllerLayout =
+            new PineMediaPlayerView.PineMediaViewLayout();
+    // Controller控件的当前父布局
+    private RelativeLayout mAnchor;
     ViewTreeObserver.OnPreDrawListener mSurfacePluginPreDrawListener =
             new ViewTreeObserver.OnPreDrawListener() {
 
+                @Override
+                public boolean onPreDraw() {
+                    // 在绘制SubtitleView之前需要调整它的布局属性以适应Controller布局。
+                    if (mSurfacePluginViewContainer != null && mIsNeedResizeSurfacePluginView) {
+                        PineMediaPlayerView.PineMediaViewLayout playerLayoutParams = null;
+                        if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO) {
+                            playerLayoutParams = mPlayer.getMediaAdaptionLayout();
+                        } else {
+                            playerLayoutParams = mAdaptionControllerLayout;
+                        }
+                        if (playerLayoutParams == null) {
+                            return false;
+                        }
+                        RelativeLayout.LayoutParams oldLayoutParams = (RelativeLayout.LayoutParams)
+                                mSurfacePluginViewContainer.getLayoutParams();
+                        int topMargin = -1, bottomMargin = -1;
+                        if (mControllerViewHolder.getTopControllerView() != null) {
+                            int bBottom = mControllerViewHolder.getTopControllerView().getBottom();
+                            if (isShowing() && bBottom > playerLayoutParams.top && !mIsControllerLocked) {
+                                topMargin = bBottom;
+                            } else {
+                                topMargin = playerLayoutParams.top;
+                            }
+                        }
+                        if (mControllerViewHolder.getBottomControllerView() != null) {
+                            int bTop = mControllerViewHolder.getBottomControllerView().getTop();
+                            if (isShowing() && bTop < playerLayoutParams.bottom && !mIsControllerLocked) {
+                                bottomMargin = getMeasuredHeight() - bTop;
+                            } else {
+                                bottomMargin = getMeasuredHeight() - playerLayoutParams.bottom;
+                            }
+                        }
+                        if (oldLayoutParams.topMargin == topMargin &&
+                                oldLayoutParams.bottomMargin == bottomMargin) {
+                            mIsNeedResizeSurfacePluginView = false;
+                        } else {
+                            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+                                    playerLayoutParams.width, playerLayoutParams.height);
+                            if (topMargin != -1) {
+                                layoutParams.topMargin = topMargin;
+                            }
+                            if (bottomMargin != -1) {
+                                layoutParams.bottomMargin = bottomMargin;
+                            }
+                            layoutParams.addRule(CENTER_IN_PARENT);
+                            mSurfacePluginViewContainer.setLayoutParams(layoutParams);
+                        }
+                    }
+                    return true;
+                }
+            };
+    // There are two scenarios that can trigger the seekbar listener to trigger:
+    //
+    // The first is the user using the touchpad to adjust the posititon of the
+    // seekbar's thumb. In this case onStartTrackingTouch is called followed by
+    // a number of onProgressChanged notifications, concluded by onStopTrackingTouch.
+    // We're setting the field "mDragging" to true for the duration of the dragging
+    // session to avoid jumps in the position in case of ongoing playback.
+    //
+    // The second scenario involves the user operating the scroll ball, in this
+    // case there WON'T BE onStartTrackingTouch/onStopTrackingTouch notifications,
+    // we will simply apply the updated position without suspending regular updates.
+    private final SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
-        public boolean onPreDraw() {
-            // 在绘制SubtitleView之前需要调整它的布局属性以适应Controller布局。
-            if (mSurfacePluginViewContainer != null && mIsNeedResizeSurfacePluginView) {
-                PineMediaPlayerView.PineMediaViewLayout playerLayoutParams = null;
-                if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO) {
-                    playerLayoutParams = mPlayer.getMediaAdaptionLayout();
-                } else {
-                    playerLayoutParams = mAdaptionControllerLayout;
-                }
-                if (playerLayoutParams == null) {
-                    return false;
-                }
-                RelativeLayout.LayoutParams oldLayoutParams = (RelativeLayout.LayoutParams)
-                        mSurfacePluginViewContainer.getLayoutParams();
-                int topMargin = -1, bottomMargin = -1;
-                if (mControllerViewHolder.getTopControllerView() != null) {
-                    int bBottom = mControllerViewHolder.getTopControllerView().getBottom();
-                    if (isShowing() && bBottom > playerLayoutParams.top && !mIsControllerLocked) {
-                        topMargin = bBottom;
-                    } else {
-                        topMargin = playerLayoutParams.top;
-                    }
-                }
-                if (mControllerViewHolder.getBottomControllerView() != null) {
-                    int bTop = mControllerViewHolder.getBottomControllerView().getTop();
-                    if (isShowing() && bTop < playerLayoutParams.bottom && !mIsControllerLocked) {
-                        bottomMargin = getMeasuredHeight() - bTop;
-                    } else {
-                        bottomMargin = getMeasuredHeight() - playerLayoutParams.bottom;
-                    }
-                }
-                if (oldLayoutParams.topMargin == topMargin &&
-                        oldLayoutParams.bottomMargin == bottomMargin) {
-                    mIsNeedResizeSurfacePluginView = false;
-                } else {
-                    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                            playerLayoutParams.width, playerLayoutParams.height);
-                    if (topMargin != -1) {
-                        layoutParams.topMargin = topMargin;
-                    }
-                    if (bottomMargin != -1) {
-                        layoutParams.bottomMargin = bottomMargin;
-                    }
-                    layoutParams.addRule(CENTER_IN_PARENT);
-                    mSurfacePluginViewContainer.setLayoutParams(layoutParams);
-                }
+        public void onStartTrackingTouch(SeekBar bar) {
+            show(3600000);
+
+            mDragging = true;
+
+            // By removing these pending progress messages we make sure
+            // that a) we won't update the progress while the user adjusts
+            // the seekbar and b) once the user is done dragging the thumb
+            // we will post one of these messages to the queue again and
+            // this ensures that there will be exactly one message queued up.
+            mHandler.removeMessages(MSG_SHOW_PROGRESS);
+        }
+
+        @Override
+        public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
+            if (!fromuser) {
+                // We're not interested in programmatically generated changes to
+                // the progress bar's position.
+                return;
             }
-            return true;
+
+            long duration = mPlayer.getDuration();
+            long newPosition = (duration * progress) / 1000L;
+            mPlayer.seekTo((int) newPosition);
+            updateCurrentTimeText((int) newPosition);
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar bar) {
+            mDragging = false;
+            setProgress();
+            updatePausePlayButton();
+
+            show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+
+            // Ensure that progress is properly updated in the future,
+            // the call to show() does not guarantee this because it is a
+            // no-op if we are already showing.
+            mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
         }
     };
+    private final View.OnClickListener mPausePlayListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onPlayPauseBtnClick(v, mPlayer)) {
+                doPauseResume();
+                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                updatePausePlayButton();
+            }
+        }
+    };
+    private final View.OnClickListener mRewListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onFastBackwardBtnClick(v, mPlayer)) {
+                int pos = mPlayer.getCurrentPosition();
+                pos -= 5000; // milliseconds
+                mPlayer.seekTo(pos);
+                setProgress();
+                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+            }
+        }
+    };
+    private final View.OnClickListener mFfwdListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onFastForwardBtnClick(v, mPlayer)) {
+                int pos = mPlayer.getCurrentPosition();
+                pos += 15000; // milliseconds
+                mPlayer.seekTo(pos);
+                setProgress();
+                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+            }
+        }
+    };
+    private final View.OnClickListener mMediaListListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onMediaListBtnClick(v,
+                    mMediaListViewHolder.getContainer(), mPlayer)) {
+                boolean isMediaListLastSelected = mControllerViewHolder.getMediaListButton().isSelected();
+                mControllerViewHolder.getMediaListButton().setSelected(!isMediaListLastSelected);
+                if (mMediaListViewHolder.getContainer() != null) {
+                    mMediaListViewHolder.getContainer()
+                            .setVisibility(!isMediaListLastSelected ? VISIBLE : GONE);
+                }
+                show(!isMediaListLastSelected || !mPlayer.isInPlaybackState() ? 0 :
+                        PineConstants.DEFAULT_SHOW_TIMEOUT);
+            }
+        }
+    };
+    private final View.OnClickListener mLockControllerListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onLockControllerBtnClick(v,
+                    PineMediaController.this, mPlayer)) {
+                mControllerViewHolder.getLockControllerButton().setSelected(
+                        !mControllerViewHolder.getLockControllerButton().isSelected());
+                mIsControllerLocked = !mIsControllerLocked;
+                hide();
+                if (!isLocked()) {
+                    show();
+                }
+                judgeAndChangeRequestedOrientation();
+            }
+        }
+    };
+    // Controller控件本身
+    private View mRoot;
+    private GestureDetector mGestureDetector;
+    private List<IPinePlayerPlugin> mPinePluginList;
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int pos;
+            switch (msg.what) {
+                // 控制器自动隐藏消息
+                case MSG_FADE_OUT:
+                    hide();
+                    break;
+                // 进度条更新消息
+                case MSG_SHOW_PROGRESS:
+                    pos = setProgress();
+                    if (!mDragging && isShowing() &&
+                            (mPlayer.isPlaying() || mPlayer.isPause())) {
+                        msg = obtainMessage(MSG_SHOW_PROGRESS);
+                        int sum = (int) mPlayer.getSpeed();
+                        sum = sum < 1 ? 1 : sum;
+                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
+                    }
+                    break;
+                // 背景延迟隐藏消失
+                case MSG_BACKGROUND_FADE_OUT:
+                    if (mBackgroundViewHolder.getContainer() != null) {
+                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    break;
+                // 加载等待界面延迟隐藏消失
+                case MSG_WAITING_FADE_OUT:
+                    if (mWaitingProgressViewHolder.getContainer() != null) {
+                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
+                        setControllerEnabled(true);
+                    }
+                    break;
+                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
+                case MSG_PLUGIN_REFRESH:
+                    for (int i = 0; i < mPinePluginList.size(); i++) {
+                        mPinePluginList.get(i).onTime(mPlayer.getCurrentPosition());
+                    }
+                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
+                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
+                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
+                    }
+                    break;
+            }
+        }
+    };
+    private final View.OnClickListener mFullScreenListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onFullScreenBtnClick(v, mPlayer)) {
+                mPlayer.toggleFullScreenMode(mIsControllerLocked);
+                attachToParentView(false, true);
+                judgeAndChangeRequestedOrientation();
+
+                updateMediaNameText(mPlayer.getMediaPlayerBean());
+                updateSpeedButton();
+                mControllerViewHolder.getFullScreenButton().setSelected(!mPlayer.isFullScreenMode());
+                if (mPlayer.isInPlaybackState()) {
+                    installClickListeners();
+                    show();
+                    mHandler.sendEmptyMessageDelayed(MSG_WAITING_FADE_OUT, 50);
+                    if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO
+                            && mBackgroundViewHolder.getContainer() != null) {
+                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
+                    }
+                }
+                if (!mPlayer.isFullScreenMode()) {
+                    setAppBrightness(-1);
+                }
+            }
+        }
+    };
+    private boolean mPausedByBufferingUpdate;
+    private boolean mDraggingX, mDraggingY, mStartDragging;
+    private int mStartVolumeByDragging;
+    private int mStartBrightnessByDragging;
+    private float mPreX, mPreY;
+
+    public PineMediaController(Activity context) {
+        this(context, true);
+    }
+
+    public PineMediaController(Activity context, AttributeSet attrs) {
+        super(context, attrs);
+        mRoot = this;
+        mContext = context;
+        mUseFastForward = true;
+        mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        mWindow = mContext.getWindow();
+        mMaxVolumes = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        mGestureDetector = new GestureDetector(context, this);
+    }
+
+    public PineMediaController(Activity context, boolean useFastForward) {
+        super(context);
+        mRoot = this;
+        mRoot.setTag(CONTROLLER_TAG);
+        mContext = context;
+        mUseFastForward = useFastForward;
+        mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        mWindow = mContext.getWindow();
+        mMaxVolumes = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        mGestureDetector = new GestureDetector(context, this);
+    }
 
     private void addPreDrawListener(View view, ViewTreeObserver.OnPreDrawListener listener) {
         view.getViewTreeObserver().removeOnPreDrawListener(listener);
@@ -312,6 +514,7 @@ public class PineMediaController extends RelativeLayout
 
     /**
      * 获取系统当前亮度
+     *
      * @return
      */
     private int getSystemBrightness() {
@@ -326,7 +529,8 @@ public class PineMediaController extends RelativeLayout
 
     /**
      * 获取应用当前亮度
-     * @return  0.0（暗）～1.0（亮）
+     *
+     * @return 0.0（暗）～1.0（亮）
      */
     private float getAppBrightness() {
         WindowManager.LayoutParams layoutParams = mWindow.getAttributes();
@@ -334,7 +538,6 @@ public class PineMediaController extends RelativeLayout
     }
 
     /**
-     *
      * @param brightnessValue 0（暗）～255（亮）(screenBrightness = -1.0f表示恢复为系统亮度)
      */
     private void setAppBrightness(int brightnessValue) {
@@ -376,7 +579,7 @@ public class PineMediaController extends RelativeLayout
      */
     @Override
     public void attachToParentView(boolean isPlayerReset, boolean isResumeState) {
-        Log.d(TAG, "Attach to media view. isPlayerReset: " + isPlayerReset
+        LogUtils.d(TAG, "Attach to media view. isPlayerReset: " + isPlayerReset
                 + ", isResumeState: " + isResumeState + ", mAnchor:" + mAnchor);
         if (mAnchor == null) {
             return;
@@ -422,7 +625,7 @@ public class PineMediaController extends RelativeLayout
         }
         // 插件View
         if (mPluginViewHolderList != null) {
-            mPluginViewContainer =  new RelativeLayout(getContext());
+            mPluginViewContainer = new RelativeLayout(getContext());
             mControllerPluginViewContainer = new RelativeLayout(getContext());
             mSurfacePluginViewContainer = new RelativeLayout(getContext());
             for (int i = 0; i < mPluginViewHolderList.size(); i++) {
@@ -500,7 +703,7 @@ public class PineMediaController extends RelativeLayout
     }
 
     private void initControllerView() {
-        Log.d(TAG, "initControllerView");
+        LogUtils.d(TAG, "initControllerView");
         setControllerEnabled(false);
         if (mControllerViewHolder.getGoBackButton() != null) {
             mControllerViewHolder.getGoBackButton().setOnClickListener(mGoBackListener);
@@ -607,7 +810,7 @@ public class PineMediaController extends RelativeLayout
         }
         if (!(mControllerViewHolder.getContainer().getVisibility() == VISIBLE) ||
                 timeout != mPreFadeOutTime) {
-            Log.d(TAG, "show timeout: " + timeout);
+            LogUtils.d(TAG, "show timeout: " + timeout);
             mPreFadeOutTime = timeout;
             mIsNeedResizeSurfacePluginView = true;
             setProgress();
@@ -642,7 +845,7 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         if (mControllerViewHolder.getContainer().getVisibility() == VISIBLE) {
-            Log.d(TAG, "hide");
+            LogUtils.d(TAG, "hide");
             try {
                 mIsNeedResizeSurfacePluginView = true;
                 mHandler.removeMessages(MSG_SHOW_PROGRESS);
@@ -651,7 +854,7 @@ public class PineMediaController extends RelativeLayout
                 }
                 updateControllerVisibility(false);
             } catch (IllegalArgumentException ex) {
-                Log.w("MediaController", "already removed");
+                LogUtils.w("MediaController", "already removed");
             }
         }
     }
@@ -726,13 +929,11 @@ public class PineMediaController extends RelativeLayout
         }
     }
 
-    private boolean mPausedByBufferingUpdate;
-
     @Override
     public void onBufferingUpdate(int percent) {
         float position = (float) mPlayer.getCurrentPosition();
         float duration = (float) mPlayer.getDuration();
-        Log.v(TAG, "onBufferingUpdate percent: " + percent + ", duration:" + duration
+        LogUtils.v(TAG, "onBufferingUpdate percent: " + percent + ", duration:" + duration
                 + ", position:" + position);
         if (mPlayer.getMediaPlayerState() == PineSurfaceView.STATE_PLAYBACK_COMPLETED
                 || position >= duration) {
@@ -862,7 +1063,7 @@ public class PineMediaController extends RelativeLayout
                 // use long to avoid overflow
                 long pos = max * position / duration;
                 mControllerViewHolder.getPlayProgressBar().setProgress((int) pos);
-                Log.d(TAG, "setProgress pos:" + pos);
+                LogUtils.d(TAG, "setProgress pos:" + pos);
             }
             int percent = mPlayer.getBufferPercentage();
             mControllerViewHolder.getPlayProgressBar().setSecondaryProgress(percent * (int) max / 100);
@@ -886,7 +1087,7 @@ public class PineMediaController extends RelativeLayout
         if (mAnchor == null) {
             return;
         }
-        Log.d(TAG, "setControllerEnabled enabledPlayerPause: " + enabledPlayerPause
+        LogUtils.d(TAG, "setControllerEnabled enabledPlayerPause: " + enabledPlayerPause
                 + ", enabledProgressBar: " + enabledProgressBar
                 + ", enabledToggleFullScreen: " + enabledToggleFullScreen
                 + ", enabledLock: " + enabledLock
@@ -998,223 +1199,6 @@ public class PineMediaController extends RelativeLayout
         mAdaptionControllerLayout.top = getTop();
         mAdaptionControllerLayout.bottom = getBottom();
     }
-
-    // There are two scenarios that can trigger the seekbar listener to trigger:
-    //
-    // The first is the user using the touchpad to adjust the posititon of the
-    // seekbar's thumb. In this case onStartTrackingTouch is called followed by
-    // a number of onProgressChanged notifications, concluded by onStopTrackingTouch.
-    // We're setting the field "mDragging" to true for the duration of the dragging
-    // session to avoid jumps in the position in case of ongoing playback.
-    //
-    // The second scenario involves the user operating the scroll ball, in this
-    // case there WON'T BE onStartTrackingTouch/onStopTrackingTouch notifications,
-    // we will simply apply the updated position without suspending regular updates.
-    private final SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onStartTrackingTouch(SeekBar bar) {
-            show(3600000);
-
-            mDragging = true;
-
-            // By removing these pending progress messages we make sure
-            // that a) we won't update the progress while the user adjusts
-            // the seekbar and b) once the user is done dragging the thumb
-            // we will post one of these messages to the queue again and
-            // this ensures that there will be exactly one message queued up.
-            mHandler.removeMessages(MSG_SHOW_PROGRESS);
-        }
-
-        @Override
-        public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
-            if (!fromuser) {
-                // We're not interested in programmatically generated changes to
-                // the progress bar's position.
-                return;
-            }
-
-            long duration = mPlayer.getDuration();
-            long newPosition = (duration * progress) / 1000L;
-            mPlayer.seekTo((int) newPosition);
-            updateCurrentTimeText((int) newPosition);
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar bar) {
-            mDragging = false;
-            setProgress();
-            updatePausePlayButton();
-
-            show(PineConstants.DEFAULT_SHOW_TIMEOUT);
-
-            // Ensure that progress is properly updated in the future,
-            // the call to show() does not guarantee this because it is a
-            // no-op if we are already showing.
-            mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
-        }
-    };
-
-    private final View.OnClickListener mSpeedListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onSpeedBtnClick(v, mPlayer)) {
-                float speed = mPlayer.getSpeed() + 1.0f;
-                if (speed >= 4.0f) {
-                    speed = 0.5f;
-                } else if (speed == 1.5f) {
-                    speed = 1.0f;
-                }
-                mPlayer.setSpeed(speed);
-                updateSpeedButton();
-            }
-        }
-    };
-
-    private final View.OnClickListener mPausePlayListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onPlayPauseBtnClick(v, mPlayer)) {
-                doPauseResume();
-                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
-                updatePausePlayButton();
-            }
-        }
-    };
-
-    private final View.OnClickListener mRewListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onFastBackwardBtnClick(v, mPlayer)) {
-                int pos = mPlayer.getCurrentPosition();
-                pos -= 5000; // milliseconds
-                mPlayer.seekTo(pos);
-                setProgress();
-                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
-            }
-        }
-    };
-
-    private final View.OnClickListener mFfwdListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onFastForwardBtnClick(v, mPlayer)) {
-                int pos = mPlayer.getCurrentPosition();
-                pos += 15000; // milliseconds
-                mPlayer.seekTo(pos);
-                setProgress();
-                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
-            }
-        }
-    };
-
-    private final View.OnClickListener mNextListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onNextBtnClick(v, mPlayer)) {
-
-            }
-        }
-    };
-
-    private final View.OnClickListener mPrevListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onPreBtnClick(v, mPlayer)) {
-
-            }
-        }
-    };
-
-    private final View.OnClickListener mVolumesListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onVolumesBtnClick(v, mPlayer)) {
-                mControllerViewHolder.getVolumesButton().setSelected(
-                        !mControllerViewHolder.getVolumesButton().isSelected());
-            }
-        }
-    };
-
-    private final View.OnClickListener mFullScreenListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onFullScreenBtnClick(v, mPlayer)) {
-                mPlayer.toggleFullScreenMode(mIsControllerLocked);
-                attachToParentView(false, true);
-                judgeAndChangeRequestedOrientation();
-
-                updateMediaNameText(mPlayer.getMediaPlayerBean());
-                updateSpeedButton();
-                mControllerViewHolder.getFullScreenButton().setSelected(!mPlayer.isFullScreenMode());
-                if (mPlayer.isInPlaybackState()) {
-                    installClickListeners();
-                    show();
-                    mHandler.sendEmptyMessageDelayed(MSG_WAITING_FADE_OUT, 50);
-                    if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO
-                            && mBackgroundViewHolder.getContainer() != null) {
-                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
-                    }
-                }
-                if (!mPlayer.isFullScreenMode()) {
-                    setAppBrightness(-1);
-                }
-            }
-        }
-    };
-
-    private final View.OnClickListener mGoBackListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onGoBackBtnClick(v, mPlayer)) {
-
-            }
-        }
-    };
-
-    private final View.OnClickListener mMediaListListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onMediaListBtnClick(v,
-                    mMediaListViewHolder.getContainer(), mPlayer)) {
-                boolean isMediaListLastSelected = mControllerViewHolder.getMediaListButton().isSelected();
-                mControllerViewHolder.getMediaListButton().setSelected(!isMediaListLastSelected);
-                if (mMediaListViewHolder.getContainer() != null) {
-                    mMediaListViewHolder.getContainer()
-                            .setVisibility(!isMediaListLastSelected ? VISIBLE : GONE);
-                }
-                show(!isMediaListLastSelected || !mPlayer.isInPlaybackState() ? 0 :
-                        PineConstants.DEFAULT_SHOW_TIMEOUT);
-            }
-        }
-    };
-
-    private final View.OnClickListener mLockControllerListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onLockControllerBtnClick(v,
-                    PineMediaController.this, mPlayer)) {
-                mControllerViewHolder.getLockControllerButton().setSelected(
-                        !mControllerViewHolder.getLockControllerButton().isSelected());
-                mIsControllerLocked = !mIsControllerLocked;
-                hide();
-                if (!isLocked()) {
-                    show();
-                }
-                judgeAndChangeRequestedOrientation();
-            }
-        }
-    };
 
     /**
      * 更新控制器及其子控件显示状态(默认方式)
@@ -1470,14 +1454,6 @@ public class PineMediaController extends RelativeLayout
         super.onDetachedFromWindow();
     }
 
-    private boolean mDraggingX, mDraggingY, mStartDragging;
-    private int mStartVolumeByDragging;
-    private int mStartBrightnessByDragging;
-    private float mPreX, mPreY;
-    private final float INSTANCE_PER_VOLUME = 40.0f;
-    private final float INSTANCE_PER_BRIGHTNESS = 2.0f;
-    private final float INSTANCE_DEVIATION = 20.0f;
-
     @Override
     public boolean onDown(MotionEvent e) {
         if (mControllersActionListener != null) {
@@ -1545,7 +1521,7 @@ public class PineMediaController extends RelativeLayout
                                 mStartBrightnessByDragging = appBrightness > 255 ? 255 : appBrightness;
                             }
                         }
-                        onScrollAction(false, downY - curY );
+                        onScrollAction(false, downY - curY);
                     }
                 }
                 mStartDragging = true;
@@ -1595,7 +1571,447 @@ public class PineMediaController extends RelativeLayout
         }
     }
 
-    /** ----------------   DefaultMediaController begin   -------------------- **/
+    /**
+     * ----------------   DefaultMediaController begin   --------------------
+     **/
+    public interface IControllersActionListener {
+
+        /**
+         * @param playPauseBtn 播放暂停按键
+         * @param player       播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onPlayPauseBtnClick(View playPauseBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param fastForwardBtn 快进按键
+         * @param player         播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onFastForwardBtnClick(View fastForwardBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param fatsBackwardBtn 后退按键
+         * @param player          播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onFastBackwardBtnClick(View fatsBackwardBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param preBtn 播放前一个按键
+         * @param player 播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onPreBtnClick(View preBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param nextBtn 播放后一个按键
+         * @param player  播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onNextBtnClick(View nextBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param volumesBtn 音量按键
+         * @param player     播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onVolumesBtnClick(View volumesBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param speedBtn 倍速按键
+         * @param player   播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onSpeedBtnClick(View speedBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param fullScreenBtn 全屏按键
+         * @param player        播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onFullScreenBtnClick(View fullScreenBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param goBackBtn 回退按键
+         * @param player    播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onGoBackBtnClick(View goBackBtn, PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param mediaListBtn           播放列表显示/隐藏按键
+         * @param mediaListContainerView
+         * @param player                 播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onMediaListBtnClick(View mediaListBtn, View mediaListContainerView,
+                                    PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * @param lockControllerBtn 锁定按键
+         * @param controller
+         * @param player            播放器
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        boolean onLockControllerBtnClick(View lockControllerBtn,
+                                         PineMediaWidget.IPineMediaController controller,
+                                         PineMediaWidget.IPineMediaPlayer player);
+
+        /**
+         * 控件窗口ACTION_DOWN事件
+         *
+         * @param event
+         * @return
+         */
+        boolean onScreenDown(MotionEvent event);
+
+        /**
+         * 控件窗口onShowPress手势
+         *
+         * @param event
+         * @return
+         */
+        boolean onScreenShowPress(MotionEvent event);
+
+        /**
+         * 控件窗口onSingleTapUp手势
+         *
+         * @param event
+         * @return
+         */
+        boolean onScreenSingleTapUp(MotionEvent event);
+
+        /**
+         * 控件窗口onLongPress手势
+         *
+         * @param event
+         * @return
+         */
+        boolean onScreenLongPress(MotionEvent event);
+
+        /**
+         * 控件窗口onScroll手势
+         *
+         * @param downEvent
+         * @param curEvent
+         * @param distanceX
+         * @param distanceY
+         * @return
+         */
+        boolean onScreenScroll(MotionEvent downEvent, MotionEvent curEvent, float distanceX, float distanceY);
+
+        /**
+         * 控件窗口onFling手势
+         *
+         * @param downEvent
+         * @param upEvent
+         * @param velocityX
+         * @param velocityY
+         * @return
+         */
+        boolean onScreenFling(MotionEvent downEvent, MotionEvent upEvent, float velocityX, float velocityY);
+    }
+
+    /**
+     * ----------------   DefaultMediaController end   --------------------
+     **/
+
+    /**
+     * PineMediaController适配器，使用者通过此适配器客制化自己的视频播放控制器界面
+     */
+    public abstract static class AbstractMediaControllerAdapter {
+        /**
+         * 背景布局，会被添加到PineMediaPlayerView布局中，
+         * 覆盖在MediaView上。用于播放切换过程中的背景布置，或者播放音频时的背景图
+         *
+         * @param isFullMode
+         * @return
+         */
+        public abstract PineBackgroundViewHolder onCreateBackgroundViewHolder(boolean isFullMode);
+
+        /**
+         * Controller内置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
+         * 覆盖在SubtitleView上，请使用透明背景
+         * 需要在该方法中绑定布局的相应控件到ViewHolder中，对应的控件功能才能被激活
+         *
+         * @param isFullMode 是否全屏模式（可根据该参数设置全屏和非全屏状态下各自的布局）
+         * @return
+         */
+        public abstract PineControllerViewHolder onCreateInRootControllerViewHolder(boolean isFullMode);
+
+        /**
+         * Controller外置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
+         * 不会被添加到播放器布局中（由用户自己任意布局）
+         * 需要在该方法中绑定布局的相应控件到ViewHolder中，对应的控件功能才能被激活
+         *
+         * @param isFullMode 是否全屏模式（可根据该参数设置全屏和非全屏状态下各自的布局）
+         * @return
+         */
+        public abstract PineControllerViewHolder onCreateOutRootControllerViewHolder(boolean isFullMode);
+
+        /**
+         * 播放准备过程中的等待界面的view holder，会被添加到PineMediaPlayerView布局中，
+         * 覆盖在ControllerView上
+         *
+         * @param isFullMode 是否全屏模式（可根据该参数设置全屏和非全屏状态下各自的布局）
+         * @return
+         */
+        public abstract PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(boolean isFullMode);
+
+        /**
+         * 全屏状态下内置的播放列表的view holder，会被添加到PineMediaPlayerView布局中，
+         * 覆盖在WaitingProgressView上
+         *
+         * @return
+         */
+        public abstract PineMediaListViewHolder onCreateFullScreenMediaListViewHolder();
+
+        /**
+         * Controller各个显示部件及显示状态更新回调器
+         *
+         * @return
+         */
+        public ControllerMonitor onCreateControllerMonitor() {
+            return new ControllerMonitor();
+        }
+
+        /**
+         * Controller各个控制部件的事件的listener
+         *
+         * @return
+         */
+        public ControllersActionListener onCreateControllersActionListener() {
+            return new ControllersActionListener();
+        }
+    }
+
+    /**
+     * 默认控制器状态更新器。使用者通过继承覆写该类客制化控制器的显示需求
+     */
+    public static class ControllerMonitor {
+
+        /**
+         * 播放器建议控制器的显示状态需要改变时回调（显示需求可由用户自行处理）
+         *
+         * @param needShow   当前播放器建议控制器是否应处于显示状态
+         * @param controller 播放控制器
+         * @param player     播放器
+         * @param viewHolder 控制器ViewHolder
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        public boolean onControllerVisibilityUpdate(
+                boolean needShow, PineMediaWidget.IPineMediaController controller,
+                PineMediaWidget.IPineMediaPlayer player, PineControllerViewHolder viewHolder) {
+            return false;
+        }
+
+        /**
+         * 播放器建议设备方向需要改变时回调（改变需求可由用户自行处理）
+         *
+         * @param context
+         * @param controller  播放控制器
+         * @param player      播放器
+         * @param mediaWidth  播放器宽度
+         * @param mediaHeight 播放器高度
+         * @param mediaType   播放媒体类别
+         * @return true-消耗了该事件，阻止播放控制器默认的行为;
+         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
+         */
+        public boolean judgeAndChangeRequestedOrientation(
+                Activity context, PineMediaWidget.IPineMediaController controller,
+                PineMediaWidget.IPineMediaPlayer player, int mediaWidth,
+                int mediaHeight, int mediaType) {
+            return false;
+        }
+
+        /**
+         * 播放器播放状态发生改变时回调
+         *
+         * @param speedBtn 播放倍速控件
+         * @param player   播放器
+         */
+        public boolean onSpeedUpdate(View speedBtn, PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        /**
+         * 播放器播放状态发生改变时回调
+         *
+         * @param pausePlayBtn 播放暂停控件
+         * @param player       播放器
+         */
+        public boolean onPausePlayUpdate(View pausePlayBtn, PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        /**
+         * 播放器当前播放时间发生改变时回调
+         *
+         * @param currentTimeText 播放时间显示控件
+         * @param currentTime     当前播放器播放时间
+         */
+        public boolean onCurrentTimeUpdate(View currentTimeText, int currentTime) {
+            return false;
+        }
+
+        /**
+         * 播放器总播放时长发生更新回调
+         *
+         * @param endTimeText 播放总时长显示控件
+         * @param endTime     播放总时长
+         */
+        public boolean onEndTimeUpdate(View endTimeText, int endTime) {
+            return false;
+        }
+
+        /**
+         * 播放器播放音量发生改变时回调
+         *
+         * @param volumesText 音量显示控件
+         * @param curVolumes  当前音量
+         * @param maxVolumes  最大音量
+         */
+        public boolean onVolumesUpdate(View volumesText, int curVolumes, int maxVolumes) {
+            return false;
+        }
+
+        /**
+         * 播放器media名称发生改变时回调
+         *
+         * @param mediaNameText media名称显示控件
+         * @param mediaEntity   media实体
+         */
+        public boolean onMediaNameUpdate(View mediaNameText, PineMediaPlayerBean mediaEntity) {
+            return false;
+        }
+
+        /**
+         * 播放器亮度发生改变时回调
+         *
+         * @param brightValue 0（暗）～255（亮）(screenBrightness = -1.0f表示恢复为系统亮度)
+         * @return
+         */
+        public boolean onBrightnessUpdate(int brightValue) {
+            return false;
+        }
+    }
+
+    /**
+     * 默认控制器点击事件监听器。使用者通过继承覆写该类客制化控制器各个功能部件的点击事件需求
+     */
+    public static class ControllersActionListener implements IControllersActionListener {
+
+        @Override
+        public boolean onPlayPauseBtnClick(View playPauseBtn,
+                                           PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onFastForwardBtnClick(View fastForwardBtn,
+                                             PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onFastBackwardBtnClick(View fatsBackwardBtn,
+                                              PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onPreBtnClick(View preBtn,
+                                     PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onNextBtnClick(View nextBtn,
+                                      PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onVolumesBtnClick(View volumesBtn,
+                                         PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onSpeedBtnClick(View speedBtn,
+                                       PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onFullScreenBtnClick(View fullScreenBtn,
+                                            PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onGoBackBtnClick(View goBackBtn,
+                                        PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onMediaListBtnClick(View mediaListBtn, View mediaListContainerView,
+                                           PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onLockControllerBtnClick(View lockControllerBtn,
+                                                PineMediaWidget.IPineMediaController controller,
+                                                PineMediaWidget.IPineMediaPlayer player) {
+            return false;
+        }
+
+        @Override
+        public boolean onScreenDown(MotionEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean onScreenShowPress(MotionEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean onScreenSingleTapUp(MotionEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean onScreenLongPress(MotionEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean onScreenScroll(MotionEvent downEvent, MotionEvent curEvent, float distanceX, float distanceY) {
+            return false;
+        }
+
+        @Override
+        public boolean onScreenFling(MotionEvent downEvent, MotionEvent upEvent, float velocityX, float velocityY) {
+            return false;
+        }
+    }
+
     /**
      * 参考此Adapter，继承此Adapter或者AbstractMediaControllerAdapter进行自定义controller的定制
      **/
@@ -1742,437 +2158,5 @@ public class PineMediaController extends RelativeLayout
                 }
             };
         }
-    }
-
-    /**
-     * ----------------   DefaultMediaController end   --------------------
-     **/
-
-    /**
-     * PineMediaController适配器，使用者通过此适配器客制化自己的视频播放控制器界面
-     */
-    public abstract static class AbstractMediaControllerAdapter {
-        /**
-         * 背景布局，会被添加到PineMediaPlayerView布局中，
-         * 覆盖在MediaView上。用于播放切换过程中的背景布置，或者播放音频时的背景图
-         *
-         * @param isFullMode
-         * @return
-         */
-        public abstract PineBackgroundViewHolder onCreateBackgroundViewHolder(boolean isFullMode);
-
-        /**
-         * Controller内置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
-         * 覆盖在SubtitleView上，请使用透明背景
-         * 需要在该方法中绑定布局的相应控件到ViewHolder中，对应的控件功能才能被激活
-         *
-         * @param isFullMode 是否全屏模式（可根据该参数设置全屏和非全屏状态下各自的布局）
-         * @return
-         */
-        public abstract PineControllerViewHolder onCreateInRootControllerViewHolder(boolean isFullMode);
-
-        /**
-         * Controller外置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
-         * 不会被添加到播放器布局中（由用户自己任意布局）
-         * 需要在该方法中绑定布局的相应控件到ViewHolder中，对应的控件功能才能被激活
-         *
-         * @param isFullMode 是否全屏模式（可根据该参数设置全屏和非全屏状态下各自的布局）
-         * @return
-         */
-        public abstract PineControllerViewHolder onCreateOutRootControllerViewHolder(boolean isFullMode);
-
-        /**
-         * 播放准备过程中的等待界面的view holder，会被添加到PineMediaPlayerView布局中，
-         * 覆盖在ControllerView上
-         *
-         * @param isFullMode 是否全屏模式（可根据该参数设置全屏和非全屏状态下各自的布局）
-         * @return
-         */
-        public abstract PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(boolean isFullMode);
-
-        /**
-         * 全屏状态下内置的播放列表的view holder，会被添加到PineMediaPlayerView布局中，
-         * 覆盖在WaitingProgressView上
-         *
-         * @return
-         */
-        public abstract PineMediaListViewHolder onCreateFullScreenMediaListViewHolder();
-
-        /**
-         * Controller各个显示部件及显示状态更新回调器
-         *
-         * @return
-         */
-        public ControllerMonitor onCreateControllerMonitor() {
-            return new ControllerMonitor();
-        }
-
-        /**
-         * Controller各个控制部件的事件的listener
-         *
-         * @return
-         */
-        public ControllersActionListener onCreateControllersActionListener() {
-            return new ControllersActionListener();
-        }
-    }
-
-    /**
-     * 默认控制器状态更新器。使用者通过继承覆写该类客制化控制器的显示需求
-     */
-    public static class ControllerMonitor {
-
-        /**
-         * 播放器建议控制器的显示状态需要改变时回调（显示需求可由用户自行处理）
-         *
-         * @param needShow   当前播放器建议控制器是否应处于显示状态
-         * @param controller 播放控制器
-         * @param player     播放器
-         * @param viewHolder 控制器ViewHolder
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        public boolean onControllerVisibilityUpdate(
-                boolean needShow, PineMediaWidget.IPineMediaController controller,
-                PineMediaWidget.IPineMediaPlayer player, PineControllerViewHolder viewHolder) {
-            return false;
-        }
-
-        /**
-         * 播放器建议设备方向需要改变时回调（改变需求可由用户自行处理）
-         *
-         * @param context
-         * @param controller  播放控制器
-         * @param player      播放器
-         * @param mediaWidth  播放器宽度
-         * @param mediaHeight 播放器高度
-         * @param mediaType   播放媒体类别
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        public boolean judgeAndChangeRequestedOrientation(
-                Activity context, PineMediaWidget.IPineMediaController controller,
-                PineMediaWidget.IPineMediaPlayer player, int mediaWidth,
-                int mediaHeight, int mediaType) {
-            return false;
-        }
-
-        /**
-         * 播放器播放状态发生改变时回调
-         *
-         * @param speedBtn 播放倍速控件
-         * @param player       播放器
-         */
-        public boolean onSpeedUpdate(View speedBtn, PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        /**
-         * 播放器播放状态发生改变时回调
-         *
-         * @param pausePlayBtn 播放暂停控件
-         * @param player       播放器
-         */
-        public boolean onPausePlayUpdate(View pausePlayBtn, PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        /**
-         * 播放器当前播放时间发生改变时回调
-         *
-         * @param currentTimeText 播放时间显示控件
-         * @param currentTime     当前播放器播放时间
-         */
-        public boolean onCurrentTimeUpdate(View currentTimeText, int currentTime) {
-            return false;
-        }
-
-        /**
-         * 播放器总播放时长发生更新回调
-         *
-         * @param endTimeText 播放总时长显示控件
-         * @param endTime     播放总时长
-         */
-        public boolean onEndTimeUpdate(View endTimeText, int endTime) {
-            return false;
-        }
-
-        /**
-         * 播放器播放音量发生改变时回调
-         *
-         * @param volumesText 音量显示控件
-         * @param curVolumes  当前音量
-         * @param maxVolumes  最大音量
-         */
-        public boolean onVolumesUpdate(View volumesText, int curVolumes, int maxVolumes) {
-            return false;
-        }
-
-        /**
-         * 播放器media名称发生改变时回调
-         *
-         * @param mediaNameText media名称显示控件
-         * @param mediaEntity   media实体
-         */
-        public boolean onMediaNameUpdate(View mediaNameText, PineMediaPlayerBean mediaEntity) {
-            return false;
-        }
-
-        /**
-         * 播放器亮度发生改变时回调
-         * @param brightValue 0（暗）～255（亮）(screenBrightness = -1.0f表示恢复为系统亮度)
-         * @return
-         */
-        public boolean onBrightnessUpdate(int brightValue) {
-            return false;
-        }
-    }
-
-    /**
-     * 默认控制器点击事件监听器。使用者通过继承覆写该类客制化控制器各个功能部件的点击事件需求
-     */
-    public static class ControllersActionListener implements IControllersActionListener {
-
-        @Override
-        public boolean onPlayPauseBtnClick(View playPauseBtn,
-                                           PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onFastForwardBtnClick(View fastForwardBtn,
-                                             PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onFastBackwardBtnClick(View fatsBackwardBtn,
-                                              PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onPreBtnClick(View preBtn,
-                                     PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onNextBtnClick(View nextBtn,
-                                      PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onVolumesBtnClick(View volumesBtn,
-                                         PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onSpeedBtnClick(View speedBtn,
-                                            PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onFullScreenBtnClick(View fullScreenBtn,
-                                            PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onGoBackBtnClick(View goBackBtn,
-                                        PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onMediaListBtnClick(View mediaListBtn, View mediaListContainerView,
-                                           PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onLockControllerBtnClick(View lockControllerBtn,
-                                                PineMediaWidget.IPineMediaController controller,
-                                                PineMediaWidget.IPineMediaPlayer player) {
-            return false;
-        }
-
-        @Override
-        public boolean onScreenDown(MotionEvent event) {
-            return false;
-        }
-
-        @Override
-        public boolean onScreenShowPress(MotionEvent event) {
-            return false;
-        }
-
-        @Override
-        public boolean onScreenSingleTapUp(MotionEvent event) {
-            return false;
-        }
-
-        @Override
-        public boolean onScreenLongPress(MotionEvent event) {
-            return false;
-        }
-
-        @Override
-        public boolean onScreenScroll(MotionEvent downEvent, MotionEvent curEvent, float distanceX, float distanceY) {
-            return false;
-        }
-
-        @Override
-        public boolean onScreenFling(MotionEvent downEvent, MotionEvent upEvent, float velocityX, float velocityY) {
-            return false;
-        }
-    }
-
-
-    public interface IControllersActionListener {
-
-        /**
-         * @param playPauseBtn 播放暂停按键
-         * @param player       播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onPlayPauseBtnClick(View playPauseBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param fastForwardBtn 快进按键
-         * @param player         播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onFastForwardBtnClick(View fastForwardBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param fatsBackwardBtn 后退按键
-         * @param player          播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onFastBackwardBtnClick(View fatsBackwardBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param preBtn 播放前一个按键
-         * @param player 播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onPreBtnClick(View preBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param nextBtn 播放后一个按键
-         * @param player  播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onNextBtnClick(View nextBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param volumesBtn 音量按键
-         * @param player     播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onVolumesBtnClick(View volumesBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param speedBtn  倍速按键
-         * @param player   播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onSpeedBtnClick(View speedBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param fullScreenBtn 全屏按键
-         * @param player        播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onFullScreenBtnClick(View fullScreenBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param goBackBtn 回退按键
-         * @param player    播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onGoBackBtnClick(View goBackBtn, PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param mediaListBtn           播放列表显示/隐藏按键
-         * @param mediaListContainerView
-         * @param player                 播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onMediaListBtnClick(View mediaListBtn, View mediaListContainerView,
-                                    PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * @param lockControllerBtn 锁定按键
-         * @param controller
-         * @param player            播放器
-         * @return true-消耗了该事件，阻止播放控制器默认的行为;
-         * false-没有消耗该事件，用户事件处理完后会继续执行播放器默认行为
-         */
-        boolean onLockControllerBtnClick(View lockControllerBtn,
-                                         PineMediaWidget.IPineMediaController controller,
-                                         PineMediaWidget.IPineMediaPlayer player);
-
-        /**
-         * 控件窗口ACTION_DOWN事件
-         * @param event
-         * @return
-         */
-        boolean onScreenDown(MotionEvent event);
-
-        /**
-         * 控件窗口onShowPress手势
-         * @param event
-         * @return
-         */
-        boolean onScreenShowPress(MotionEvent event);
-
-        /**
-         * 控件窗口onSingleTapUp手势
-         * @param event
-         * @return
-         */
-        boolean onScreenSingleTapUp(MotionEvent event);
-
-        /**
-         * 控件窗口onLongPress手势
-         * @param event
-         * @return
-         */
-        boolean onScreenLongPress(MotionEvent event);
-
-        /**
-         * 控件窗口onScroll手势
-         * @param downEvent
-         * @param curEvent
-         * @param distanceX
-         * @param distanceY
-         * @return
-         */
-        boolean onScreenScroll(MotionEvent downEvent, MotionEvent curEvent, float distanceX, float distanceY);
-
-        /**
-         * 控件窗口onFling手势
-         * @param downEvent
-         * @param upEvent
-         * @param velocityX
-         * @param velocityY
-         * @return
-         */
-        boolean onScreenFling(MotionEvent downEvent, MotionEvent upEvent, float velocityX, float velocityY);
     }
 }

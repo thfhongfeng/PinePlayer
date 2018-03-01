@@ -2,7 +2,6 @@ package com.pine.player.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -11,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.pine.player.bean.PineMediaPlayerBean;
+import com.pine.player.util.LogUtils;
 
 import java.util.Map;
 
@@ -96,13 +96,13 @@ public class PineMediaPlayerView extends RelativeLayout
 
     @Override
     protected void onAttachedToWindow() {
-        Log.d(TAG, "Attached to window");
+        LogUtils.d(TAG, "Attached to window");
         super.onAttachedToWindow();
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        Log.d(TAG, "Detach to window");
+        LogUtils.d(TAG, "Detach to window");
         mPineSurfaceView = null;
         super.onDetachedFromWindow();
     }
@@ -274,7 +274,10 @@ public class PineMediaPlayerView extends RelativeLayout
     public void setMediaPlayerListener(PineMediaWidget.PineMediaPlayerListener listener) {
         mPineSurfaceView.setMediaPlayerListener(listener);
     }
-    /** ----------------   PineMediaWidget.IPineMediaPlayer impl end   -------------- **/
+
+    /**
+     * ----------------   PineMediaWidget.IPineMediaPlayer impl end   --------------
+     **/
 
     public static final class PineMediaViewLayout {
         public int width;
@@ -291,7 +294,7 @@ public class PineMediaPlayerView extends RelativeLayout
                     + ", left:" + left
                     + ", right:" + right
                     + ", top:" + top
-                    + ", bottom:" + bottom +"}";
+                    + ", bottom:" + bottom + "}";
         }
     }
 }

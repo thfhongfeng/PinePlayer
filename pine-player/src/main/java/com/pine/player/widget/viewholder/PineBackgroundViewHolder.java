@@ -1,10 +1,7 @@
 package com.pine.player.widget.viewholder;
 
-import android.support.annotation.NonNull;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 /**
  * Created by tanghongfeng on 2017/9/14.
