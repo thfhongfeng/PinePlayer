@@ -6,7 +6,7 @@ import android.util.Log;
  * Created by tanghongfeng on 2018/3/1.
  */
 
-public class LogUtils {
+public class LogUtil {
     //各个Log级别定义的值，级别越高值越大
     /*
         public static final int VERBOSE = 2;

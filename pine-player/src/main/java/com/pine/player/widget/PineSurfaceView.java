@@ -26,7 +26,7 @@ import com.pine.player.PineConstants;
 import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.PineMediaSocketService;
-import com.pine.player.util.LogUtils;
+import com.pine.player.util.LogUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -123,7 +123,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         public void onPrepared(MediaPlayer mp) {
-            LogUtils.d(TAG, "onPrepared");
+            LogUtil.d(TAG, "onPrepared");
             mCurrentState = STATE_PREPARED;
 
             // Get the capabilities of the player for this stream
@@ -146,7 +146,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
                 seekTo(seekToPosition);
             }
             if (mMediaWidth != 0 && mMediaHeight != 0) {
-                //LogUtils.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
+                //LogUtil.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
                 getHolder().setFixedSize(mMediaWidth, mMediaHeight);
                 if (mSurfaceWidth == mMediaWidth && mSurfaceHeight == mMediaHeight) {
                     // We didn't actually change the size (it was already at the size
@@ -183,7 +183,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
                     int currentPos = getCurrentPosition();
                     int duration = getDuration();
                     int bufferPercentage = getBufferPercentage();
-                    LogUtils.d(TAG, "onCompletion currentPos:" + currentPos
+                    LogUtil.d(TAG, "onCompletion currentPos:" + currentPos
                             + ", duration:" + duration
                             + ", bufferPercentage:" + bufferPercentage);
                     if (currentPos != duration && bufferPercentage > 0 && bufferPercentage < 100) {
@@ -214,7 +214,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             new MediaPlayer.OnInfoListener() {
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                    LogUtils.d(TAG, "onInfo what: " + what + ", extra:" + extra);
+                    LogUtil.d(TAG, "onInfo what: " + what + ", extra:" + extra);
                     if (mMediaController != null) {
                         mMediaController.onMediaPlayerInfo(what, extra);
                     }
@@ -228,7 +228,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     private MediaPlayer.OnErrorListener mErrorListener =
             new MediaPlayer.OnErrorListener() {
                 public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
-                    LogUtils.d(TAG, "Error: " + framework_err + "," + impl_err);
+                    LogUtil.d(TAG, "Error: " + framework_err + "," + impl_err);
                     mCurrentState = STATE_ERROR;
                     mTargetState = STATE_ERROR;
                     if (mMediaController != null) {
@@ -298,7 +298,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            LogUtils.d(TAG, "Local service connected");
+            LogUtil.d(TAG, "Local service connected");
             mLocalService = ((PineMediaSocketService.MyBinder) service).getService();
             mLocalServiceState = SERVICE_STATE_CONNECTED;
             if (mIsDelayOpenMedia) {
@@ -316,7 +316,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            LogUtils.d(TAG, "Local service disconnected!");
+            LogUtil.d(TAG, "Local service disconnected!");
             mLocalService = null;
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
@@ -325,7 +325,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format,
                                    int w, int h) {
-            LogUtils.d(TAG, "surfaceChanged");
+            LogUtil.d(TAG, "surfaceChanged");
             mSurfaceWidth = w;
             mSurfaceHeight = h;
             boolean isValidState = (mTargetState == STATE_PLAYING);
@@ -339,13 +339,13 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
-            LogUtils.d(TAG, "surfaceCreated");
+            LogUtil.d(TAG, "surfaceCreated");
             mSurfaceHolder = holder;
             openMedia(true);
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
-            LogUtils.d(TAG, "surfaceDestroyed");
+            LogUtil.d(TAG, "surfaceDestroyed");
             // after we return from this we can't use the surface any more
             mSurfaceHolder = null;
             if (mMediaController != null) {
@@ -423,7 +423,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             Intent intent = new Intent("media.socket.server");
             intent.setPackage(mContext.getPackageName());
             intent.putExtra(PineMediaSocketService.PINE_MEDIA_SOCKET_PORT_KEY, mSocketPort);
-            LogUtils.d(TAG, "Bind local service");
+            LogUtil.d(TAG, "Bind local service");
             mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
         }
     }
@@ -479,7 +479,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
         if (isNeedLocalService() && mLocalServiceState != SERVICE_STATE_CONNECTED) {
             return;
         }
-        LogUtils.d(TAG, "Open Media mUri:" + mMediaBean.getMediaUri());
+        LogUtil.d(TAG, "Open Media mUri:" + mMediaBean.getMediaUri());
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
         release(false);
@@ -529,13 +529,13 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             mCurrentState = STATE_PREPARING;
             attachMediaController(true, isResumeState);
         } catch (IOException ex) {
-            LogUtils.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
+            LogUtil.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
             return;
         } catch (IllegalArgumentException ex) {
-            LogUtils.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
+            LogUtil.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
@@ -614,7 +614,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     public void start() {
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
             if (isInPlaybackState()) {
-                LogUtils.d(TAG, "Start media player");
+                LogUtil.d(TAG, "Start media player");
                 mMediaPlayer.start();
                 mMediaController.onMediaPlayerStart();
                 mCurrentState = STATE_PLAYING;
@@ -629,7 +629,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     public void pause() {
         if (isInPlaybackState()) {
             if (mMediaPlayer.isPlaying()) {
-                LogUtils.d(TAG, "Pause media player");
+                LogUtil.d(TAG, "Pause media player");
                 mMediaPlayer.pause();
                 mMediaController.onMediaPlayerPause();
                 mCurrentState = STATE_PAUSED;
@@ -786,7 +786,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     }
 
     protected void stopPlayback() {
-        LogUtils.d(TAG, "stopPlayback");
+        LogUtil.d(TAG, "stopPlayback");
         if (mMediaPlayer != null) {
             mMediaPlayer.stop();
             mMediaPlayer.release();
@@ -802,7 +802,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     * release the media player in any state
     */
     protected void release(boolean clearTargetState) {
-        LogUtils.d(TAG, "release clearTargetState:" + clearTargetState);
+        LogUtil.d(TAG, "release clearTargetState:" + clearTargetState);
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();
             mMediaPlayer.release();
@@ -826,15 +826,15 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     @Override
     protected void onAttachedToWindow() {
-        LogUtils.d(TAG, "Attached to window");
+        LogUtil.d(TAG, "Attached to window");
         super.onAttachedToWindow();
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        LogUtils.d(TAG, "Detach from window");
+        LogUtil.d(TAG, "Detach from window");
         if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
-            LogUtils.d(TAG, "Unbind local service");
+            LogUtil.d(TAG, "Unbind local service");
             mContext.unbindService(mServiceConnection);
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
@@ -859,10 +859,10 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
                 // for compatibility, we adjust size based on aspect ratio
                 if (mMediaWidth * height < width * mMediaHeight) {
-                    //LogUtils.i("@@@", "image too wide, correcting");
+                    //LogUtil.i("@@@", "image too wide, correcting");
                     width = height * mMediaWidth / mMediaHeight;
                 } else if (mMediaWidth * height > width * mMediaHeight) {
-                    //LogUtils.i("@@@", "image too tall, correcting");
+                    //LogUtil.i("@@@", "image too tall, correcting");
                     height = width * mMediaHeight / mMediaWidth;
                 }
             } else if (widthSpecMode == MeasureSpec.EXACTLY) {
@@ -915,7 +915,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     @Override
     public void draw(Canvas canvas) {
-        LogUtils.d(TAG, "draw");
+        LogUtil.d(TAG, "draw");
         super.draw(canvas);
     }
 

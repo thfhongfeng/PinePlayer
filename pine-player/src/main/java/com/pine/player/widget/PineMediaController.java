@@ -30,7 +30,7 @@ import com.pine.player.PineConstants;
 import com.pine.player.R;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.util.LogUtils;
+import com.pine.player.util.LogUtil;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineMediaListViewHolder;
@@ -579,7 +579,7 @@ public class PineMediaController extends RelativeLayout
      */
     @Override
     public void attachToParentView(boolean isPlayerReset, boolean isResumeState) {
-        LogUtils.d(TAG, "Attach to media view. isPlayerReset: " + isPlayerReset
+        LogUtil.d(TAG, "Attach to media view. isPlayerReset: " + isPlayerReset
                 + ", isResumeState: " + isResumeState + ", mAnchor:" + mAnchor);
         if (mAnchor == null) {
             return;
@@ -703,7 +703,7 @@ public class PineMediaController extends RelativeLayout
     }
 
     private void initControllerView() {
-        LogUtils.d(TAG, "initControllerView");
+        LogUtil.d(TAG, "initControllerView");
         setControllerEnabled(false);
         if (mControllerViewHolder.getGoBackButton() != null) {
             mControllerViewHolder.getGoBackButton().setOnClickListener(mGoBackListener);
@@ -810,7 +810,7 @@ public class PineMediaController extends RelativeLayout
         }
         if (!(mControllerViewHolder.getContainer().getVisibility() == VISIBLE) ||
                 timeout != mPreFadeOutTime) {
-            LogUtils.d(TAG, "show timeout: " + timeout);
+            LogUtil.d(TAG, "show timeout: " + timeout);
             mPreFadeOutTime = timeout;
             mIsNeedResizeSurfacePluginView = true;
             setProgress();
@@ -845,7 +845,7 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         if (mControllerViewHolder.getContainer().getVisibility() == VISIBLE) {
-            LogUtils.d(TAG, "hide");
+            LogUtil.d(TAG, "hide");
             try {
                 mIsNeedResizeSurfacePluginView = true;
                 mHandler.removeMessages(MSG_SHOW_PROGRESS);
@@ -854,7 +854,7 @@ public class PineMediaController extends RelativeLayout
                 }
                 updateControllerVisibility(false);
             } catch (IllegalArgumentException ex) {
-                LogUtils.w("MediaController", "already removed");
+                LogUtil.w("MediaController", "already removed");
             }
         }
     }
@@ -933,7 +933,7 @@ public class PineMediaController extends RelativeLayout
     public void onBufferingUpdate(int percent) {
         float position = (float) mPlayer.getCurrentPosition();
         float duration = (float) mPlayer.getDuration();
-        LogUtils.v(TAG, "onBufferingUpdate percent: " + percent + ", duration:" + duration
+        LogUtil.v(TAG, "onBufferingUpdate percent: " + percent + ", duration:" + duration
                 + ", position:" + position);
         if (mPlayer.getMediaPlayerState() == PineSurfaceView.STATE_PLAYBACK_COMPLETED
                 || position >= duration) {
@@ -1063,7 +1063,6 @@ public class PineMediaController extends RelativeLayout
                 // use long to avoid overflow
                 long pos = max * position / duration;
                 mControllerViewHolder.getPlayProgressBar().setProgress((int) pos);
-                LogUtils.d(TAG, "setProgress pos:" + pos);
             }
             int percent = mPlayer.getBufferPercentage();
             mControllerViewHolder.getPlayProgressBar().setSecondaryProgress(percent * (int) max / 100);
@@ -1087,7 +1086,7 @@ public class PineMediaController extends RelativeLayout
         if (mAnchor == null) {
             return;
         }
-        LogUtils.d(TAG, "setControllerEnabled enabledPlayerPause: " + enabledPlayerPause
+        LogUtil.d(TAG, "setControllerEnabled enabledPlayerPause: " + enabledPlayerPause
                 + ", enabledProgressBar: " + enabledProgressBar
                 + ", enabledToggleFullScreen: " + enabledToggleFullScreen
                 + ", enabledLock: " + enabledLock

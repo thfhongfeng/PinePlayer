@@ -1,4 +1,4 @@
-package com.pine.pineplayer.utils;
+package com.pine.pineplayer.util;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -10,7 +10,7 @@ import java.nio.channels.FileChannel;
  * Created by tanghongfeng on 2017/9/13.
  */
 
-public class IOUtils {
+public class IOUtil {
     private final static int REVERSE_LENGTH = 100;
 
     /**

@@ -1,10 +1,8 @@
-package com.pine.pineplayer.utils;
+package com.pine.pineplayer.util;
 
 import android.net.Uri;
 
 import com.pine.player.applet.advert.bean.PineAdvertBean;
-import com.pine.player.applet.advert.plugin.PineAdvertPlugin;
-import com.pine.player.applet.advert.plugin.PineImageAdvertPlugin;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
 
 import java.util.ArrayList;
@@ -14,7 +12,7 @@ import java.util.List;
  * Created by tanghongfeng on 2018/2/5.
  */
 
-public class MockDataUtils {
+public class MockDataUtil {
     public static List<PineBarrageBean> getBarrageList() {
         List<PineBarrageBean> barrageList = new ArrayList<PineBarrageBean>();
         int count = 0;

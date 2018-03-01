@@ -10,7 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.util.LogUtils;
+import com.pine.player.util.LogUtil;
 
 import java.util.Map;
 
@@ -96,13 +96,13 @@ public class PineMediaPlayerView extends RelativeLayout
 
     @Override
     protected void onAttachedToWindow() {
-        LogUtils.d(TAG, "Attached to window");
+        LogUtil.d(TAG, "Attached to window");
         super.onAttachedToWindow();
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        LogUtils.d(TAG, "Detach to window");
+        LogUtil.d(TAG, "Detach to window");
         mPineSurfaceView = null;
         super.onDetachedFromWindow();
     }

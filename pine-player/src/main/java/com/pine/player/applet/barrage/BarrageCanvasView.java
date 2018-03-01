@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.pine.player.applet.barrage.bean.PartialDisplayBarrageNode;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
-import com.pine.player.util.LogUtils;
+import com.pine.player.util.LogUtil;
 
 import java.util.List;
 
@@ -79,10 +79,8 @@ public class BarrageCanvasView extends RelativeLayout {
         if (pineBarrageBean.getDirection() == PineBarrageBean.FROM_RIGHT_TO_LEFT) {
             translationX = -translationX;
             lp.leftMargin = getWidth() + 20;
-        } else if (pineBarrageBean.getDirection() == PineBarrageBean.FROM_LEFT_TO_RIGHT) {
-            lp.leftMargin = -width - 20;
         } else {
-            return false;
+            lp.leftMargin = -width - 20;
         }
         ObjectAnimator animator = ObjectAnimator.ofFloat(textView, "translationX", 0, translationX);
         textView.setLayoutParams(lp);
@@ -160,7 +158,7 @@ public class BarrageCanvasView extends RelativeLayout {
     private PartialDisplayBarrageNode getMatchedNode(int height) {
         PartialDisplayBarrageNode node = mDisplayableHeadNode;
         while (node != null && node.getUntilNextRemainderPix() < height) {
-            LogUtils.d(TAG, "node: " + node);
+            LogUtil.v(TAG, "node: " + node);
             node = node.getNextNode();
         }
         if (node != null) {
@@ -181,7 +179,7 @@ public class BarrageCanvasView extends RelativeLayout {
             if (newNode.getNextNode() != null) {
                 newNode.getNextNode().setPreNode(newNode);
             }
-            LogUtils.d(TAG, "matched node:" + newNode);
+            LogUtil.v(TAG, "matched node:" + newNode);
             return newNode;
         } else {
             return null;
@@ -199,7 +197,7 @@ public class BarrageCanvasView extends RelativeLayout {
         if (node.getNextNode() != null) {
             node.getNextNode().setPreNode(preNode);
         }
-        LogUtils.d(TAG, "freeNodeSpace node:" + node + ", after free, pre node:" + preNode);
+        LogUtil.d(TAG, "freeNodeSpace node:" + node + ", after free, pre node:" + preNode);
         node.setStartPixIndex(-1);
         node.setNodeUsedPix(-1);
         node.setUntilNextRemainderPix(-1);

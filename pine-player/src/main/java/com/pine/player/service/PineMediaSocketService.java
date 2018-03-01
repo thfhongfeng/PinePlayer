@@ -6,7 +6,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.pine.player.decrytor.IPineMediaDecryptor;
-import com.pine.player.util.LogUtils;
+import com.pine.player.util.LogUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,7 +35,7 @@ public class PineMediaSocketService extends Service {
 
     @Override
     public void onCreate() {
-        LogUtils.d(TAG, "onCreate");
+        LogUtil.d(TAG, "onCreate");
         super.onCreate();
         mThreads = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
@@ -48,7 +48,7 @@ public class PineMediaSocketService extends Service {
 
     @Override
     public void onDestroy() {
-        LogUtils.d(TAG, "onDestroy");
+        LogUtil.d(TAG, "onDestroy");
         if (mPineMediaServerThread != null) {
             mPineMediaServerThread.release();
             mPineMediaServerThread = null;

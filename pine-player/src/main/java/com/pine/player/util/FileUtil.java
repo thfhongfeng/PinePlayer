@@ -13,6 +13,6 @@ import java.io.InputStream;
  * Created by tanghongfeng on 2017/11/15.
  */
 
-public class FileUtils {
+public class FileUtil {
 
 }

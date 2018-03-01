@@ -1,4 +1,4 @@
-package com.pine.pineplayer.utils;
+package com.pine.pineplayer.util;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
