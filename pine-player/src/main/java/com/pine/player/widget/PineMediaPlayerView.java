@@ -1,6 +1,7 @@
 package com.pine.player.widget;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
@@ -180,6 +181,11 @@ public class PineMediaPlayerView extends RelativeLayout
     @Override
     public PineMediaPlayerBean getMediaPlayerBean() {
         return mPineSurfaceView.getMediaPlayerBean();
+    }
+
+    @Override
+    public MediaPlayer.TrackInfo[] getTrackInfo() {
+        return mPineSurfaceView.getTrackInfo();
     }
 
     @Override

@@ -25,6 +25,8 @@ public final class PineControllerViewHolder {
     private View mediaNameText;
     // 倍速控件
     private View speedButton;
+    // 清晰度控件
+    private View definitionButton;
     // 播放列表按键
     private View mediaListButton;
     // 锁定按键
@@ -100,6 +102,14 @@ public final class PineControllerViewHolder {
 
     public void setSpeedButton(View speedButton) {
         this.speedButton = speedButton;
+    }
+
+    public View getDefinitionButton() {
+        return definitionButton;
+    }
+
+    public void setDefinitionButton(View definitionButton) {
+        this.definitionButton = definitionButton;
     }
 
     public View getMediaListButton() {

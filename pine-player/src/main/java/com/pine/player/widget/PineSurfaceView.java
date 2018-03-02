@@ -699,6 +699,28 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     }
 
     @Override
+    public MediaPlayer.TrackInfo[] getTrackInfo() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            LogUtil.d(TAG, "mediaPlayerParams getSelectedTrack MEDIA_TRACK_TYPE_AUDIO: " +
+                    mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) +
+                    ", MEDIA_TRACK_TYPE_VIDEO:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_VIDEO) +
+                    ", MEDIA_TRACK_TYPE_TIMEDTEXT:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT) +
+                    ", MEDIA_TRACK_TYPE_SUBTITLE:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_SUBTITLE));
+            MediaPlayer.TrackInfo[] trackInfoArr = mMediaPlayer.getTrackInfo();
+            MediaPlayer.TrackInfo trackInfo = null;
+            for (int i = 0; i < trackInfoArr.length; i++) {
+                trackInfo = trackInfoArr[i];
+                LogUtil.d(TAG, "mediaPlayerParams trackInfo.getTrackType:" + trackInfo.getTrackType() +
+                        ", trackInfo.getLanguage():" + trackInfo.getLanguage() +
+                        ", trackInfo.describeContents():" + trackInfo.describeContents());
+            }
+            return mMediaPlayer.getTrackInfo();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public void seekTo(int msc) {
         if (isInPlaybackState()) {
             mMediaPlayer.seekTo(msc);

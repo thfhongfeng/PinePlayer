@@ -1,5 +1,6 @@
 package com.pine.player.widget;
 
+import android.media.MediaPlayer;
 import android.view.ViewGroup;
 
 import com.pine.player.bean.PineMediaPlayerBean;
@@ -157,7 +158,8 @@ public class PineMediaWidget {
          * @param enabledNext
          * @param enabledPrev
          */
-        void setControllerEnabled(boolean enabledSpeed, boolean enabledPlayerPause, boolean enabledProgressBar,
+        void setControllerEnabled(boolean enabledSpeed, boolean enabledDefinition,
+                                  boolean enabledPlayerPause, boolean enabledProgressBar,
                                   boolean enabledToggleFullScreen, boolean enabledLock,
                                   boolean enabledFastForward, boolean enabledFastBackward,
                                   boolean enabledNext, boolean enabledPrev);
@@ -267,6 +269,12 @@ public class PineMediaWidget {
          * @return
          */
         PineMediaPlayerBean getMediaPlayerBean();
+
+        /**
+         * 获取Track信息
+         * @return
+         */
+        MediaPlayer.TrackInfo[] getTrackInfo();
 
         /**
          * 跳到指定的播放位置

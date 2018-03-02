@@ -6,12 +6,14 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -201,31 +203,14 @@ public class PineMediaController extends RelativeLayout
                 public boolean onPreDraw() {
                     // 在绘制SubtitleView之前需要调整它的布局属性以适应Controller布局。
                     if (mControllerPluginViewContainer != null && mIsNeedResizeControllerPluginView) {
-                        PineMediaPlayerView.PineMediaViewLayout playerLayoutParams = null;
-                        if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO) {
-                            playerLayoutParams = mPlayer.getMediaAdaptionLayout();
-                        } else {
-                            playerLayoutParams = mAdaptionControllerLayout;
+                        int topMargin = 0, bottomMargin = 0, bTop = 0, tBottom = 0;
+                        if (mControllerViewHolder.getTopControllerView() != null && isShowing()) {
+                            bTop = mControllerViewHolder.getTopControllerView().getBottom();
+                            topMargin = bTop;
                         }
-                        if (playerLayoutParams == null) {
-                            return false;
-                        }
-                        int topMargin = -1, bottomMargin = -1;
-                        if (mControllerViewHolder.getTopControllerView() != null) {
-                            int bBottom = mControllerViewHolder.getTopControllerView().getBottom();
-                            if (isShowing() && bBottom > playerLayoutParams.top && !mIsControllerLocked) {
-                                topMargin = bBottom;
-                            } else {
-                                topMargin = playerLayoutParams.top;
-                            }
-                        }
-                        if (mControllerViewHolder.getBottomControllerView() != null) {
-                            int bTop = mControllerViewHolder.getBottomControllerView().getTop();
-                            if (isShowing() && bTop < playerLayoutParams.bottom && !mIsControllerLocked) {
-                                bottomMargin = getMeasuredHeight() - bTop;
-                            } else {
-                                bottomMargin = getMeasuredHeight() - playerLayoutParams.bottom;
-                            }
+                        if (mControllerViewHolder.getBottomControllerView() != null && isShowing()) {
+                            tBottom = mControllerViewHolder.getBottomControllerView().getTop();
+                            bottomMargin = getMeasuredHeight() - tBottom;
                         }
                         RelativeLayout.LayoutParams oldLayoutParams = (RelativeLayout.LayoutParams)
                                 mControllerPluginViewContainer.getLayoutParams();
@@ -233,14 +218,11 @@ public class PineMediaController extends RelativeLayout
                                 oldLayoutParams.bottomMargin == bottomMargin) {
                             mIsNeedResizeControllerPluginView = false;
                         } else {
+                            Log.d(TAG, "preDraw topMargin:" + topMargin + ", bottomMargin:" + bottomMargin);
                             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                                    playerLayoutParams.width, playerLayoutParams.height);
-                            if (topMargin != -1) {
-                                layoutParams.topMargin = topMargin;
-                            }
-                            if (bottomMargin != -1) {
-                                layoutParams.bottomMargin = bottomMargin;
-                            }
+                                    ViewGroup.LayoutParams.MATCH_PARENT, tBottom - bTop);
+                            layoutParams.topMargin = topMargin;
+                            layoutParams.bottomMargin = bottomMargin;
                             layoutParams.addRule(CENTER_IN_PARENT);
                             mControllerPluginViewContainer.setLayoutParams(layoutParams);
                         }
@@ -697,16 +679,16 @@ public class PineMediaController extends RelativeLayout
                     }
                 }
             }
-            if (mControllerPluginViewContainer.getChildCount() > 0) {
-                mIsNeedResizeControllerPluginView = true;
-                addPreDrawListener(mControllerPluginViewContainer, mControllerPluginPreDrawListener);
-                mPluginViewContainer.addView(mControllerPluginViewContainer,
-                        new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-            }
             if (mSurfacePluginViewContainer.getChildCount() > 0) {
                 mIsNeedResizeSurfacePluginView = true;
                 addPreDrawListener(mSurfacePluginViewContainer, mSurfacePluginPreDrawListener);
                 mPluginViewContainer.addView(mSurfacePluginViewContainer,
+                        new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            }
+            if (mControllerPluginViewContainer.getChildCount() > 0) {
+                mIsNeedResizeControllerPluginView = true;
+                addPreDrawListener(mControllerPluginViewContainer, mControllerPluginPreDrawListener);
+                mPluginViewContainer.addView(mControllerPluginViewContainer,
                         new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             }
             addView(mPluginViewContainer, new RelativeLayout.LayoutParams(
@@ -1042,7 +1024,7 @@ public class PineMediaController extends RelativeLayout
             mPluginViewContainer.setVisibility(GONE);
         }
         if (mControllerViewHolder != null) {
-            setControllerEnabled(false, false, false, true, false, false, false, false, false);
+            setControllerEnabled(false, false, false, false, true, false, false, false, false, false);
             show(0);
         }
         if (mPinePluginList != null) {
@@ -1131,18 +1113,22 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void setControllerEnabled(boolean enabled) {
-        setControllerEnabled(enabled, enabled, enabled, enabled, enabled, enabled, enabled, enabled, enabled);
+        setControllerEnabled(enabled, enabled, enabled, enabled, enabled, enabled, enabled, enabled,
+                enabled, enabled);
     }
 
     @Override
-    public void setControllerEnabled(boolean enabledSpeed, boolean enabledPlayerPause, boolean enabledProgressBar,
+    public void setControllerEnabled(boolean enabledSpeed, boolean enabledDefinition,
+                                     boolean enabledPlayerPause, boolean enabledProgressBar,
                                      boolean enabledToggleFullScreen, boolean enabledLock,
                                      boolean enabledFastForward, boolean enabledFastBackward,
                                      boolean enabledNext, boolean enabledPrev) {
         if (mAnchor == null) {
             return;
         }
-        LogUtil.d(TAG, "setControllerEnabled enabledPlayerPause: " + enabledPlayerPause
+        LogUtil.d(TAG, "setControllerEnabled enabledSpeed: " + enabledSpeed
+                + ", enabledDefinition: " + enabledDefinition
+                + ", enabledPlayerPause: " + enabledPlayerPause
                 + ", enabledProgressBar: " + enabledProgressBar
                 + ", enabledToggleFullScreen: " + enabledToggleFullScreen
                 + ", enabledLock: " + enabledLock
@@ -1150,9 +1136,16 @@ public class PineMediaController extends RelativeLayout
                 + ", enabledFastBackward: " + enabledFastBackward
                 + ", enabledNext: " + enabledNext
                 + ", enabledPrev: " + enabledPrev);
-        if (mControllerViewHolder.getSpeedButton() != null) {
-            mControllerViewHolder.getSpeedButton().setEnabled(enabledSpeed);
+        if (mPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            MediaPlayer.TrackInfo[] trackInfoArr = mPlayer.getTrackInfo();
         }
+        if (mControllerViewHolder.getSpeedButton() != null) {
+            mControllerViewHolder.getSpeedButton().setVisibility(enabledSpeed ? VISIBLE : GONE);
+        }
+        if (mControllerViewHolder.getDefinitionButton() != null) {
+            mControllerViewHolder.getDefinitionButton().setVisibility(enabledDefinition ? VISIBLE : GONE);
+        }
+
         if (mControllerViewHolder.getPausePlayButton() != null) {
             mControllerViewHolder.getPausePlayButton().setEnabled(enabledPlayerPause);
         }

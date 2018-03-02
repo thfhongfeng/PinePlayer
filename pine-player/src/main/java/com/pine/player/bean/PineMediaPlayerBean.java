@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.decrytor.IPineMediaDecryptor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ public class PineMediaPlayerBean {
     @NonNull
     private String mediaName;
     @NonNull
-    private Uri mediaUri;
+    private ArrayList<Uri> mediaUriList;
     private int mediaType = MEDIA_TYPE_VIDEO;
     private Uri mediaImgUri;
     private List<IPinePlayerPlugin> playerPluginList;
@@ -36,8 +37,18 @@ public class PineMediaPlayerBean {
     }
 
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
+                               @NonNull ArrayList<Uri> mediaUriList) {
+        this(mediaCode, mediaName, mediaUriList, MEDIA_TYPE_VIDEO, null, null, null);
+    }
+
+    public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull Uri mediaUri, int mediaType) {
         this(mediaCode, mediaName, mediaUri, mediaType, null, null, null);
+    }
+
+    public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
+                               @NonNull ArrayList<Uri> mediaUriList, int mediaType) {
+        this(mediaCode, mediaName, mediaUriList, mediaType, null, null, null);
     }
 
     /**
@@ -55,7 +66,34 @@ public class PineMediaPlayerBean {
                                IPineMediaDecryptor playerDecryptor) {
         this.mediaCode = mediaCode;
         this.mediaName = mediaName;
-        this.mediaUri = mediaUri;
+        this.mediaUriList = new ArrayList<Uri>();
+        this.mediaUriList.add(mediaUri);
+        if (mediaType == MEDIA_TYPE_VIDEO || mediaType == MEDIA_TYPE_AUDIO) {
+            this.mediaType = mediaType;
+        } else {
+            this.mediaType = MEDIA_TYPE_VIDEO;
+        }
+        this.mediaImgUri = mediaImgUri;
+        this.playerPluginList = playerPluginList;
+        this.playerDecryptor = playerDecryptor;
+    }
+
+    /**
+     * @param mediaCode        media标识编码 不可为null，用于区分不同的视频
+     * @param mediaName        media名称 不可为null
+     * @param mediaUriList    media各个清晰度对应的文件Uri列表 不可为null
+     * @param mediaType        media类型 默认为MEDIA_TYPE_VIDEO
+     * @param mediaImgUri      media图片Uri 可为null
+     * @param playerPluginList media解密器 可为null
+     * @param playerDecryptor  media解密器 可为null
+     */
+    public PineMediaPlayerBean(String mediaCode, String mediaName, ArrayList<Uri> mediaUriList,
+                               int mediaType, Uri mediaImgUri,
+                               List<IPinePlayerPlugin> playerPluginList,
+                               IPineMediaDecryptor playerDecryptor) {
+        this.mediaCode = mediaCode;
+        this.mediaName = mediaName;
+        this.mediaUriList = mediaUriList;
         if (mediaType == MEDIA_TYPE_VIDEO || mediaType == MEDIA_TYPE_AUDIO) {
             this.mediaType = mediaType;
         } else {
@@ -83,11 +121,23 @@ public class PineMediaPlayerBean {
     }
 
     public Uri getMediaUri() {
-        return mediaUri;
+        return getMediaUri(0);
     }
 
-    public void setMediaUri(Uri mediaUri) {
-        this.mediaUri = mediaUri;
+    public Uri getMediaUri(int index) {
+        if (mediaUriList == null || index >= mediaUriList.size()) {
+            return null;
+        } else {
+            return mediaUriList.get(index);
+        }
+    }
+
+    public ArrayList<Uri> getMediaUriList() {
+        return mediaUriList;
+    }
+
+    public void setMediaUriList(ArrayList<Uri> mediaUriList) {
+        this.mediaUriList = mediaUriList;
     }
 
     public int getMediaType() {
@@ -123,12 +173,20 @@ public class PineMediaPlayerBean {
     }
 
     public String toString() {
-        return "PineMediaPlayerBean{" +
+        String mediaUriListStr = null;
+        if (mediaUriList != null && mediaUriList.size() > 0) {
+            mediaUriListStr = "[" + mediaUriList.get(0);
+            for (int i = 0; i < mediaUriList.size(); i++) {
+                mediaUriListStr +=  "," + mediaUriList.get(i);
+            }
+            mediaUriListStr += "]";
+        }
+        return "PineMediaPlayerBean:{" +
                 "mediaCode:" + mediaCode +
                 ",mediaName:" + mediaName +
-                ",mediaUri:" + mediaUri +
+                ",mediaUriList:" + mediaUriList +
                 ",mediaType:" + mediaType +
-                ",mediaImgUri:" + mediaImgUri +
+                ",mediaImgUri:" + mediaUriListStr +
                 ",playerPluginList:" + playerPluginList +
                 ",playerDecryptor:" + playerDecryptor;
     }

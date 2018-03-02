@@ -167,7 +167,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
                 && !mNotPlayWhenResumeState) {
             LogUtil.d(TAG, "play pause image advert");
             mIsPlayingPauseAdvert = true;
-            mController.setControllerEnabled(false, true, false, false, false, false, false, false, false);
+            mController.setControllerEnabled(false, false, true, false, false, false, false, false, false, false);
             playAdvert(mContext, mPlayer, mPauseAdvert, PineAdvertBean.TYPE_PAUSE);
         }
     }
@@ -177,7 +177,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
         if (mCompleteAdvert != null && !isPlayingAdvert()) {
             LogUtil.d(TAG, "play complete image advert");
             mIsPlayingCompleteAdvert = true;
-            mController.setControllerEnabled(false, true, false, false, false, false, false, false, false);
+            mController.setControllerEnabled(false, false, true, false, false, false, false, false, false, false);
             playAdvert(mContext, mPlayer, mCompleteAdvert, PineAdvertBean.TYPE_COMPLETE);
             mHandler.sendEmptyMessageDelayed(MSG_COMPLETE_ADVERT_FINISH, mCompleteAdvert.getDurationTime());
         }
