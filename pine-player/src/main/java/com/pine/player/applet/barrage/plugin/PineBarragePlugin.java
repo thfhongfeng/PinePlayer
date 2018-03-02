@@ -28,7 +28,7 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     private PineMediaWidget.IPineMediaPlayer mPlayer;
     private BarrageCanvasView mBarrageCanvasView;
     private int mDisplayTotalHeight = 200;
-
+    private boolean mIsOpen = true;
     // 弹幕列表，按时间升序排列
     private List<PineBarrageBean> mBarrageList;
     private List<PineBarrageBean> mShownBarrageList;
@@ -128,7 +128,7 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
 
     @Override
     public void onTime(long position) {
-        if (mBarrageCanvasView == null) {
+        if (mBarrageCanvasView == null || !mIsOpen) {
             return;
         }
         if (Math.abs(position - mPrePosition) >
@@ -166,6 +166,22 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     @Override
     public void onRelease() {
         clear();
+    }
+
+    @Override
+    public void openPlugin() {
+        mIsOpen = true;
+    }
+
+    @Override
+    public void closePlugin() {
+        mIsOpen = false;
+        clear();
+    }
+
+    @Override
+    public boolean isOpen() {
+        return mIsOpen;
     }
 
     public void setBarrageData(List<PineBarrageBean> barrageList) {

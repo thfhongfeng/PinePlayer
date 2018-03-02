@@ -33,6 +33,7 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
     private int mPreSubtitleBeanIndex = 0;
 
     private PineMediaWidget.IPineMediaPlayer mPlayer;
+    private boolean mIsOpen = true;
 
     public PineSubtitlePlugin(Context context, String subtitleFilePath, String charset) {
         mContext = context;
@@ -48,14 +49,18 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
         mCharset = charset;
     }
 
-    @Override
-    public void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
-                       PineMediaWidget.IPineMediaController controller,
-                       boolean isPlayerReset, boolean isResumeState) {
+    public void setSubtitle(String subtitleFilePath, int pathType, String charset) {
+        resetState();
+        mSubtitleFilePath = subtitleFilePath;
+        mSubtitleFileType = pathType;
+        mCharset = charset;
+        prepareSubtitle();
+    }
+
+    private void prepareSubtitle() {
         if (mSubtitleFilePath == null && mSubtitleFilePath == "") {
             return;
         }
-        mContext = context;
         InputStream inputStream = null;
         try {
             switch (mSubtitleFileType) {
@@ -71,7 +76,6 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
             }
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, mCharset));
             mSubtitleBeanList = parseSubtitleBufferedReader(br);
-            mPlayer = player;
         } catch (FileNotFoundException e) {
             mSubtitleBeanList = null;
             e.printStackTrace();
@@ -79,6 +83,15 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
             mSubtitleBeanList = null;
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
+                       PineMediaWidget.IPineMediaController controller,
+                       boolean isPlayerReset, boolean isResumeState) {
+        mContext = context;
+        mPlayer = player;
+        prepareSubtitle();
     }
 
     @Override
@@ -123,7 +136,7 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
 
     @Override
     public void onTime(long position) {
-        if (mSubtitleBeanList == null || mSubtitleBeanList.size() < 1) {
+        if (!mIsOpen || mSubtitleBeanList == null || mSubtitleBeanList.size() < 1) {
             return;
         }
         boolean isFound = false;
@@ -155,9 +168,29 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
 
     @Override
     public void onRelease() {
-        updateSubtitleText(null);
+        resetState();
         mContext = null;
+        mPlayer = null;
     }
+
+    private void resetState() {
+        updateSubtitleText(null);
+    }
+
+    public void openPlugin() {
+        mIsOpen = true;
+    }
+
+    @Override
+    public void closePlugin() {
+        mIsOpen = false;
+    }
+
+    @Override
+    public boolean isOpen() {
+        return mIsOpen;
+    }
+
 
     public abstract List<PineSubtitleBean> parseSubtitleBufferedReader(BufferedReader bufferedReader);
 

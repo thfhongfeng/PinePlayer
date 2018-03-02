@@ -27,4 +27,8 @@ public interface IPinePlayerPlugin {
     void onMediaPlayerError(int framework_err, int impl_err);
     void onTime(long position);
     void onRelease();
+
+    void openPlugin();
+    void closePlugin();
+    boolean isOpen();
 }

@@ -61,7 +61,7 @@ public class PineLrcParserPlugin extends PineSubtitlePlugin {
             if (mFullPluginViewHolder == null) {
                 mFullPluginViewHolder = new PinePluginViewHolder();
                 ViewGroup view = (ViewGroup) View.inflate(context,
-                        R.layout.media_subtitle_full, null);
+                        R.layout.pine_player_media_subtitle_full, null);
                 mFullPluginViewHolder.setContainer(view);
             }
             mCurViewHolder = mFullPluginViewHolder;
@@ -69,7 +69,7 @@ public class PineLrcParserPlugin extends PineSubtitlePlugin {
             if (mPluginViewHolder == null) {
                 mPluginViewHolder = new PinePluginViewHolder();
                 ViewGroup view = (ViewGroup) View.inflate(context,
-                        R.layout.media_subtitle, null);
+                        R.layout.pine_player_media_subtitle, null);
                 mPluginViewHolder.setContainer(view);
             }
             mCurViewHolder = mPluginViewHolder;

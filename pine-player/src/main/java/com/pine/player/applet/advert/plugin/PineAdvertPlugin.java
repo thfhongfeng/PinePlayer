@@ -29,7 +29,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
     private PineAdvertBean mHeadAdvert;
     private PineAdvertBean mPauseAdvert;
     private PineAdvertBean mCompleteAdvert;
-
+    private boolean mIsOpen = true;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
     private PineMediaWidget.IPineMediaController mController;
 
@@ -111,7 +111,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
         mNotPlayWhenResumeState = !isPlayerReset || isResumeState;
         mPlayer = player;
         mController = controller;
-        if (mHeadAdvert != null && !isPlayingAdvert() && !mNotPlayWhenResumeState) {
+        if (mIsOpen && mHeadAdvert != null && !isPlayingAdvert() && !mNotPlayWhenResumeState) {
             LogUtil.d(TAG, "play head image advert");
             mIsPlayingHeadAdvert = true;
             playAdvert(mContext, mPlayer, mHeadAdvert, PineAdvertBean.TYPE_HEAD);
@@ -131,6 +131,9 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
 
     @Override
     public void onMediaPlayerStart() {
+        if (!mIsOpen) {
+            return;
+        }
         if (mHeadAdvert != null && mIsPlayingHeadAdvert) {
             mIsPauseByAdvert = true;
             mController.setControllerEnabled(false);
@@ -160,7 +163,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
 
     @Override
     public void onMediaPlayerPause() {
-        if (mPauseAdvert != null && !isPlayingAdvert() && !mIsPauseByAdvert
+        if (mIsOpen && mPauseAdvert != null && !isPlayingAdvert() && !mIsPauseByAdvert
                 && !mNotPlayWhenResumeState) {
             LogUtil.d(TAG, "play pause image advert");
             mIsPlayingPauseAdvert = true;
@@ -192,7 +195,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
 
     @Override
     public void onTime(long position) {
-        if (mTimeAdvertList == null && isPlayingAdvert()) {
+        if (!mIsOpen ||mTimeAdvertList == null && isPlayingAdvert()) {
             return;
         }
         PineAdvertBean pineAdvertBean = null;
@@ -228,6 +231,21 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
         advertComplete();
     }
 
+    @Override
+    public void openPlugin() {
+        mIsOpen = true;
+    }
+
+    @Override
+    public void closePlugin() {
+        mIsOpen = false;
+    }
+
+    @Override
+    public boolean isOpen() {
+        return mIsOpen;
+    }
+
     private void constructAdvertBeans() {
         PineAdvertBean pineAdvertBean;
         mTimeAdvertList = new ArrayList<PineAdvertBean>();
@@ -253,6 +271,21 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
     private boolean isPlayingAdvert() {
         return mIsPlayingHeadAdvert || mIsPlayingPauseAdvert ||
                 mIsPlayingCompleteAdvert || mIsPlayingTimeAdvert;
+    }
+
+    public void skipAdvert() {
+        if (mIsPlayingHeadAdvert) {
+            mHandler.removeMessages(MSG_HEAD_ADVERT_FINISH);
+            mHandler.sendEmptyMessage(MSG_HEAD_ADVERT_FINISH);
+        }
+        if (mIsPlayingCompleteAdvert) {
+            mHandler.removeMessages(MSG_COMPLETE_ADVERT_FINISH);
+            mHandler.sendEmptyMessage(MSG_COMPLETE_ADVERT_FINISH);
+        }
+        if (mIsPlayingTimeAdvert) {
+            mHandler.removeMessages(MSG_TIME_ADVERT_FINISH);
+            mHandler.sendEmptyMessage(MSG_TIME_ADVERT_FINISH);
+        }
     }
 
     public abstract void playAdvert(Context context, PineMediaWidget.IPineMediaPlayer player,

@@ -313,7 +313,7 @@ public class PinePlayerActivity extends AppCompatActivity {
         // 给RecyclerView添加装饰（比如divider）
         mVideoListInPlayerRv.addItemDecoration(
                 new AdvanceDecoration(PinePlayerActivity.this,
-                        R.drawable.rv_divider, 2, AdvanceDecoration.VERTICAL, true));
+                        R.drawable.pine_player_rv_divider, 2, AdvanceDecoration.VERTICAL, true));
         // 设置适配器
         mVideoListInPlayerAdapter = new VideoListAdapter(mVideoListInPlayerRv,
                 VideoListAdapter.LIST_IN_PLAYER);

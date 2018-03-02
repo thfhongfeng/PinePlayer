@@ -8,5 +8,5 @@
     <bitmap
         android:antialias="true"
         android:filter="true"
-        android:src="@drawable/media_loading"/>
+        android:src="@drawable/pine_player_media_loading"/>
 </rotate>
