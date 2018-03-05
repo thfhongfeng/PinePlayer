@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:gravity="center"
-        android:layout_margin="@dimen/pine_full_subtitle_margin"
+        android:layout_margin="20dp"
         android:textColor="@color/pine_subtitle_text"
-        android:textSize="@dimen/pine_full_subtitle_text"/>
+        android:textSize="16sp"/>
 </RelativeLayout>

@@ -6,7 +6,7 @@
     <LinearLayout
         android:id="@+id/top_controller"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/pine_full_top_container_height"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:gravity="center_vertical"
         android:background="@color/pine_controller_bg">
@@ -36,15 +36,15 @@
             android:ellipsize="end"
             android:gravity="left|center_vertical"
             android:maxLines="1"
-            android:paddingBottom="4dp"
+            android:padding="10dp"
             android:textColor="@color/pine_controller_text"
-            android:textSize="@dimen/pine_full_media_name_text" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/media_speed_text"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:padding="3dp"
+            android:padding="5dp"
             android:gravity="right|center_vertical"
             android:maxLines="1"
             android:ellipsize="end"
@@ -60,6 +60,8 @@
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
             android:paddingStart="20dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
             android:src="@drawable/pine_player_media_list_btn" />
     </LinearLayout>
 
@@ -87,7 +89,7 @@
     <LinearLayout
         android:id="@+id/bottom_controller"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/pine_full_bottom_container_height"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/pine_controller_bg"
         android:gravity="center_vertical"
@@ -101,10 +103,10 @@
             android:layout_centerVertical="true"
             android:background="@color/pine_media_bg"
             android:gravity="center"
-            android:paddingEnd="15dp"
-            android:paddingLeft="20dp"
             android:paddingRight="15dp"
-            android:paddingStart="20dp"
+            android:paddingLeft="20dp"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
             android:src="@drawable/pine_player_play_pause_btn" />
 
         <TextView
@@ -115,7 +117,7 @@
             android:layout_marginRight="-12dp"
             android:gravity="center"
             android:textColor="@color/pine_controller_text"
-            android:textSize="@dimen/pine_full_controller_text" />
+            android:textSize="14sp" />
 
         <SeekBar
             android:id="@+id/media_progress"
@@ -138,7 +140,7 @@
             android:layout_marginLeft="-12dp"
             android:gravity="center"
             android:textColor="@color/pine_controller_text"
-            android:textSize="@dimen/pine_full_controller_text" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/volumes_text"
@@ -151,7 +153,7 @@
             android:padding="2dp"
             android:text="20%"
             android:textColor="@color/pine_controller_text"
-            android:textSize="@dimen/pine_full_controller_text" />
+            android:textSize="14sp" />
 
         <ImageView
             android:id="@+id/full_screen_btn"

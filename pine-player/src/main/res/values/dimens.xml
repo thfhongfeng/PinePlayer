@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="pine_full_top_container_height">48dp</dimen>
-    <dimen name="pine_full_bottom_container_height">40dp</dimen>
-    <dimen name="pine_top_container_height">40dp</dimen>
-    <dimen name="pine_bottom_container_height">36dp</dimen>
-    <dimen name="pine_media_list_width">200dp</dimen>
 
-    <dimen name="pine_full_media_name_text">18sp</dimen>
-    <dimen name="pine_full_controller_text">14sp</dimen>
-    <dimen name="pine_media_name_text">14sp</dimen>
-    <dimen name="pine_controller_text">12sp</dimen>
-
-    <dimen name="pine_full_subtitle_margin">20dp</dimen>
-    <dimen name="pine_subtitle_margin">10dp</dimen>
-    <dimen name="pine_full_subtitle_text">16sp</dimen>
-    <dimen name="pine_subtitle_text">14sp</dimen>
 </resources>
