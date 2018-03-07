@@ -34,6 +34,7 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -72,9 +73,13 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     private Context mContext;
 
-    // 多媒体播放参数对象
+    // 多媒体播放列表对象
+    private List<PineMediaPlayerBean> mMediaBeanList;
+    // 多媒体头部信息列表对象
+    private List<Map<String, String>> mHeaderList;
+    // 准备播放的多媒体对象
     private PineMediaPlayerBean mMediaBean;
-    // 多媒体播放头部信息
+    // 准备播放的多媒体头部信息
     private Map<String, String> mHeaders;
     // 是否是本地流方式播放，使用加密解密方式时，需要设置为true
     private boolean mIsLocalStreamMedia;
@@ -399,7 +404,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     private void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
         if (mMediaPlayer != null && mMediaController != null && mMediaBean != null) {
             this.setTag("PineMediaView");
-            mMediaController.setMedia(mMediaBean, "PineMediaView");
+            mMediaController.setPlayingMedia(mMediaBean, "PineMediaView");
             mMediaController.attachToParentView(isPlayerReset, isResumeState);
         }
     }
@@ -433,19 +438,9 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
      *
      * @param pineMediaPlayerBean 多媒体播放参数对象
      * @param headers             多媒体播放信息头
-     */
-    protected void setMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers) {
-        setMedia(pineMediaPlayerBean, headers, false);
-    }
-
-    /**
-     * 设置多媒体播放参数
-     *
-     * @param pineMediaPlayerBean 多媒体播放参数对象
-     * @param headers             多媒体播放信息头
      * @param resumeState         此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
      */
-    protected void setMedia(PineMediaPlayerBean pineMediaPlayerBean,
+    private void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
                             Map<String, String> headers, boolean resumeState) {
         mMediaBean = pineMediaPlayerBean;
         mHeaders = headers;
@@ -658,9 +653,19 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     }
 
     @Override
-    public void resetMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
+        setPlayingMedia(pineMediaPlayerBean, null, false);
+    }
+
+    @Override
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers) {
+        setPlayingMedia(pineMediaPlayerBean, headers, false);
+    }
+
+    @Override
+    public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
                                     Map<String, String> headers) {
-        setMedia(pineMediaPlayerBean, headers, true);
+        setPlayingMedia(pineMediaPlayerBean, headers, true);
     }
 
     @Override
@@ -695,6 +700,23 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     @Override
     public int getMediaViewHeight() {
         return mMediaHeight;
+    }
+
+    @Override
+    public void setMediaList(List<PineMediaPlayerBean> pineMediaPlayerBeanList,
+                                List<Map<String, String>> headerList) {
+        mMediaBeanList = pineMediaPlayerBeanList;
+        mHeaderList = headerList;
+    }
+
+    @Override
+    public List<PineMediaPlayerBean> getMediaList() {
+        return mMediaBeanList;
+    }
+
+    @Override
+    public List<Map<String, String>> getMediaHeadList() {
+        return mHeaderList;
     }
 
     @Override

@@ -13,9 +13,20 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.pine.pineplayer.ui.activity.PinePlayerActivity"
+            android:name="com.pine.pineplayer.ui.activity.DefaultPinePlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/pine_player"
+            android:label="@string/pine_player_default"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.pine.pineplayer.ui.activity.CustomPinePlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/pine_player_custom"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan|stateHidden">
             <intent-filter>

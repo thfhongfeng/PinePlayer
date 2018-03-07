@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/media_item_bg"
+    android:background="@drawable/pine_player_media_item_bg"
     android:orientation="vertical"
     android:padding="15dp">
 

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">PinePlayer</string>
-    <string name="pine_player">PinePlayer</string>
+    <string name="pine_player_default">DefaultPinePlayer</string>
+    <string name="pine_player_custom">CustomPinePlayer</string>
 
     <string name="media_speed_1x">1.0X</string>
     <string-array name="media_definition_text_arr">

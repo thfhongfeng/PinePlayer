@@ -5,6 +5,7 @@ import android.view.ViewGroup;
 
 import com.pine.player.bean.PineMediaPlayerBean;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,7 +38,7 @@ public class PineMediaWidget {
          * @param pineMediaPlayerBean
          * @param videoViewTag
          */
-        void setMedia(PineMediaPlayerBean pineMediaPlayerBean,
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
                       String videoViewTag);
 
         /**
@@ -223,12 +224,28 @@ public class PineMediaWidget {
         void release();
 
         /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean 多媒体播放参数对象
+         * @param headers             多媒体播放信息头
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean);
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean 多媒体播放参数对象
+         * @param headers             多媒体播放信息头
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers);
+
+        /**
          * 重新设置播放参数并恢复到之前的播放状态
          *
          * @param pineMediaPlayerBean 播放参数对象
          * @param headers             播放头
          */
-        void resetMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
+        void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
                                  Map<String, String> headers);
 
         /**
@@ -265,7 +282,27 @@ public class PineMediaWidget {
         int getMediaViewHeight();
 
         /**
-         * 获取播放的media实体
+         * 设置多媒体列表
+         * @param pineMediaPlayerBeanList
+         * @param headerList
+         */
+        void setMediaList(List<PineMediaPlayerBean> pineMediaPlayerBeanList,
+                          List<Map<String, String>> headerList);
+
+        /**
+         * 获取多媒体列表
+         * @return
+         */
+        List<PineMediaPlayerBean> getMediaList();
+
+        /**
+         * 获取多媒体头部信息列表
+         * @return
+         */
+        List<Map<String, String>> getMediaHeadList();
+
+        /**
+         * 获取准备播放的media实体
          *
          * @return
          */

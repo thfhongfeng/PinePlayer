@@ -13,6 +13,7 @@ import android.widget.RelativeLayout;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.util.LogUtil;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,16 +35,19 @@ public class PineMediaPlayerView extends RelativeLayout
     public PineMediaPlayerView(Context context) {
         super(context);
         mContext = context;
+        initView(mContext);
     }
 
     public PineMediaPlayerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
+        initView(mContext);
     }
 
     public PineMediaPlayerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
+        initView(mContext);
     }
 
     private void initView(Context context) {
@@ -80,14 +84,6 @@ public class PineMediaPlayerView extends RelativeLayout
 
     public void setLocalStreamMode(boolean isLocalStream, int port) {
         mPineSurfaceView.setLocalStreamMode(isLocalStream, port);
-    }
-
-    public void setMedia(PineMediaPlayerBean pineMediaPlayerBean) {
-        mPineSurfaceView.setMedia(pineMediaPlayerBean, null);
-    }
-
-    public void setMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers) {
-        mPineSurfaceView.setMedia(pineMediaPlayerBean, headers);
     }
 
     @Override
@@ -148,9 +144,19 @@ public class PineMediaPlayerView extends RelativeLayout
     }
 
     @Override
-    public void resetMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
+        mPineSurfaceView.setPlayingMedia(pineMediaPlayerBean, null);
+    }
+
+    @Override
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers) {
+        mPineSurfaceView.setPlayingMedia(pineMediaPlayerBean, headers);
+    }
+
+    @Override
+    public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
                                     Map<String, String> headers) {
-        mPineSurfaceView.resetMediaAndResume(pineMediaPlayerBean, headers);
+        mPineSurfaceView.resetPlayingMediaAndResume(pineMediaPlayerBean, headers);
     }
 
     @Override
@@ -176,6 +182,21 @@ public class PineMediaPlayerView extends RelativeLayout
     @Override
     public int getMediaViewHeight() {
         return mPineSurfaceView.getMediaViewHeight();
+    }
+
+    @Override
+    public void setMediaList(List<PineMediaPlayerBean> pineMediaPlayerBeanList, List<Map<String, String>> headerList) {
+        mPineSurfaceView.setMediaList(pineMediaPlayerBeanList, headerList);
+    }
+
+    @Override
+    public List<Map<String, String>> getMediaHeadList() {
+        return mPineSurfaceView.getMediaHeadList();
+    }
+
+    @Override
+    public List<PineMediaPlayerBean> getMediaList() {
+        return mPineSurfaceView.getMediaList();
     }
 
     @Override
