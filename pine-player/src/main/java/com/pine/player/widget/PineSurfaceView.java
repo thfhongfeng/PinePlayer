@@ -472,14 +472,18 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
      * @param isResumeState 是否是为了恢复状态而重新打开
      */
     protected void openMedia(boolean isResumeState) {
-        if (mMediaBean == null || mMediaBean.getMediaUri() == null
-                || mSurfaceHolder == null) {
+        if (mMediaBean == null) {
+            return;
+        }
+        Uri mediaUri = mMediaBean.getMediaUriByDefinition(mMediaBean.getCurrentDefinition());
+        if (mediaUri == null || mSurfaceHolder == null) {
             return;
         }
         if (isNeedLocalService() && mLocalServiceState != SERVICE_STATE_CONNECTED) {
             return;
         }
-        LogUtil.d(TAG, "Open Media mUri:" + mMediaBean.getMediaUri());
+
+        LogUtil.d(TAG, "Open Media mUri:" + mediaUri);
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
         release(false);
@@ -506,18 +510,18 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             if (mIsLocalStreamMedia) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && USE_NEW_API) {
                     // 使用新版本的流方式API设置DataSource
-                    File file = new File(mMediaBean.getMediaUri().getPath());
+                    File file = new File(mediaUri.getPath());
                     setPineDataSource(file);
                 } else {
                     if (mHeaders == null) {
                         mHeaders = new HashMap<String, String>();
                     }
-                    mHeaders.put("Path", mMediaBean.getMediaUri().getPath());
+                    mHeaders.put("Path", mediaUri.getPath());
                     mMediaPlayer.setDataSource(mContext,
                             Uri.parse(MEDIA_LOCAL_SOCKET_URL + mSocketPort), mHeaders);
                 }
             } else {
-                mMediaPlayer.setDataSource(mContext, mMediaBean.getMediaUri(), mHeaders);
+                mMediaPlayer.setDataSource(mContext, mediaUri, mHeaders);
             }
             mMediaPlayer.setDisplay(mSurfaceHolder);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -529,13 +533,13 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             mCurrentState = STATE_PREPARING;
             attachMediaController(true, isResumeState);
         } catch (IOException ex) {
-            LogUtil.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
+            LogUtil.w(TAG, "Unable to open content: " + mediaUri, ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
             return;
         } catch (IllegalArgumentException ex) {
-            LogUtil.w(TAG, "Unable to open content: " + mMediaBean.getMediaUri(), ex);
+            LogUtil.w(TAG, "Unable to open content: " + mediaUri, ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
@@ -555,7 +559,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             @Override
             public int readAt(long position, byte[] buffer, int offset, int size) throws IOException {
                 if (mRandomAccessFile == null) {
-                    mRandomAccessFile = new RandomAccessFile(mMediaBean.getMediaUri().getPath(), "r");
+                    mRandomAccessFile = new RandomAccessFile(file.getPath(), "r");
                     mSize = file.length();
                 }
                 if (mRandomAccessFile == null || position + 1 >= mSize) {
@@ -700,12 +704,14 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
 
     @Override
     public MediaPlayer.TrackInfo[] getTrackInfo() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            LogUtil.d(TAG, "mediaPlayerParams getSelectedTrack MEDIA_TRACK_TYPE_AUDIO: " +
-                    mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) +
-                    ", MEDIA_TRACK_TYPE_VIDEO:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_VIDEO) +
-                    ", MEDIA_TRACK_TYPE_TIMEDTEXT:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT) +
-                    ", MEDIA_TRACK_TYPE_SUBTITLE:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_SUBTITLE));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mMediaPlayer.isPlaying()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                LogUtil.d(TAG, "mediaPlayerParams getSelectedTrack MEDIA_TRACK_TYPE_AUDIO: " +
+                        mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) +
+                        ", MEDIA_TRACK_TYPE_VIDEO:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_VIDEO) +
+                        ", MEDIA_TRACK_TYPE_TIMEDTEXT:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT) +
+                        ", MEDIA_TRACK_TYPE_SUBTITLE:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_SUBTITLE));
+            }
             MediaPlayer.TrackInfo[] trackInfoArr = mMediaPlayer.getTrackInfo();
             MediaPlayer.TrackInfo trackInfo = null;
             for (int i = 0; i < trackInfoArr.length; i++) {

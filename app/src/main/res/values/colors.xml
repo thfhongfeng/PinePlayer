@@ -3,4 +3,11 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="media_bg">#00000000</color>
+
+    <color name="controller_bg">#CC000000</color>
+    <color name="controller_text">#DFDFDF</color>
+
+    <color name="subtitle_text">#FFFFFF</color>
 </resources>

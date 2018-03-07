@@ -4,6 +4,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
+import java.util.List;
+
 /**
  * Created by tanghongfeng on 2017/9/14.
  */
@@ -25,10 +27,9 @@ public final class PineControllerViewHolder {
     private View mediaNameText;
     // 倍速控件
     private View speedButton;
-    // 清晰度控件
-    private View definitionButton;
-    // 播放列表按键
-    private View mediaListButton;
+    // 全屏模式下右侧View的控制按键列表（比如清晰度选择View的显示开关，播放列表View的显示开关，
+    // 该List的Item与AbstractMediaControllerAdapter的getRightContainerViewHolderList的Item的为一一对应关系）
+    private List<View> rightViewControlBtnList;
     // 锁定按键
     private View lockControllerButton;
     // 播放按键
@@ -104,20 +105,12 @@ public final class PineControllerViewHolder {
         this.speedButton = speedButton;
     }
 
-    public View getDefinitionButton() {
-        return definitionButton;
+    public List<View> getRightViewControlBtnList() {
+        return rightViewControlBtnList;
     }
 
-    public void setDefinitionButton(View definitionButton) {
-        this.definitionButton = definitionButton;
-    }
-
-    public View getMediaListButton() {
-        return mediaListButton;
-    }
-
-    public void setMediaListButton(View mediaListButton) {
-        this.mediaListButton = mediaListButton;
+    public void setRightViewControlBtnList(List<View> rightViewControlBtnList) {
+        this.rightViewControlBtnList = rightViewControlBtnList;
     }
 
     public View getLockControllerButton() {

@@ -59,7 +59,7 @@ public class BarrageCanvasView extends RelativeLayout {
         mBarrageItemViewListener = barrageItemViewListener;
     }
 
-    public boolean addBarrageItemView(final PineBarrageBean pineBarrageBean) {
+    public boolean addBarrageItemView(final PineBarrageBean pineBarrageBean, float speed) {
         final TextView textView = new TextView(mContext);
         textView.setTextColor(Color.WHITE);
         textView.setText(Html.fromHtml(pineBarrageBean.getTextBody()));
@@ -86,7 +86,7 @@ public class BarrageCanvasView extends RelativeLayout {
         textView.setLayoutParams(lp);
         addView(textView);
 
-        animator.setDuration(Math.abs(pineBarrageBean.getDuration() / getWidth() * translationX));
+        animator.setDuration(Math.abs(pineBarrageBean.getDuration() * translationX / (long) (getWidth() * speed)));
         final LinearInterpolator linearInterpolator = new LinearInterpolator();
         animator.setInterpolator(linearInterpolator);
         animator.start();

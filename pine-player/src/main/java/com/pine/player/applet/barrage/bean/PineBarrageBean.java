@@ -30,7 +30,7 @@ public class PineBarrageBean {
 
     private PartialDisplayBarrageNode partialDisplayBarrageNode;
 
-    private boolean isShow;
+    private volatile boolean isShow;
 
     private View itemView;
 
