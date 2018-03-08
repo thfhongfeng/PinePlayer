@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="40dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/label_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="正在解压资源，请等待……" />
+
+    <TextView
+        android:id="@+id/simple_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="简单的播放器"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/simple_default_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="单视频的默认播放器"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/simple_custom_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="单视频的自定义播放器"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/list_default_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="多视频的默认播放器"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/list_custom_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="多视频的自定义播放器"
+        android:visibility="invisible" />
+
+</LinearLayout>

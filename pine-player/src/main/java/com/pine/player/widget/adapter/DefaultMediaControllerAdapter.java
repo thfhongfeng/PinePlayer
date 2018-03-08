@@ -39,197 +39,246 @@ import java.util.List;
  */
 
 /**
- * 参考此Adapter，继承此Adapter或者AbstractMediaControllerAdapter进行自定义controller的定制
+ * 参考此Adapter，继承AbstractMediaControllerAdapter进行自定义controller的定制
  **/
 
 public class DefaultMediaControllerAdapter extends PineMediaController.AbstractMediaControllerAdapter {
-    protected Activity mContext;
-    protected PineBackgroundViewHolder mBackgroundViewHolder;
-    protected PineControllerViewHolder mFullControllerViewHolder, mControllerViewHolder;
-    protected PineWaitingProgressViewHolder mWaitingProgressViewHolder;
-    protected RelativeLayout mBackgroundView;
-    protected ViewGroup mFullControllerView, mControllerView;
-    protected LinearLayout mWaitingProgressView;
-    private ViewGroup mDefinitionListContainerInPlayer;
-    private ViewGroup mVideoListContainerInPlayer;
-    private RecyclerView mDefinitionListInPlayerRv;
-    private RecyclerView mVideoListInPlayerRv;
-    private DefinitionListAdapter mDefinitionListInPlayerAdapter;
-    private VideoListAdapter mVideoListInPlayerAdapter;
-    private List<PineMediaPlayerBean> mMediaList;
-    private String[] mDefinitionNameArr;
-    private PineMediaWidget.IPineMediaPlayer mPlayer;
-    private int mCurrentVideoPosition = -1;
-    private TextView mDefinitionBtn;
+    private Activity mDContext;
+    private PineBackgroundViewHolder mDBackgroundViewHolder;
+    private PineControllerViewHolder mDFullControllerViewHolder, mDControllerViewHolder;
+    private PineWaitingProgressViewHolder mDWaitingProgressViewHolder;
+    private RelativeLayout mDBackgroundView;
+    private ViewGroup mDFullControllerView, mDControllerView;
+    private LinearLayout mDWaitingProgressView;
+    private ViewGroup mDDefinitionListContainerInPlayer;
+    private ViewGroup mDVideoListContainerInPlayer;
+    private RecyclerView mDDefinitionListInPlayerRv;
+    private RecyclerView mDVideoListInPlayerRv;
+    private DefinitionListAdapter mDDefinitionListInPlayerAdapter;
+    private VideoListAdapter mDVideoListInPlayerAdapter;
+    private List<PineMediaPlayerBean> mDMediaList;
+    private String[] mDDefinitionNameArr;
+    private PineMediaWidget.IPineMediaPlayer mDPlayer;
+    private int mDCurrentVideoPosition = -1;
+    private TextView mDDefinitionBtn;
+    private boolean mDEnableSpeed, mDEnableMediaList, mDEnableDefinition;
+    private boolean mDEnableCurTime, mDEnableProgressBar, mDEnableTotalTime;
+    private boolean mDEnableVolumeText, mDEnableFullScreen;
+
+    public DefaultMediaControllerAdapter(Activity context) {
+        this(context, null, true, true, true, true, true, true, true, true);
+    }
 
     public DefaultMediaControllerAdapter(Activity context, List<PineMediaPlayerBean> mediaList) {
-        this.mContext = context;
-        mDefinitionNameArr = mContext.getResources().getStringArray(R.array.pine_media_definition_text_arr);
-        mMediaList = mediaList;
-        if (hasMediaList()) {
+        this(context, mediaList, true, true, true, true, true, true, true, true);
+    }
+
+    public DefaultMediaControllerAdapter(Activity context, List<PineMediaPlayerBean> mediaList,
+                                         boolean enableSpeed, boolean enableMediaList,
+                                         boolean enableDefinition, boolean enableCurTime,
+                                         boolean enableProgressBar, boolean enableTotalTime,
+                                         boolean enableVolumeText, boolean enableFullScreen) {
+        mDContext = context;
+        mDDefinitionNameArr = mDContext.getResources().getStringArray(R.array.pine_media_definition_text_arr);
+        mDMediaList = mediaList;
+        setEnableControlUnit(enableSpeed, enableMediaList, enableDefinition, enableCurTime,
+                enableProgressBar, enableTotalTime, enableVolumeText, enableFullScreen);
+        if (hasMediaList() && mDEnableMediaList) {
             initVideoRecycleView();
         }
-        initDefinitionRecycleView();
+        if (mDEnableDefinition) {
+            initDefinitionRecycleView();
+        }
     }
 
     @Override
-    public boolean init(PineMediaWidget.IPineMediaPlayer player) {
-        mPlayer = player;
+    protected boolean init(PineMediaWidget.IPineMediaPlayer player) {
+        mDPlayer = player;
         return true;
     }
 
     @Override
-    public PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-        if (mBackgroundViewHolder == null) {
-            mBackgroundViewHolder = new PineBackgroundViewHolder();
-            if (mBackgroundView == null) {
-                ImageView backgroundView = new ImageView(mContext);
+    protected PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+        if (mDBackgroundViewHolder == null) {
+            mDBackgroundViewHolder = new PineBackgroundViewHolder();
+            if (mDBackgroundView == null) {
+                ImageView backgroundView = new ImageView(mDContext);
                 backgroundView.setBackgroundResource(android.R.color.darker_gray);
-                mBackgroundView = new RelativeLayout(mContext);
-                mBackgroundView.setBackgroundResource(android.R.color.darker_gray);
-                mBackgroundView.setLayoutTransition(new LayoutTransition());
+                mDBackgroundView = new RelativeLayout(mDContext);
+                mDBackgroundView.setBackgroundResource(android.R.color.darker_gray);
+                mDBackgroundView.setLayoutTransition(new LayoutTransition());
                 RelativeLayout.LayoutParams backgroundParams = new RelativeLayout.LayoutParams(
                         RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
                 backgroundParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-                mBackgroundView.addView(backgroundView, backgroundParams);
-                mBackgroundViewHolder.setBackgroundImageView(backgroundView);
+                mDBackgroundView.addView(backgroundView, backgroundParams);
+                mDBackgroundViewHolder.setBackgroundImageView(backgroundView);
             }
         }
-        mBackgroundViewHolder.setContainer(mBackgroundView);
-        return mBackgroundViewHolder;
+        mDBackgroundViewHolder.setContainer(mDBackgroundView);
+        return mDBackgroundViewHolder;
     }
 
     @Override
-    public PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
         if (player.isFullScreenMode()) {
-            if (mFullControllerViewHolder == null) {
-                mFullControllerViewHolder = new PineControllerViewHolder();
-                if (mFullControllerView == null) {
-                    mFullControllerView = (ViewGroup) View.inflate(mContext,
+            if (mDFullControllerViewHolder == null) {
+                mDFullControllerViewHolder = new PineControllerViewHolder();
+                if (mDFullControllerView == null) {
+                    mDFullControllerView = (ViewGroup) View.inflate(mDContext,
                             R.layout.pine_player_media_controller_full, null);
                 }
-                initControllerViewHolder(mFullControllerViewHolder, mFullControllerView);
-                mFullControllerViewHolder.setTopControllerView(
-                        mFullControllerView.findViewById(R.id.top_controller));
-                mFullControllerViewHolder.setCenterControllerView(
-                        mFullControllerView.findViewById(R.id.center_controller));
-                mFullControllerViewHolder.setBottomControllerView(
-                        mFullControllerView.findViewById(R.id.bottom_controller));
-                mFullControllerViewHolder.setGoBackButton(
-                        mFullControllerView.findViewById(R.id.go_back_btn));
+                initControllerViewHolder(mDFullControllerViewHolder, mDFullControllerView);
+                mDFullControllerViewHolder.setTopControllerView(
+                        mDFullControllerView.findViewById(R.id.top_controller));
+                mDFullControllerViewHolder.setCenterControllerView(
+                        mDFullControllerView.findViewById(R.id.center_controller));
+                mDFullControllerViewHolder.setBottomControllerView(
+                        mDFullControllerView.findViewById(R.id.bottom_controller));
+                mDFullControllerViewHolder.setGoBackButton(
+                        mDFullControllerView.findViewById(R.id.go_back_btn));
             }
             List<View> rightViewControlBtnList = new ArrayList<View>();
-            View mediaListBtn = mFullControllerView.findViewById(R.id.media_list_btn);
-            if (hasMediaList()) {
+            View mediaListBtn = mDFullControllerView.findViewById(R.id.media_list_btn);
+            if (hasMediaList() && mDEnableMediaList) {
                 rightViewControlBtnList.add(mediaListBtn);
                 mediaListBtn.setVisibility(View.VISIBLE);
             } else {
                 mediaListBtn.setVisibility(View.GONE);
             }
-            mDefinitionBtn = mFullControllerView.findViewById(R.id.media_definition_text);
+            mDDefinitionBtn = mDFullControllerView.findViewById(R.id.media_definition_text);
             PineMediaPlayerBean pineMediaPlayerBean = player.getMediaPlayerBean();
-            if (hasDefinitionList(pineMediaPlayerBean)) {
-                rightViewControlBtnList.add(mDefinitionBtn);
-                mDefinitionBtn.setVisibility(View.VISIBLE);
+            if (hasDefinitionList(pineMediaPlayerBean) && mDEnableDefinition) {
+                rightViewControlBtnList.add(mDDefinitionBtn);
+                mDDefinitionBtn.setVisibility(View.VISIBLE);
             } else {
-                mDefinitionBtn.setVisibility(View.GONE);
+                mDDefinitionBtn.setVisibility(View.GONE);
             }
-            mFullControllerViewHolder.setRightViewControlBtnList(rightViewControlBtnList);
-            mFullControllerViewHolder.setContainer(mFullControllerView);
-            return mFullControllerViewHolder;
+            if (rightViewControlBtnList.size() > 0) {
+                mDFullControllerViewHolder.setRightViewControlBtnList(rightViewControlBtnList);
+            }
+            mDFullControllerViewHolder.setContainer(mDFullControllerView);
+            return mDFullControllerViewHolder;
         } else {
-            if (mControllerViewHolder == null) {
-                if (mControllerView == null) {
-                    mControllerView = (ViewGroup) View.inflate(mContext,
+            if (mDControllerViewHolder == null) {
+                if (mDControllerView == null) {
+                    mDControllerView = (ViewGroup) View.inflate(mDContext,
                             R.layout.pine_player_media_controller, null);
                 }
-                mControllerViewHolder = new PineControllerViewHolder();
-                initControllerViewHolder(mControllerViewHolder, mControllerView);
-                mControllerViewHolder.setTopControllerView(mControllerView
+                mDControllerViewHolder = new PineControllerViewHolder();
+                initControllerViewHolder(mDControllerViewHolder, mDControllerView);
+                mDControllerViewHolder.setTopControllerView(mDControllerView
                         .findViewById(R.id.top_controller));
-                mControllerViewHolder.setCenterControllerView(mControllerView
+                mDControllerViewHolder.setCenterControllerView(mDControllerView
                         .findViewById(R.id.center_controller));
-                mControllerViewHolder.setBottomControllerView(mControllerView
+                mDControllerViewHolder.setBottomControllerView(mDControllerView
                         .findViewById(R.id.bottom_controller));
             }
-            mControllerViewHolder.setContainer(mControllerView);
-            return mControllerViewHolder;
+            mDControllerViewHolder.setContainer(mDControllerView);
+            return mDControllerViewHolder;
         }
-    }
-
-    @Override
-    public PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-        return null;
     }
 
     private void initControllerViewHolder(
             PineControllerViewHolder viewHolder, View root) {
         viewHolder.setPausePlayButton(root.findViewById(R.id.pause_play_btn));
-        viewHolder.setPlayProgressBar((SeekBar) root.findViewById(R.id.media_progress));
-        viewHolder.setCurrentTimeText(root.findViewById(R.id.cur_time_text));
-        viewHolder.setEndTimeText(root.findViewById(R.id.end_time_text));
-        viewHolder.setVolumesText(root.findViewById(R.id.volumes_text));
-        viewHolder.setFullScreenButton(root.findViewById(R.id.full_screen_btn));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            viewHolder.setSpeedButton(root.findViewById(R.id.media_speed_text));
+        SeekBar seekBar = (SeekBar) root.findViewById(R.id.media_progress);
+        if (mDEnableProgressBar) {
+            viewHolder.setPlayProgressBar(seekBar);
         } else {
-            root.findViewById(R.id.media_speed_text).setVisibility(View.GONE);
+            seekBar.setVisibility(View.GONE);
+        }
+        View curTimeTv = root.findViewById(R.id.cur_time_text);
+        if (mDEnableCurTime) {
+            viewHolder.setCurrentTimeText(curTimeTv);
+        } else {
+            curTimeTv.setVisibility(View.GONE);
+        }
+        View endTimeTv = root.findViewById(R.id.end_time_text);
+        if (mDEnableTotalTime) {
+            viewHolder.setEndTimeText(endTimeTv);
+        } else {
+            endTimeTv.setVisibility(View.GONE);
+        }
+        View VolumesTv = root.findViewById(R.id.volumes_text);
+        if (mDEnableVolumeText) {
+            viewHolder.setVolumesText(VolumesTv);
+        } else {
+            VolumesTv.setVisibility(View.GONE);
+        }
+        View fullScreenTv = root.findViewById(R.id.full_screen_btn);
+        if (mDEnableFullScreen) {
+            viewHolder.setFullScreenButton(fullScreenTv);
+        } else {
+            fullScreenTv.setVisibility(View.GONE);
+        }
+        View speedTv = root.findViewById(R.id.media_speed_text);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && mDEnableSpeed) {
+            viewHolder.setSpeedButton(speedTv);
+        } else {
+            speedTv.setVisibility(View.GONE);
         }
         viewHolder.setMediaNameText(root.findViewById(R.id.media_name_text));
         viewHolder.setLockControllerButton(root.findViewById(R.id.lock_screen_btn));
     }
 
     @Override
-    public PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-        if (mWaitingProgressViewHolder == null) {
-            mWaitingProgressViewHolder = new PineWaitingProgressViewHolder();
-            if (mWaitingProgressView == null) {
-                mWaitingProgressView = new LinearLayout(mContext);
-                mWaitingProgressView.setGravity(Gravity.CENTER);
-                mWaitingProgressView.setBackgroundColor(Color.argb(192, 256, 256, 256));
-                ProgressBar progressBar = new ProgressBar(mContext);
-                ViewGroup.LayoutParams progressBarParams = new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                progressBar.setLayoutParams(progressBarParams);
-                progressBar.setIndeterminateDrawable(mContext.getResources()
-                        .getDrawable(R.drawable.pine_player_media_waiting_anim));
-                progressBar.setIndeterminate(true);
-                mWaitingProgressView.addView(progressBar, progressBarParams);
-            }
-        }
-        mWaitingProgressViewHolder.setContainer(mWaitingProgressView);
-        return mWaitingProgressViewHolder;
+    protected PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+        return null;
     }
 
     @Override
-    public List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
+    protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+        if (mDWaitingProgressViewHolder == null) {
+            mDWaitingProgressViewHolder = new PineWaitingProgressViewHolder();
+            if (mDWaitingProgressView == null) {
+                mDWaitingProgressView = new LinearLayout(mDContext);
+                mDWaitingProgressView.setGravity(Gravity.CENTER);
+                mDWaitingProgressView.setBackgroundColor(Color.argb(192, 256, 256, 256));
+                ProgressBar progressBar = new ProgressBar(mDContext);
+                ViewGroup.LayoutParams progressBarParams = new ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                progressBar.setLayoutParams(progressBarParams);
+                progressBar.setIndeterminateDrawable(mDContext.getResources()
+                        .getDrawable(R.drawable.pine_player_media_waiting_anim));
+                progressBar.setIndeterminate(true);
+                mDWaitingProgressView.addView(progressBar, progressBarParams);
+            }
+        }
+        mDWaitingProgressViewHolder.setContainer(mDWaitingProgressView);
+        return mDWaitingProgressViewHolder;
+    }
+
+    @Override
+    protected List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
         List<PineRightViewHolder> viewHolderList = new ArrayList<PineRightViewHolder>();
         if (player.isFullScreenMode()) {
-            if (hasMediaList()) {
+            if (hasMediaList() && mDEnableMediaList) {
                 PineRightViewHolder mediaListViewHolder = new PineRightViewHolder();
-                mediaListViewHolder.setContainer(mVideoListContainerInPlayer);
+                mediaListViewHolder.setContainer(mDVideoListContainerInPlayer);
                 viewHolderList.add(mediaListViewHolder);
             }
             PineMediaPlayerBean pineMediaPlayerBean = player.getMediaPlayerBean();
-            if (hasDefinitionList(pineMediaPlayerBean)) {
+            if (hasDefinitionList(pineMediaPlayerBean) && mDEnableDefinition) {
                 PineRightViewHolder definitionViewHolder = new PineRightViewHolder();
-                definitionViewHolder.setContainer(mDefinitionListContainerInPlayer);
+                definitionViewHolder.setContainer(mDDefinitionListContainerInPlayer);
                 viewHolderList.add(definitionViewHolder);
+                mDDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
+                mDDefinitionListInPlayerAdapter.notifyDataSetChanged();
             }
         }
         return viewHolderList.size() > 0 ? viewHolderList : null;
     }
 
     @Override
-    public PineMediaController.ControllersActionListener onCreateControllersActionListener() {
+    protected PineMediaController.ControllersActionListener onCreateControllersActionListener() {
         return new PineMediaController.ControllersActionListener() {
             @Override
             public boolean onGoBackBtnClick(View fullScreenBtn,
                                             PineMediaWidget.IPineMediaPlayer player) {
-                if (player.isFullScreenMode()) {
-                    mControllerViewHolder.getFullScreenButton().performClick();
+                if (player.isFullScreenMode() && mDEnableFullScreen) {
+                    mDControllerViewHolder.getFullScreenButton().performClick();
                 } else {
-                    mContext.finish();
+                    mDContext.finish();
                 }
                 return false;
             }
@@ -237,7 +286,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
     }
 
     private boolean hasMediaList() {
-        return mMediaList != null && mMediaList.size() > 0;
+        return mDMediaList != null && mDMediaList.size() > 0;
     }
 
     private boolean hasDefinitionList(PineMediaPlayerBean pineMediaPlayerBean) {
@@ -245,69 +294,69 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
     }
 
     private void initVideoRecycleView() {
-        mVideoListContainerInPlayer = (ViewGroup) mContext.getLayoutInflater()
+        mDVideoListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
                 .inflate(R.layout.pine_player_media_list_recycler_view, null);
-        mVideoListInPlayerRv = mVideoListContainerInPlayer
+        mDVideoListInPlayerRv = mDVideoListContainerInPlayer
                 .findViewById(R.id.video_recycler_view_in_player);
 
         // 播放器内置播放列表初始化
         // 设置固定大小
-        mVideoListInPlayerRv.setHasFixedSize(true);
+        mDVideoListInPlayerRv.setHasFixedSize(true);
         // 创建线性布局管理器
-        LinearLayoutManager MediaListLlm = new LinearLayoutManager(mContext);
+        LinearLayoutManager MediaListLlm = new LinearLayoutManager(mDContext);
         // 设置垂直方向
         MediaListLlm.setOrientation(OrientationHelper.VERTICAL);
         // 给RecyclerView设置布局管理器
-        mVideoListInPlayerRv.setLayoutManager(MediaListLlm);
+        mDVideoListInPlayerRv.setLayoutManager(MediaListLlm);
         // 给RecyclerView添加装饰（比如divider）
-        mVideoListInPlayerRv.addItemDecoration(
-                new AdvanceDecoration(mContext,
+        mDVideoListInPlayerRv.addItemDecoration(
+                new AdvanceDecoration(mDContext,
                         R.drawable.pine_player_rv_divider, 2, AdvanceDecoration.VERTICAL, true));
         // 设置适配器
-        mVideoListInPlayerAdapter = new VideoListAdapter(mVideoListInPlayerRv);
-        mVideoListInPlayerRv.setAdapter(mVideoListInPlayerAdapter);
-        mVideoListInPlayerAdapter.setData(mMediaList);
-        mVideoListInPlayerAdapter.notifyDataSetChanged();
+        mDVideoListInPlayerAdapter = new VideoListAdapter(mDVideoListInPlayerRv);
+        mDVideoListInPlayerRv.setAdapter(mDVideoListInPlayerAdapter);
+        mDVideoListInPlayerAdapter.setData(mDMediaList);
+        mDVideoListInPlayerAdapter.notifyDataSetChanged();
     }
 
     private void initDefinitionRecycleView() {
-        mDefinitionListContainerInPlayer = (ViewGroup) mContext.getLayoutInflater()
+        mDDefinitionListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
                 .inflate(R.layout.pine_player_definition_recycler_view, null);
-        mDefinitionListInPlayerRv = mDefinitionListContainerInPlayer
+        mDDefinitionListInPlayerRv = mDDefinitionListContainerInPlayer
                 .findViewById(R.id.definition_recycler_view_in_player);
 
         // 播放器内置清晰度列表初始化
         // 设置固定大小
-        mDefinitionListInPlayerRv.setHasFixedSize(true);
+        mDDefinitionListInPlayerRv.setHasFixedSize(true);
         // 创建线性布局管理器
-        LinearLayoutManager definitionListLlm = new LinearLayoutManager(mContext);
+        LinearLayoutManager definitionListLlm = new LinearLayoutManager(mDContext);
         // 设置垂直方向
         definitionListLlm.setOrientation(OrientationHelper.VERTICAL);
         // 给RecyclerView设置布局管理器
-        mDefinitionListInPlayerRv.setLayoutManager(definitionListLlm);
+        mDDefinitionListInPlayerRv.setLayoutManager(definitionListLlm);
         // 给RecyclerView添加装饰（比如divider）
-        mDefinitionListInPlayerRv.addItemDecoration(
-                new AdvanceDecoration(mContext,
+        mDDefinitionListInPlayerRv.addItemDecoration(
+                new AdvanceDecoration(mDContext,
                         R.drawable.pine_player_rv_divider, 2, AdvanceDecoration.VERTICAL, true));
         // 设置适配器
-        mDefinitionListInPlayerAdapter = new DefinitionListAdapter(mDefinitionListInPlayerRv);
-        mDefinitionListInPlayerRv.setAdapter(mDefinitionListInPlayerAdapter);
+        mDDefinitionListInPlayerAdapter = new DefinitionListAdapter(mDDefinitionListInPlayerRv);
+        mDDefinitionListInPlayerRv.setAdapter(mDDefinitionListInPlayerAdapter);
     }
 
     private String getDefinitionName(int definition) {
         String definitionName = null;
         switch (definition) {
             case PineMediaUriSource.MEDIA_DEFINITION_SD:
-                definitionName = mDefinitionNameArr[0];
+                definitionName = mDDefinitionNameArr[0];
                 break;
             case PineMediaUriSource.MEDIA_DEFINITION_HD:
-                definitionName = mDefinitionNameArr[1];
+                definitionName = mDDefinitionNameArr[1];
                 break;
             case PineMediaUriSource.MEDIA_DEFINITION_VHD:
-                definitionName = mDefinitionNameArr[2];
+                definitionName = mDDefinitionNameArr[2];
                 break;
             case PineMediaUriSource.MEDIA_DEFINITION_1080:
-                definitionName = mDefinitionNameArr[3];
+                definitionName = mDDefinitionNameArr[3];
                 break;
             default:
                 break;
@@ -315,44 +364,57 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         return definitionName;
     }
 
-    public void setCurrentVideoPosition(int position) {
-        mCurrentVideoPosition = position;
-    }
-
-    public void videoSelected(int position) {
+    private void videoSelected(int position) {
         PineMediaPlayerBean pineMediaPlayerBean = null;
         if (hasMediaList()) {
-            if (position >= 0 && position < mMediaList.size()) {
-                pineMediaPlayerBean = mMediaList.get(position);
+            if (position >= 0 && position < mDMediaList.size()) {
+                pineMediaPlayerBean = mDMediaList.get(position);
             } else {
                 return;
             }
         } else {
-            pineMediaPlayerBean = mPlayer.getMediaPlayerBean();
+            pineMediaPlayerBean = mDPlayer.getMediaPlayerBean();
         }
-        mCurrentVideoPosition = position;
+        mDCurrentVideoPosition = position;
         if (hasDefinitionList(pineMediaPlayerBean)) {
-            mDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
-            mDefinitionListInPlayerAdapter.notifyDataSetChanged();
-            mDefinitionBtn.setVisibility(View.VISIBLE);
-            mDefinitionBtn.setText(getDefinitionName(pineMediaPlayerBean.getCurrentDefinition()));
+            mDDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
+            mDDefinitionListInPlayerAdapter.notifyDataSetChanged();
+            mDDefinitionBtn.setVisibility(View.VISIBLE);
+            mDDefinitionBtn.setText(getDefinitionName(pineMediaPlayerBean.getCurrentDefinition()));
         } else {
-            mDefinitionBtn.setVisibility(View.GONE);
+            mDDefinitionBtn.setVisibility(View.GONE);
         }
-        mPlayer.setPlayingMedia(pineMediaPlayerBean);
-        mPlayer.start();
+        mDPlayer.setPlayingMedia(pineMediaPlayerBean);
+        mDPlayer.start();
     }
 
     private void videoDefinitionSelected(PineMediaPlayerBean pineMediaPlayerBean) {
         if (pineMediaPlayerBean == null) {
             return;
         }
-        mDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
-        mDefinitionListInPlayerAdapter.notifyDataSetChanged();
-        mPlayer.resetPlayingMediaAndResume(pineMediaPlayerBean, null);
-        if (mDefinitionBtn != null) {
-            mDefinitionBtn.setText(getDefinitionName(pineMediaPlayerBean.getCurrentDefinition()));
+        mDDefinitionListInPlayerAdapter.notifyDataSetChanged();
+        mDPlayer.resetPlayingMediaAndResume(pineMediaPlayerBean, null);
+        if (mDDefinitionBtn != null) {
+            mDDefinitionBtn.setText(getDefinitionName(pineMediaPlayerBean.getCurrentDefinition()));
         }
+    }
+
+    private void setEnableControlUnit(boolean enableSpeed, boolean enableMediaList,
+                                      boolean enableDefinition, boolean enableCurTime,
+                                      boolean enableProgressBar, boolean enableTotalTime,
+                                      boolean enableVolumeText, boolean enableFullScreen) {
+        mDEnableSpeed = enableSpeed;
+        mDEnableMediaList = enableMediaList;
+        mDEnableDefinition = enableDefinition;
+        mDEnableCurTime = enableCurTime;
+        mDEnableProgressBar = enableProgressBar;
+        mDEnableTotalTime = enableTotalTime;
+        mDEnableVolumeText = enableVolumeText;
+        mDEnableFullScreen = enableFullScreen;
+    }
+
+    public void setCurrentVideoPosition(int position) {
+        mDCurrentVideoPosition = position;
     }
 
     // 自定义RecyclerView的数据Adapter
@@ -368,7 +430,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = null;
-            view = LayoutInflater.from(mContext)
+            view = LayoutInflater.from(mDContext)
                     .inflate(R.layout.pine_player_item_definition_select_in_player, parent, false);
             DefinitionViewHolder viewHolder = new DefinitionViewHolder(view);
             return viewHolder;
@@ -392,7 +454,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
                 @Override
                 public void onClick(View view) {
                     pineMediaPlayerBean.setCurrentDefinitionByPosition(position);
-                    mPlayer.savePlayerState();
+                    mDPlayer.savePlayerState();
                     videoDefinitionSelected(pineMediaPlayerBean);
                 }
             });
@@ -400,7 +462,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
 
         @Override
         public int getItemCount() {
-            return mData == null ? 0 :mData.size();
+            return mData == null ? 0 : mData.size();
         }
 
         public void setData(@NonNull PineMediaPlayerBean pineMediaPlayerBean) {
@@ -433,7 +495,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = null;
-            view = LayoutInflater.from(mContext)
+            view = LayoutInflater.from(mDContext)
                     .inflate(R.layout.pine_player_item_video_in_player, parent, false);
             VideoViewHolder viewHolder = new VideoViewHolder(view);
             return viewHolder;
@@ -446,7 +508,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
             if (myHolder.mItemTv != null) {
                 myHolder.mItemTv.setText(itemData.getMediaName());
             }
-            boolean isSelected = position == mCurrentVideoPosition;
+            boolean isSelected = position == mDCurrentVideoPosition;
             myHolder.itemView.setSelected(isSelected);
             myHolder.mItemTv.setSelected(isSelected);
             myHolder.mTextPaint.setFakeBoldText(isSelected);

@@ -3,15 +3,13 @@ package com.pine.pineplayer.ui.activity;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,41 +20,40 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.pine.pineplayer.PinePlayerApp;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.ui.view.AdvanceDecoration;
-import com.pine.pineplayer.util.FileUtil;
 import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
 import com.pine.player.widget.PineMediaWidget;
-import com.pine.player.widget.adapter.DefaultMediaControllerAdapter;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineRightViewHolder;
+import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CustomPinePlayerActivity extends AppCompatActivity {
-    private static final String TAG = "DefaultPinePlayerActivity";
-
-    private static final int GET_MEDIA_LIST_DONE = 1;
+public class ListCustomPinePlayerActivity extends AppCompatActivity {
+    private static final String TAG = "ListCustomPinePlayerActivity";
 
     private PineMediaPlayerView mVideoView;
     private PineMediaController mController;
     private int mCurrentVideoPosition = -1;
     private List<PineMediaPlayerBean> mMediaList;
-    private Handler mHandler;
     private String mBasePath;
-    private DefaultMediaControllerAdapter mMediaControllerAdapter;
+    private PineMediaController.AbstractMediaControllerAdapter mMediaControllerAdapter;
+
+    private PineControllerViewHolder mFullControllerViewHolder, mControllerViewHolder;
+    private ViewGroup mFullControllerView, mControllerView;
     private ViewGroup mDefinitionListContainerInPlayer;
     private ViewGroup mVideoListContainerInPlayer;
     private RecyclerView mDefinitionListInPlayerRv;
     private RecyclerView mVideoListInPlayerRv;
     private RecyclerView mVideoListInDetailRv;
+
     private String[] mDefinitionNameArr;
     private TextView mDefinitionBtn;
     private DefinitionListAdapter mDefinitionListInPlayerAdapter;
@@ -66,24 +63,22 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_custom_pine_player);
+        setContentView(R.layout.activity_list_custom_pine_player);
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            mBasePath = getExternalCacheDir().getPath().toString();
-        } else {
-            mBasePath = getCacheDir().getPath().toString();
+        mBasePath = getIntent().getStringExtra("path");
+        if (TextUtils.isEmpty(mBasePath)) {
+            finish();
+            return;
         }
         mDefinitionNameArr = getResources().getStringArray(R.array.media_definition_text_arr);
         mMediaList = MockDataUtil.getMediaList(this, mBasePath);
-        initHandler();
         initRecycleView();
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
         mController = new PineMediaController(this);
 
-        mMediaControllerAdapter = new DefaultMediaControllerAdapter(
-                this, null) {
+        mMediaControllerAdapter = new PineMediaController.AbstractMediaControllerAdapter() {
             @Override
             public boolean init(PineMediaWidget.IPineMediaPlayer player) {
                 return true;
@@ -114,7 +109,7 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
                     if (mFullControllerViewHolder == null) {
                         mFullControllerViewHolder = new PineControllerViewHolder();
                         if (mFullControllerView == null) {
-                            mFullControllerView = (ViewGroup) View.inflate(mContext,
+                            mFullControllerView = (ViewGroup) View.inflate(ListCustomPinePlayerActivity.this,
                                     R.layout.media_controller_full, null);
                         }
                         initControllerViewHolder(mFullControllerViewHolder, mFullControllerView);
@@ -124,6 +119,8 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
                                 mFullControllerView.findViewById(R.id.center_controller));
                         mFullControllerViewHolder.setBottomControllerView(
                                 mFullControllerView.findViewById(R.id.bottom_controller));
+                        mFullControllerViewHolder.setRightControllerView(
+                                mFullControllerView.findViewById(R.id.right_controller));
                         mFullControllerViewHolder.setGoBackButton(
                                 mFullControllerView.findViewById(R.id.go_back_btn));
                     }
@@ -149,7 +146,7 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
                 } else {
                     if (mControllerViewHolder == null) {
                         if (mControllerView == null) {
-                            mControllerView = (ViewGroup) View.inflate(mContext,
+                            mControllerView = (ViewGroup) View.inflate(ListCustomPinePlayerActivity.this,
                                     R.layout.media_controller, null);
                         }
                         mControllerViewHolder = new PineControllerViewHolder();
@@ -184,9 +181,19 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
             }
 
             @Override
+            protected PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+                return null;
+            }
+
+            @Override
+            protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+                return null;
+            }
+
+            @Override
             public PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
                 Uri imgUri = mMediaList.get(mCurrentVideoPosition).getMediaImgUri();
-                ImageView mediaBackgroundView = new ImageView(CustomPinePlayerActivity.this);
+                ImageView mediaBackgroundView = new ImageView(ListCustomPinePlayerActivity.this);
                 mediaBackgroundView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 if (imgUri == null) {
                     mediaBackgroundView.setBackgroundResource(android.R.color.darker_gray);
@@ -194,7 +201,7 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
                     ImageLoader.getInstance().displayImage("file://" + imgUri.getPath(),
                             mediaBackgroundView);
                 }
-                RelativeLayout relativeLayout = new RelativeLayout(CustomPinePlayerActivity.this);
+                RelativeLayout relativeLayout = new RelativeLayout(ListCustomPinePlayerActivity.this);
                 relativeLayout.addView(mediaBackgroundView,
                         new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -212,6 +219,22 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
                     }
                 };
             }
+
+            @Override
+            protected PineMediaController.ControllersActionListener onCreateControllersActionListener() {
+                return new PineMediaController.ControllersActionListener() {
+                    @Override
+                    public boolean onGoBackBtnClick(View fullScreenBtn,
+                                                    PineMediaWidget.IPineMediaPlayer player) {
+                        if (player.isFullScreenMode()) {
+                            mControllerViewHolder.getFullScreenButton().performClick();
+                        } else {
+                            finish();
+                        }
+                        return false;
+                    }
+                };
+            }
         };
 
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
@@ -224,7 +247,8 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
             }
         });
         mCurrentVideoPosition = 0;
-        copyAssets();
+
+        videoSelected(mCurrentVideoPosition);
     }
 
     private boolean hasMediaList() {
@@ -236,6 +260,12 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        mVideoView.resume();
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
         mVideoView.savePlayerState();
@@ -243,34 +273,7 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
-        mHandler.removeMessages(GET_MEDIA_LIST_DONE);
         super.onDestroy();
-    }
-
-    private void initHandler() {
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case GET_MEDIA_LIST_DONE:
-                        videoSelected(mCurrentVideoPosition);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
-    }
-
-    private void copyAssets() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                FileUtil.unZipAssets(PinePlayerApp.getAppContext(), "resource.zip",
-                        mBasePath, true, "GBK");
-                mHandler.sendEmptyMessage(GET_MEDIA_LIST_DONE);
-            }
-        }).start();
     }
 
     private void initRecycleView() {
@@ -288,14 +291,14 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
         // 设置固定大小
         mDefinitionListInPlayerRv.setHasFixedSize(true);
         // 创建线性布局管理器
-        LinearLayoutManager definitionListLlm = new LinearLayoutManager(CustomPinePlayerActivity.this);
+        LinearLayoutManager definitionListLlm = new LinearLayoutManager(ListCustomPinePlayerActivity.this);
         // 设置垂直方向
         definitionListLlm.setOrientation(OrientationHelper.VERTICAL);
         // 给RecyclerView设置布局管理器
         mDefinitionListInPlayerRv.setLayoutManager(definitionListLlm);
         // 给RecyclerView添加装饰（比如divider）
         mDefinitionListInPlayerRv.addItemDecoration(
-                new AdvanceDecoration(CustomPinePlayerActivity.this,
+                new AdvanceDecoration(ListCustomPinePlayerActivity.this,
                         R.drawable.rv_divider, 2, AdvanceDecoration.VERTICAL, true));
         // 设置适配器
         mDefinitionListInPlayerAdapter = new DefinitionListAdapter(mDefinitionListInPlayerRv);
@@ -305,14 +308,14 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
         // 设置固定大小
         mVideoListInPlayerRv.setHasFixedSize(true);
         // 创建线性布局管理器
-        LinearLayoutManager MediaListLlm = new LinearLayoutManager(CustomPinePlayerActivity.this);
+        LinearLayoutManager MediaListLlm = new LinearLayoutManager(ListCustomPinePlayerActivity.this);
         // 设置垂直方向
         MediaListLlm.setOrientation(OrientationHelper.VERTICAL);
         // 给RecyclerView设置布局管理器
         mVideoListInPlayerRv.setLayoutManager(MediaListLlm);
         // 给RecyclerView添加装饰（比如divider）
         mVideoListInPlayerRv.addItemDecoration(
-                new AdvanceDecoration(CustomPinePlayerActivity.this,
+                new AdvanceDecoration(ListCustomPinePlayerActivity.this,
                         R.drawable.rv_divider, 2, AdvanceDecoration.VERTICAL, true));
         // 设置适配器
         mVideoListInPlayerAdapter = new VideoListAdapter(mVideoListInPlayerRv,
@@ -412,7 +415,7 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = null;
-            view = LayoutInflater.from(CustomPinePlayerActivity.this)
+            view = LayoutInflater.from(ListCustomPinePlayerActivity.this)
                     .inflate(R.layout.item_definition_select_in_player, parent, false);
             DefinitionViewHolder viewHolder = new DefinitionViewHolder(view);
             return viewHolder;
@@ -483,11 +486,11 @@ public class CustomPinePlayerActivity extends AppCompatActivity {
             View view = null;
             switch (mListType) {
                 case LIST_IN_DETAIL:
-                    view = LayoutInflater.from(CustomPinePlayerActivity.this)
+                    view = LayoutInflater.from(ListCustomPinePlayerActivity.this)
                             .inflate(R.layout.item_video_in_detail, parent, false);
                     break;
                 default:
-                    view = LayoutInflater.from(CustomPinePlayerActivity.this)
+                    view = LayoutInflater.from(ListCustomPinePlayerActivity.this)
                             .inflate(R.layout.item_video_in_player, parent, false);
                     break;
             }

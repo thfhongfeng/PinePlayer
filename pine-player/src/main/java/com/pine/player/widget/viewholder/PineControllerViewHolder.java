@@ -13,6 +13,7 @@ import java.util.List;
 public final class PineControllerViewHolder {
     // 控制器根View
     private ViewGroup container;
+
     // 控制器View的上部View（一般包括退出，media名称，播放列表按键等功能控件，由用户自行定制）
     private View topControllerView;
     // 控制器View的中部View（一般包括锁定功能控件，由用户自行定制）
@@ -20,6 +21,10 @@ public final class PineControllerViewHolder {
     // 控制器View的下部View（一般包括播放，播放时间，播放进度条，音量，全屏切换等功能控件，
     // 由用户自行定制）
     private View bottomControllerView;
+    // 控制器View的右部View（与RightViewContainer互斥显示，由用户自行定制）
+    private View rightControllerView;
+    // 控制器View的区块View列表（由用户自行定制）
+    private List<View> blockControllerViewList;
 
     // 退出按键
     private View goBackButton;
@@ -79,6 +84,22 @@ public final class PineControllerViewHolder {
 
     public void setBottomControllerView(View bottomControllerView) {
         this.bottomControllerView = bottomControllerView;
+    }
+
+    public View getRightControllerView() {
+        return rightControllerView;
+    }
+
+    public void setRightControllerView(View rightControllerView) {
+        this.rightControllerView = rightControllerView;
+    }
+
+    public List<View> getBlockControllerViewList() {
+        return blockControllerViewList;
+    }
+
+    public void setBlockControllerViewList(List<View> blockControllerViewList) {
+        this.blockControllerViewList = blockControllerViewList;
     }
 
     public View getGoBackButton() {

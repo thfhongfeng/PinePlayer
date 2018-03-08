@@ -81,7 +81,7 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     private PineMediaPlayerBean mMediaBean;
     // 准备播放的多媒体头部信息
     private Map<String, String> mHeaders;
-    // 是否是本地流方式播放，使用加密解密方式时，需要设置为true
+    // 播放本地视频文件时，是否需要对流进行处理（比如播放加密视频时，需要设置为true）
     private boolean mIsLocalStreamMedia;
 
     // 本地播放流服务，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况（模拟网络流进行流播放）
@@ -615,7 +615,9 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             if (isInPlaybackState()) {
                 LogUtil.d(TAG, "Start media player");
                 mMediaPlayer.start();
-                mMediaController.onMediaPlayerStart();
+                if (mMediaController != null) {
+                    mMediaController.onMediaPlayerStart();
+                }
                 mCurrentState = STATE_PLAYING;
             }
             mTargetState = STATE_PLAYING;
@@ -630,7 +632,9 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
             if (mMediaPlayer.isPlaying()) {
                 LogUtil.d(TAG, "Pause media player");
                 mMediaPlayer.pause();
-                mMediaController.onMediaPlayerPause();
+                if (mMediaController != null) {
+                    mMediaController.onMediaPlayerPause();
+                }
                 mCurrentState = STATE_PAUSED;
             }
         }

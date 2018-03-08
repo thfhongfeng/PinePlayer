@@ -113,6 +113,26 @@
             android:src="@drawable/lock_btn" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/right_controller"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="30dp"
+        android:layout_marginEnd="30dp"
+        android:background="@color/media_bg">
+
+        <ImageView
+            android:id="@+id/full_screen_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="10dp"
+            android:src="@drawable/full_screen_btn" />
+    </RelativeLayout>
+
     <LinearLayout
         android:id="@+id/bottom_controller"
         android:layout_width="match_parent"
@@ -187,21 +207,6 @@
             android:text="20%"
             android:textColor="@color/controller_text"
             android:textSize="14sp" />
-
-        <ImageView
-            android:id="@+id/full_screen_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:gravity="center"
-            android:paddingBottom="5dp"
-            android:paddingEnd="10dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:paddingStart="10dp"
-            android:paddingTop="5dp"
-            android:src="@drawable/full_screen_btn" />
     </LinearLayout>
 
 </RelativeLayout>

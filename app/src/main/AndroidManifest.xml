@@ -13,9 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.pine.pineplayer.ui.activity.DefaultPinePlayerActivity"
+            android:name="com.pine.pineplayer.ui.activity.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/pine_player_default"
+            android:label="@string/pine_player"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan|stateHidden">
             <intent-filter>
@@ -24,15 +24,34 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.pine.pineplayer.ui.activity.CustomPinePlayerActivity"
+            android:name="com.pine.pineplayer.ui.activity.SimplePinePlayerActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/pine_player_custom"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan|stateHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.pine.pineplayer.ui.activity.SimpleDefaultPinePlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden">
+        </activity>
+        <activity
+            android:name="com.pine.pineplayer.ui.activity.ListDefaultPinePlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden">
+        </activity>
+        <activity
+            android:name="com.pine.pineplayer.ui.activity.SimpleCustomPinePlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden">
+        </activity>
+        <activity
+            android:name="com.pine.pineplayer.ui.activity.ListCustomPinePlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateHidden">
         </activity>
     </application>
 
