@@ -207,6 +207,23 @@
             android:text="20%"
             android:textColor="@color/controller_text"
             android:textSize="14sp" />
+
+        <Switch
+            android:id="@+id/switch_barrage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:switchMinWidth="50dp"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:textOff="弹"
+            android:textOn="弹"
+            android:showText="true"
+            android:checked="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:visibility="gone"/>
     </LinearLayout>
 
 </RelativeLayout>

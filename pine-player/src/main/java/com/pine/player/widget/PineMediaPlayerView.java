@@ -144,6 +144,11 @@ public class PineMediaPlayerView extends RelativeLayout
     }
 
     @Override
+    public PineMediaWidget.IPineMediaController getController() {
+        return mPineSurfaceView.getController();
+    }
+
+    @Override
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
         mPineSurfaceView.setPlayingMedia(pineMediaPlayerBean, null);
     }

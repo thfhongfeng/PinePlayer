@@ -34,10 +34,12 @@ import com.pine.player.widget.viewholder.PineRightViewHolder;
 import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by tanghongfeng on 2017/8/16.
@@ -124,7 +126,7 @@ public class PineMediaController extends RelativeLayout
     // 仅与播放内容（SurfaceView）宽高匹配的插件容器view，由插件的containerType决定
     private RelativeLayout mSurfacePluginViewContainer;
     private List<PineRightViewHolder> mRightViewHolderList;
-    private List<PinePluginViewHolder> mPluginViewHolderList;
+    private HashMap<Integer, PinePluginViewHolder> mPluginViewHolderMap;
     private PineControllerViewHolder mControllerViewHolder;
     private final View.OnClickListener mSpeedListener = new View.OnClickListener() {
         @Override
@@ -278,6 +280,58 @@ public class PineMediaController extends RelativeLayout
                     return true;
                 }
             };
+    // Controller控件本身
+    private View mRoot;
+    private GestureDetector mGestureDetector;
+    private HashMap<Integer, IPinePlayerPlugin> mPinePluginMap;
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int pos;
+            switch (msg.what) {
+                // 控制器自动隐藏消息
+                case MSG_FADE_OUT:
+                    hide();
+                    break;
+                // 进度条更新消息
+                case MSG_SHOW_PROGRESS:
+                    pos = setProgress();
+                    if (!mDragging && isShowing() &&
+                            (mPlayer.isPlaying() || mPlayer.isPause())) {
+                        msg = obtainMessage(MSG_SHOW_PROGRESS);
+                        int sum = (int) mPlayer.getSpeed();
+                        sum = sum < 1 ? 1 : sum;
+                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
+                    }
+                    break;
+                // 背景延迟隐藏消失
+                case MSG_BACKGROUND_FADE_OUT:
+                    if (mBackgroundViewHolder.getContainer() != null) {
+                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    break;
+                // 加载等待界面延迟隐藏消失
+                case MSG_WAITING_FADE_OUT:
+                    if (mWaitingProgressViewHolder.getContainer() != null) {
+                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    setControllerEnabled(true);
+                    break;
+                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
+                case MSG_PLUGIN_REFRESH:
+                    Iterator iterator = mPinePluginMap.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry entry = (Map.Entry) iterator.next();
+                        ((IPinePlayerPlugin) entry.getValue()).onTime(mPlayer.getCurrentPosition());
+                    }
+                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
+                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
+                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
+                    }
+                    break;
+            }
+        }
+    };
     // There are two scenarios that can trigger the seekbar listener to trigger:
     //
     // The first is the user using the touchpad to adjust the posititon of the
@@ -414,56 +468,6 @@ public class PineMediaController extends RelativeLayout
                     show();
                 }
                 judgeAndChangeRequestedOrientation();
-            }
-        }
-    };
-    // Controller控件本身
-    private View mRoot;
-    private GestureDetector mGestureDetector;
-    private List<IPinePlayerPlugin> mPinePluginList;
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            int pos;
-            switch (msg.what) {
-                // 控制器自动隐藏消息
-                case MSG_FADE_OUT:
-                    hide();
-                    break;
-                // 进度条更新消息
-                case MSG_SHOW_PROGRESS:
-                    pos = setProgress();
-                    if (!mDragging && isShowing() &&
-                            (mPlayer.isPlaying() || mPlayer.isPause())) {
-                        msg = obtainMessage(MSG_SHOW_PROGRESS);
-                        int sum = (int) mPlayer.getSpeed();
-                        sum = sum < 1 ? 1 : sum;
-                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
-                    }
-                    break;
-                // 背景延迟隐藏消失
-                case MSG_BACKGROUND_FADE_OUT:
-                    if (mBackgroundViewHolder.getContainer() != null) {
-                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
-                    }
-                    break;
-                // 加载等待界面延迟隐藏消失
-                case MSG_WAITING_FADE_OUT:
-                    if (mWaitingProgressViewHolder.getContainer() != null) {
-                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
-                    }
-                    setControllerEnabled(true);
-                    break;
-                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
-                case MSG_PLUGIN_REFRESH:
-                    for (int i = 0; i < mPinePluginList.size(); i++) {
-                        mPinePluginList.get(i).onTime(mPlayer.getCurrentPosition());
-                    }
-                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
-                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
-                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
-                    }
-                    break;
             }
         }
     };
@@ -623,14 +627,18 @@ public class PineMediaController extends RelativeLayout
         mControllersActionListener = mAdapter.onCreateControllersActionListener();
         mBackgroundViewHolder
                 = mAdapter.onCreateBackgroundViewHolder(mPlayer);
-        mPinePluginList = mMediaBean.getPlayerPluginList();
-        if (mPinePluginList != null && mPinePluginList.size() > 0) {
-            mPluginViewHolderList = new ArrayList<PinePluginViewHolder>();
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                PinePluginViewHolder pinePluginViewHolder = mPinePluginList.get(i)
-                        .createViewHolder(mContext, mPlayer.isFullScreenMode());
-                pinePluginViewHolder.setContainerType(mPinePluginList.get(i).getContainerType());
-                mPluginViewHolderList.add(pinePluginViewHolder);
+        mPinePluginMap = mMediaBean.getPlayerPluginMap();
+        if (mPinePluginMap != null && mPinePluginMap.size() > 0) {
+            mPluginViewHolderMap = new HashMap<Integer, PinePluginViewHolder>();
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                PinePluginViewHolder pinePluginViewHolder = pinePlayerPlugin.createViewHolder(mContext,
+                        mPlayer.isFullScreenMode());
+                pinePluginViewHolder.setContainerType(pinePlayerPlugin.getContainerType());
+                mPluginViewHolderMap.put((Integer) entry.getKey(), pinePluginViewHolder);
             }
         }
         mControllerViewHolder
@@ -655,13 +663,15 @@ public class PineMediaController extends RelativeLayout
             mBackgroundViewHolder = new PineBackgroundViewHolder();
         }
         // 插件View
-        if (mPluginViewHolderList != null) {
+        if (mPluginViewHolderMap != null) {
             mPluginViewContainer = new RelativeLayout(getContext());
             mControllerPluginViewContainer = new RelativeLayout(getContext());
             mSurfacePluginViewContainer = new RelativeLayout(getContext());
-            for (int i = 0; i < mPluginViewHolderList.size(); i++) {
-                PinePluginViewHolder pinePluginViewHolder =
-                        mPluginViewHolderList.get(i);
+            Iterator iterator = mPluginViewHolderMap.entrySet().iterator();
+            PinePluginViewHolder pinePluginViewHolder = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePluginViewHolder = (PinePluginViewHolder) entry.getValue();
                 if (pinePluginViewHolder.getContainer() != null) {
                     if (pinePluginViewHolder.getContainerType()
                             == IPinePlayerPlugin.TYPE_MATCH_SURFACE) {
@@ -725,9 +735,13 @@ public class PineMediaController extends RelativeLayout
         initControllerView();
         mIsFirstAttach = false;
 
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onInit(mContext, mPlayer, this, isPlayerReset, isResumeState);
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onInit(mContext, mPlayer, this, isPlayerReset, isResumeState);
             }
         }
 
@@ -910,13 +924,17 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         updatePausePlayButton();
-        if (mPinePluginList != null && mPinePluginList.size() > 0) {
+        if (mPinePluginMap != null && mPinePluginMap.size() > 0) {
             // 启动插件刷新
             if (!mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
                 mHandler.sendEmptyMessage(MSG_PLUGIN_REFRESH);
             }
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onMediaPlayerStart();
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onMediaPlayerStart();
             }
         }
         if (isShowing()) {
@@ -932,9 +950,13 @@ public class PineMediaController extends RelativeLayout
         }
         updatePausePlayButton();
         mHandler.removeMessages(MSG_PLUGIN_REFRESH);
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onMediaPlayerPause();
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onMediaPlayerPause();
             }
         }
     }
@@ -959,18 +981,26 @@ public class PineMediaController extends RelativeLayout
         if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO) {
             mHandler.sendEmptyMessageDelayed(MSG_BACKGROUND_FADE_OUT, 200);
         }
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onMediaPlayerPrepared();
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onMediaPlayerPrepared();
             }
         }
     }
 
     @Override
     public void onMediaPlayerInfo(int what, int extra) {
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onMediaPlayerInfo(what, extra);
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onMediaPlayerInfo(what, extra);
             }
         }
     }
@@ -1013,9 +1043,13 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         show(0);
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onMediaPlayerComplete();
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onMediaPlayerComplete();
             }
         }
     }
@@ -1035,9 +1069,13 @@ public class PineMediaController extends RelativeLayout
             setControllerEnabled(false, false, false, false, true, false, false, false, false, false);
             show(0);
         }
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onMediaPlayerError(framework_err, impl_err);
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onMediaPlayerError(framework_err, impl_err);
             }
         }
     }
@@ -1045,9 +1083,13 @@ public class PineMediaController extends RelativeLayout
     @Override
     public void onAbnormalComplete() {
         show(0);
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onAbnormalComplete();
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onAbnormalComplete();
             }
         }
     }
@@ -1055,9 +1097,13 @@ public class PineMediaController extends RelativeLayout
     @Override
     public void onMediaPlayerRelease(boolean clearTargetState) {
         mHandler.removeMessages(MSG_PLUGIN_REFRESH);
-        if (mPinePluginList != null) {
-            for (int i = 0; i < mPinePluginList.size(); i++) {
-                mPinePluginList.get(i).onRelease();
+        if (mPinePluginMap != null) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onRelease();
             }
         }
     }

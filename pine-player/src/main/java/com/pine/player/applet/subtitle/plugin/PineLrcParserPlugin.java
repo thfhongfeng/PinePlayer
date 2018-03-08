@@ -1,6 +1,7 @@
 package com.pine.player.applet.subtitle.plugin;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.text.Html;
 import android.view.View;
 import android.view.ViewGroup;
@@ -130,6 +131,12 @@ public class PineLrcParserPlugin extends PineSubtitlePlugin {
             }
         }
         ((TextView) mCurViewHolder.getContainer().findViewById(R.id.subtitle_text)).setText(Html.fromHtml(text));
+    }
+
+    @NonNull
+    @Override
+    public PinePluginViewHolder getViewHolder() {
+        return mCurViewHolder;
     }
 
     private PineSubtitleBean analyzeLine(String line) {

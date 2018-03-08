@@ -657,6 +657,11 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     }
 
     @Override
+    public PineMediaWidget.IPineMediaController getController() {
+        return mMediaController;
+    }
+
+    @Override
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
         setPlayingMedia(pineMediaPlayerBean, null, false);
     }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -98,5 +99,11 @@ public class PineImageAdvertPlugin extends PineAdvertPlugin {
             return;
         }
         mCurViewHolder.getContainer().setVisibility(View.GONE);
+    }
+
+    @NonNull
+    @Override
+    public PinePluginViewHolder getViewHolder() {
+        return mCurViewHolder;
     }
 }

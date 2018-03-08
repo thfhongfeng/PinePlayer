@@ -7,6 +7,7 @@ import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.decrytor.IPineMediaDecryptor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public class PineMediaPlayerBean {
     private ArrayList<PineMediaUriSource> mediaUriSourceList;
     private int mediaType = MEDIA_TYPE_VIDEO;
     private Uri mediaImgUri;
-    private List<IPinePlayerPlugin> playerPluginList;
+    private HashMap<Integer, IPinePlayerPlugin> playerPluginMap;
     private IPineMediaDecryptor playerDecryptor;
     private int currentDefinition = PineMediaUriSource.MEDIA_DEFINITION_SD;
 
@@ -68,13 +69,13 @@ public class PineMediaPlayerBean {
      * @param mediaImgUri     media文件Uri 不可为null
      * @param mediaType        media类型 默认为MEDIA_TYPE_VIDEO
      * @param mediaImgUri      media图片Uri 可为null
-     * @param playerPluginList media解密器 可为null
+     * @param playerPluginMap media插件map集合 可为null
      * @param playerDecryptor  media解密器 可为null
      */
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull Uri mediaUri,
                                int mediaType, Uri mediaImgUri,
-                               List<IPinePlayerPlugin> playerPluginList,
+                               HashMap<Integer, IPinePlayerPlugin> playerPluginMap,
                                IPineMediaDecryptor playerDecryptor) {
         this.mediaCode = mediaCode;
         this.mediaName = mediaName;
@@ -86,7 +87,7 @@ public class PineMediaPlayerBean {
             this.mediaType = MEDIA_TYPE_VIDEO;
         }
         this.mediaImgUri = mediaImgUri;
-        this.playerPluginList = playerPluginList;
+        this.playerPluginMap = playerPluginMap;
         this.playerDecryptor = playerDecryptor;
     }
 
@@ -96,13 +97,13 @@ public class PineMediaPlayerBean {
      * @param mediaUriSource   media文件UriSource 不可为null
      * @param mediaType        media类型 默认为MEDIA_TYPE_VIDEO
      * @param mediaImgUri      media图片Uri 可为null
-     * @param playerPluginList media解密器 可为null
+     * @param playerPluginMap media插件map集合  可为null
      * @param playerDecryptor  media解密器 可为null
      */
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull PineMediaUriSource mediaUriSource,
                                int mediaType, Uri mediaImgUri,
-                               List<IPinePlayerPlugin> playerPluginList,
+                               HashMap<Integer, IPinePlayerPlugin> playerPluginMap,
                                IPineMediaDecryptor playerDecryptor) {
         this.mediaCode = mediaCode;
         this.mediaName = mediaName;
@@ -114,7 +115,7 @@ public class PineMediaPlayerBean {
             this.mediaType = MEDIA_TYPE_VIDEO;
         }
         this.mediaImgUri = mediaImgUri;
-        this.playerPluginList = playerPluginList;
+        this.playerPluginMap = playerPluginMap;
         this.playerDecryptor = playerDecryptor;
     }
 
@@ -124,13 +125,13 @@ public class PineMediaPlayerBean {
      * @param mediaUriSourceList media各个清晰度对应的文件mediaUriSource列表 不可为null
      * @param mediaType          media类型 默认为MEDIA_TYPE_VIDEO
      * @param mediaImgUri        media图片Uri 可为null
-     * @param playerPluginList   media解密器 可为null
+     * @param playerPluginMap  media插件map集合 可为null
      * @param playerDecryptor    media解密器 可为null
      */
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull ArrayList<PineMediaUriSource> mediaUriSourceList,
                                int mediaType, Uri mediaImgUri,
-                               List<IPinePlayerPlugin> playerPluginList,
+                               HashMap<Integer, IPinePlayerPlugin> playerPluginMap,
                                IPineMediaDecryptor playerDecryptor) {
         this.mediaCode = mediaCode;
         this.mediaName = mediaName;
@@ -141,7 +142,7 @@ public class PineMediaPlayerBean {
             this.mediaType = MEDIA_TYPE_VIDEO;
         }
         this.mediaImgUri = mediaImgUri;
-        this.playerPluginList = playerPluginList;
+        this.playerPluginMap = playerPluginMap;
         this.playerDecryptor = playerDecryptor;
     }
 
@@ -224,12 +225,12 @@ public class PineMediaPlayerBean {
         this.mediaImgUri = mediaImgUri;
     }
 
-    public List<IPinePlayerPlugin> getPlayerPluginList() {
-        return this.playerPluginList;
+    public HashMap<Integer, IPinePlayerPlugin> getPlayerPluginMap() {
+        return playerPluginMap;
     }
 
-    public void setPlayerPluginList(List<IPinePlayerPlugin> playerPluginList) {
-        this.playerPluginList = playerPluginList;
+    public void setPlayerPluginMap(HashMap<Integer, IPinePlayerPlugin> playerPluginMap) {
+        this.playerPluginMap = playerPluginMap;
     }
 
     public IPineMediaDecryptor getPlayerDecryptor() {
@@ -281,7 +282,7 @@ public class PineMediaPlayerBean {
                 ",mediaUriSourceList:" + mediaUriListStr +
                 ",mediaType:" + mediaType +
                 ",mediaImgUri:" + mediaImgUri +
-                ",playerPluginList:" + playerPluginList +
+                ",playerPluginMap:" + playerPluginMap +
                 ",playerDecryptor:" + playerDecryptor +
                 ",currentDefinition:" + currentDefinition;
     }

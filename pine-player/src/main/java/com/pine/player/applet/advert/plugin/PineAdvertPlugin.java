@@ -3,11 +3,14 @@ package com.pine.player.applet.advert.plugin;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.view.View;
 
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.advert.bean.PineAdvertBean;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -195,7 +198,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
 
     @Override
     public void onTime(long position) {
-        if (!mIsOpen ||mTimeAdvertList == null && isPlayingAdvert()) {
+        if (!mIsOpen || mTimeAdvertList == null && isPlayingAdvert()) {
             return;
         }
         PineAdvertBean pineAdvertBean = null;
@@ -234,11 +237,13 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
     @Override
     public void openPlugin() {
         mIsOpen = true;
+        getViewHolder().getContainer().setVisibility(View.VISIBLE);
     }
 
     @Override
     public void closePlugin() {
         mIsOpen = false;
+        getViewHolder().getContainer().setVisibility(View.GONE);
     }
 
     @Override
@@ -292,4 +297,8 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
                                     PineAdvertBean advertBean, int advertType);
 
     public abstract void advertComplete();
+
+    public abstract
+    @NonNull
+    PinePluginViewHolder getViewHolder();
 }

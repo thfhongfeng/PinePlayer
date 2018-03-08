@@ -20,9 +20,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.pine.pineplayer.PineConstants;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.ui.view.AdvanceDecoration;
 import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.widget.PineMediaController;
@@ -34,6 +36,7 @@ import com.pine.player.widget.viewholder.PineRightViewHolder;
 import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class ListCustomPinePlayerActivity extends AppCompatActivity {
@@ -104,7 +107,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
             }
 
             @Override
-            public PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+            public PineControllerViewHolder onCreateInRootControllerViewHolder(final PineMediaWidget.IPineMediaPlayer player) {
                 if (player.isFullScreenMode()) {
                     if (mFullControllerViewHolder == null) {
                         mFullControllerViewHolder = new PineControllerViewHolder();
@@ -124,6 +127,30 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
                         mFullControllerViewHolder.setGoBackButton(
                                 mFullControllerView.findViewById(R.id.go_back_btn));
                     }
+                    PineMediaPlayerBean pineMediaPlayerBean = player.getMediaPlayerBean();
+                    View barrageBtn = mFullControllerView.findViewById(R.id.switch_barrage);
+                    final HashMap<Integer, IPinePlayerPlugin> pluginHashMap =
+                            pineMediaPlayerBean.getPlayerPluginMap();
+                    if (pluginHashMap != null && pluginHashMap.containsKey(PineConstants.PLUGIN_BARRAGE)) {
+                        final IPinePlayerPlugin barragePlugin = pluginHashMap.get(PineConstants.PLUGIN_BARRAGE);
+                        barrageBtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (barragePlugin.isOpen()) {
+                                    barragePlugin.closePlugin();
+                                } else {
+                                    barragePlugin.openPlugin();
+                                }
+                                if (player.getController() != null) {
+                                    player.getController().show();
+                                }
+                            }
+                        });
+                        barrageBtn.setVisibility(View.VISIBLE);
+                    } else {
+                        barrageBtn.setVisibility(View.GONE);
+                    }
+
                     List<View> rightViewControlBtnList = new ArrayList<View>();
                     View mediaListBtn = mFullControllerView.findViewById(R.id.media_list_btn);
                     if (hasMediaList()) {
@@ -133,7 +160,6 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
                         mediaListBtn.setVisibility(View.GONE);
                     }
                     mDefinitionBtn = mFullControllerView.findViewById(R.id.media_definition_text);
-                    PineMediaPlayerBean pineMediaPlayerBean = player.getMediaPlayerBean();
                     if (hasDefinitionList(pineMediaPlayerBean)) {
                         rightViewControlBtnList.add(mDefinitionBtn);
                         mDefinitionBtn.setVisibility(View.VISIBLE);

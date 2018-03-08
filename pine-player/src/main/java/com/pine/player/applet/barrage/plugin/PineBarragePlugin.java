@@ -3,6 +3,7 @@ package com.pine.player.applet.barrage.plugin;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.os.Build;
+import android.view.View;
 
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
@@ -26,6 +27,7 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     private final Object LIST_LOCK = new Object();
     private Context mContext;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
+    private PinePluginViewHolder mCurViewHolder;
     private BarrageCanvasView mBarrageCanvasView;
     private int mDisplayTotalHeight = 200;
     private boolean mIsOpen = true;
@@ -47,8 +49,8 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     @Override
     public PinePluginViewHolder createViewHolder(Context context, boolean isFullScreen) {
         mBarrageCanvasView = new BarrageCanvasView(context, mDisplayTotalHeight);
-        PinePluginViewHolder viewHolder = new PinePluginViewHolder();
-        viewHolder.setContainer(mBarrageCanvasView);
+        mCurViewHolder = new PinePluginViewHolder();
+        mCurViewHolder.setContainer(mBarrageCanvasView);
         mBarrageCanvasView.setBarrageItemViewListener(new BarrageCanvasView.IBarrageItemViewListener() {
             @Override
             public void onItemViewAnimatorEnd(PineBarrageBean pineBarrageBean) {
@@ -60,7 +62,7 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
                 clearShownPineBarrageBean(pineBarrageBean);
             }
         });
-        return viewHolder;
+        return mCurViewHolder;
     }
 
     @Override
@@ -128,7 +130,11 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
 
     @Override
     public void onTime(long position) {
-        if (mBarrageCanvasView == null || !mIsOpen) {
+        if (mBarrageCanvasView == null) {
+            return;
+        }
+        if (mBarrageCanvasView == null) {
+            mPrePosition = position;
             return;
         }
         if (mPrePosition > -1 && Math.abs(position - mPrePosition) >
@@ -171,12 +177,13 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     @Override
     public void openPlugin() {
         mIsOpen = true;
+        mCurViewHolder.getContainer().setVisibility(View.VISIBLE);
     }
 
     @Override
     public void closePlugin() {
         mIsOpen = false;
-        clear();
+        mCurViewHolder.getContainer().setVisibility(View.GONE);
     }
 
     @Override

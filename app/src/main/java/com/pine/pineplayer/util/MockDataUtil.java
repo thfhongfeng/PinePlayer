@@ -3,6 +3,7 @@ package com.pine.pineplayer.util;
 import android.content.Context;
 import android.net.Uri;
 
+import com.pine.pineplayer.PineConstants;
 import com.pine.pineplayer.decrytor.PineMediaDecryptor;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.advert.bean.PineAdvertBean;
@@ -15,6 +16,7 @@ import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -55,22 +57,25 @@ public class MockDataUtil {
         pineMediaBean.setMediaCode(String.valueOf(count++));
         mediaList.add(pineMediaBean);
         // 横屏+srt字幕的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins1 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins1.add(new PineSrtParserPlugin(context, basePath + "/resource/Scenery.srt", "UTF-8"));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins1 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins1.put(PineConstants.PLUGIN_SRT_SUBTITLE,
+                new PineSrtParserPlugin(context, basePath + "/resource/Scenery.srt", "UTF-8"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "HorizontalSrt",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins1, null);
         mediaList.add(pineMediaBean);
         // 竖屏+srt字幕的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins2 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins2.add(new PineSrtParserPlugin(context, basePath + "/resource/Spout.srt", "UTF-8"));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins2 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins2.put(PineConstants.PLUGIN_SRT_SUBTITLE,
+                new PineSrtParserPlugin(context, basePath + "/resource/Spout.srt", "UTF-8"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "VerticalSrt",
                 Uri.parse(basePath + "/resource/Spout.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins2, null);
         mediaList.add(pineMediaBean);
         // lrc字幕的音频
-        List<IPinePlayerPlugin> pinePlayerPlugins3 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins3.add(new PineLrcParserPlugin(context, basePath + "/resource/yesterday once more.lrc", "GBK"));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins3 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins3.put(PineConstants.PLUGIN_LRC_SUBTITLE,
+                new PineLrcParserPlugin(context, basePath + "/resource/yesterday once more.lrc", "GBK"));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "AudioLrc",
                 Uri.parse(basePath + "/resource/yesterday once more.mp3"),
                 PineMediaPlayerBean.MEDIA_TYPE_AUDIO, null, pinePlayerPlugins3, null);
@@ -88,44 +93,51 @@ public class MockDataUtil {
                 Uri.parse(basePath + "/resource/HighSpeedRail.jpg"), null, null);
         mediaList.add(pineMediaBean);
         // 有暂停图片广告的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins4 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins4.add(new PineImageAdvertPlugin(context, MockDataUtil.getPauseAdvertList(basePath)));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins4 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins4.put(PineConstants.PLUGIN_IMAGE_ADVERT,
+                new PineImageAdvertPlugin(context, MockDataUtil.getPauseAdvertList(basePath)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgPauseAdvert",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins4, null);
         mediaList.add(pineMediaBean);
         // 有开头图片广告的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins5 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins5.add(new PineImageAdvertPlugin(context, MockDataUtil.getHeadAdvertList(basePath)));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins5 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins5.put(PineConstants.PLUGIN_IMAGE_ADVERT,
+                new PineImageAdvertPlugin(context, MockDataUtil.getHeadAdvertList(basePath)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgHeadAdvert",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins5, null);
         mediaList.add(pineMediaBean);
         // 有结尾图片广告的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins6 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins6.add(new PineImageAdvertPlugin(context, MockDataUtil.getCompleteAdvertList(basePath)));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins6 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins6.put(PineConstants.PLUGIN_IMAGE_ADVERT,
+                new PineImageAdvertPlugin(context, MockDataUtil.getCompleteAdvertList(basePath)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgCompleteAdvert",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins6, null);
         mediaList.add(pineMediaBean);
         // 有定时图片广告的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins7 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins7.add(new PineImageAdvertPlugin(context, MockDataUtil.getTimeAdvertList(basePath)));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins7 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins7.put(PineConstants.PLUGIN_IMAGE_ADVERT,
+                new PineImageAdvertPlugin(context, MockDataUtil.getTimeAdvertList(basePath)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgTimeAdvert",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins7, null);
         mediaList.add(pineMediaBean);
         // 开头图片广告+暂停图片广告+结尾图片广告+定时图片广告+srt字幕的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins8 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins8.add(new PineSrtParserPlugin(context, basePath + "/resource/Scenery.srt", "UTF-8"));
-        pinePlayerPlugins8.add(new PineImageAdvertPlugin(context, MockDataUtil.getAllAdvertList(basePath)));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins8 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins8.put(PineConstants.PLUGIN_SRT_SUBTITLE,
+                new PineSrtParserPlugin(context, basePath + "/resource/Scenery.srt", "UTF-8"));
+        pinePlayerPlugins8.put(PineConstants.PLUGIN_IMAGE_ADVERT,
+                new PineImageAdvertPlugin(context, MockDataUtil.getAllAdvertList(basePath)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "ImgPluginAllSrt",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins8, null);
         mediaList.add(pineMediaBean);
         // 有弹幕的视频
-        List<IPinePlayerPlugin> pinePlayerPlugins9 = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPlugins9.add(new PineBarragePlugin(400, MockDataUtil.getBarrageList()));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins9 = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPlugins9.put(PineConstants.PLUGIN_BARRAGE,
+                new PineBarragePlugin(400, MockDataUtil.getBarrageList()));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "VideoBarrage",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins9, null);
@@ -135,18 +147,22 @@ public class MockDataUtil {
                 getMediaUriSourceList(basePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);
         mediaList.add(pineMediaBean);
         // 开头图片广告+暂停图片广告+结尾图片广告+lrc字幕+背景图的音频
-        List<IPinePlayerPlugin> pinePlayerPluginsAudioAll = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPluginsAudioAll.add(new PineLrcParserPlugin(context, basePath + "/resource/yesterday once more.lrc", "GBK"));
-        pinePlayerPluginsAudioAll.add(new PineImageAdvertPlugin(context, MockDataUtil.getAllAdvertList(basePath)));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPluginsAudioAll = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPluginsAudioAll.put(PineConstants.PLUGIN_LRC_SUBTITLE,
+                new PineLrcParserPlugin(context, basePath + "/resource/yesterday once more.lrc", "GBK"));
+        pinePlayerPluginsAudioAll.put(PineConstants.PLUGIN_IMAGE_ADVERT,
+                new PineImageAdvertPlugin(context, MockDataUtil.getAllAdvertList(basePath)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "AudioAll",
                 Uri.parse(basePath + "/resource/yesterday once more.mp3"),
                 PineMediaPlayerBean.MEDIA_TYPE_AUDIO,
                 Uri.parse(basePath + "/resource/yesterday once more.jpg"), pinePlayerPluginsAudioAll, null);
         mediaList.add(pineMediaBean);
         // 开头图片广告+暂停图片广告+结尾图片广告+srt字幕+背景图的视频
-        List<IPinePlayerPlugin> pinePlayerPluginsVideoAll = new ArrayList<IPinePlayerPlugin>();
-        pinePlayerPluginsVideoAll.add(new PineSrtParserPlugin(context, basePath + "/resource/Spout.srt", "UTF-8"));
-        pinePlayerPluginsVideoAll.add(new PineImageAdvertPlugin(context, MockDataUtil.getAllAdvertList(basePath)));
+        HashMap<Integer, IPinePlayerPlugin> pinePlayerPluginsVideoAll = new HashMap<Integer, IPinePlayerPlugin>();
+        pinePlayerPluginsVideoAll.put(PineConstants.PLUGIN_SRT_SUBTITLE,
+                new PineSrtParserPlugin(context, basePath + "/resource/Spout.srt", "UTF-8"));
+        pinePlayerPluginsVideoAll.put(PineConstants.PLUGIN_IMAGE_ADVERT,
+                new PineImageAdvertPlugin(context, MockDataUtil.getAllAdvertList(basePath)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "VideoAll",
                 Uri.parse(basePath + "/resource/Spout.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO,

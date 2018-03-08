@@ -224,10 +224,15 @@ public class PineMediaWidget {
         void release();
 
         /**
+         * 获取播放器的IPineMediaController
+         * @return
+         */
+        IPineMediaController getController();
+
+        /**
          * 设置多媒体播放参数
          *
          * @param pineMediaPlayerBean 多媒体播放参数对象
-         * @param headers             多媒体播放信息头
          */
         void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean);
 

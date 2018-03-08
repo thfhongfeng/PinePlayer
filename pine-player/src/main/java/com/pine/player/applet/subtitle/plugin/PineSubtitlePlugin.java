@@ -1,11 +1,14 @@
 package com.pine.player.applet.subtitle.plugin;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.view.View;
 
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -13,8 +16,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -179,11 +180,13 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
 
     public void openPlugin() {
         mIsOpen = true;
+        getViewHolder().getContainer().setVisibility(View.VISIBLE);
     }
 
     @Override
     public void closePlugin() {
         mIsOpen = false;
+        getViewHolder().getContainer().setVisibility(View.GONE);
     }
 
     @Override
@@ -195,4 +198,8 @@ public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
     public abstract List<PineSubtitleBean> parseSubtitleBufferedReader(BufferedReader bufferedReader);
 
     public abstract void updateSubtitleText(PineSubtitleBean subtitle);
+
+    public abstract
+    @NonNull
+    PinePluginViewHolder getViewHolder();
 }
