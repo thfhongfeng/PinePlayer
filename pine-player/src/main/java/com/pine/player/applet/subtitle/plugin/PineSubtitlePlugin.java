@@ -22,7 +22,7 @@ import java.util.List;
  * Created by tanghongfeng on 2018/1/12.
  */
 
-public abstract class PineSubtitlePlugin implements IPinePlayerPlugin {
+public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerPlugin<T> {
 
     private Context mContext;
     private String mSubtitleFilePath;

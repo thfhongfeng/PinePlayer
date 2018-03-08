@@ -19,7 +19,7 @@ import java.util.List;
  * Created by tanghongfeng on 2018/1/12.
  */
 
-public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
+public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlugin<T> {
     private static final String TAG = "PineAdvertPlugin";
 
     private static final int MSG_HEAD_ADVERT_FINISH = 1;
@@ -90,7 +90,7 @@ public abstract class PineAdvertPlugin implements IPinePlayerPlugin {
         }
     };
 
-    public PineAdvertPlugin(Context context, List<PineAdvertBean> advertBeanList) {
+    public PineAdvertPlugin(Context context, T advertBeanList) {
         mContext = context;
         mAdvertBeanList = advertBeanList;
     }

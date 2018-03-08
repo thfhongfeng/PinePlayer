@@ -20,7 +20,7 @@ import java.util.List;
  * Created by tanghongfeng on 2017/9/28.
  */
 
-public class PineLrcParserPlugin extends PineSubtitlePlugin {
+public class PineLrcParserPlugin<T extends List> extends PineSubtitlePlugin<T> {
 
     /**
      * [ar:艺人名] [ti:曲名] [al:专辑名] [by:编者（指编辑LRC歌词的人）] [offset:时间补偿值]
@@ -76,6 +76,16 @@ public class PineLrcParserPlugin extends PineSubtitlePlugin {
             mCurViewHolder = mPluginViewHolder;
         }
         return mCurViewHolder;
+    }
+
+    @Override
+    public void setData(T data) {
+
+    }
+
+    @Override
+    public void addData(T data) {
+
     }
 
     @Override

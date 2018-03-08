@@ -21,14 +21,14 @@ import java.util.List;
  * Created by tanghongfeng on 2018/1/12.
  */
 
-public class PineImageAdvertPlugin extends PineAdvertPlugin {
+public class PineImageAdvertPlugin<T extends List> extends PineAdvertPlugin<T> {
 
     private PinePluginViewHolder mFullPluginViewHolder, mPluginViewHolder, mCurViewHolder;
     private Handler mHandler = new Handler();
     private long mAdvertTime;
     private TextView mTimerTaskTv;
 
-    public PineImageAdvertPlugin(Context context, List<PineAdvertBean> advertBeanList) {
+    public PineImageAdvertPlugin(Context context, T advertBeanList) {
         super(context, advertBeanList);
     }
 
@@ -61,6 +61,16 @@ public class PineImageAdvertPlugin extends PineAdvertPlugin {
             }
         });
         return mCurViewHolder;
+    }
+
+    @Override
+    public void setData(T data) {
+
+    }
+
+    @Override
+    public void addData(T data) {
+
     }
 
     @Override

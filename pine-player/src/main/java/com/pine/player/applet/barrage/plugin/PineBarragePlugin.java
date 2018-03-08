@@ -22,7 +22,7 @@ import java.util.List;
  * Created by tanghongfeng on 2018/1/12.
  */
 
-public class PineBarragePlugin implements IPinePlayerPlugin {
+public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     private final static String TAG = "PineBarragePlugin";
     private final Object LIST_LOCK = new Object();
     private Context mContext;
@@ -39,8 +39,8 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     private int mPreLastPDBIndex = -1;
     private long mPrePosition = -1;
 
-    public PineBarragePlugin(int displayTotalHeight, List<PineBarrageBean> barrageList) {
-        setBarrageData(barrageList);
+    public PineBarragePlugin(int displayTotalHeight, T barrageList) {
+        setData(barrageList);
         mDisplayTotalHeight = displayTotalHeight;
         mShownBarrageList = new LinkedList<PineBarrageBean>();
         mDelayShowBarrageList = new ArrayList<PineBarrageBean>();
@@ -72,6 +72,30 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
         clear();
         mContext = context;
         mPlayer = player;
+    }
+
+    @Override
+    public void setData(T data) {
+        if (data == null) {
+            return;
+        }
+        synchronized (LIST_LOCK) {
+            mBarrageList = new ArrayList<PineBarrageBean>(data);
+            mPreFirstPDBIndex = -1;
+            mPreLastPDBIndex = -1;
+        }
+        LogUtil.d(TAG, "setBarrageData mBarrageList.size():" + mBarrageList.size());
+    }
+
+    @Override
+    public void addData(T data) {
+        if (data == null) {
+            return;
+        }
+        synchronized (LIST_LOCK) {
+            mBarrageList.addAll(data);
+        }
+        LogUtil.d(TAG, "addBarrageData size:" + data.size() + ", total size:" + mBarrageList.size());
     }
 
     @Override
@@ -189,18 +213,6 @@ public class PineBarragePlugin implements IPinePlayerPlugin {
     @Override
     public boolean isOpen() {
         return mIsOpen;
-    }
-
-    public void setBarrageData(List<PineBarrageBean> barrageList) {
-        if (barrageList == null) {
-            return;
-        }
-        synchronized (LIST_LOCK) {
-            mBarrageList = new ArrayList<PineBarrageBean>(barrageList);
-            mPreFirstPDBIndex = -1;
-            mPreLastPDBIndex = -1;
-        }
-        LogUtil.d(TAG, "setBarrageData mBarrageList:" + mBarrageList);
     }
 
     private void clear() {

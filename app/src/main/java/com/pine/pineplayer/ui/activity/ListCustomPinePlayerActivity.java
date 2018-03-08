@@ -3,6 +3,8 @@ package com.pine.pineplayer.ui.activity;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -42,6 +44,7 @@ import java.util.List;
 public class ListCustomPinePlayerActivity extends AppCompatActivity {
     private static final String TAG = "ListCustomPinePlayerActivity";
 
+    private final int MSG_BARRAGE_DATA_UPDATE = 1;
     private PineMediaPlayerView mVideoView;
     private PineMediaController mController;
     private int mCurrentVideoPosition = -1;
@@ -62,6 +65,26 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
     private DefinitionListAdapter mDefinitionListInPlayerAdapter;
     private VideoListAdapter mVideoListInPlayerAdapter;
     private VideoListAdapter mVideoListInDetailAdapter;
+
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_BARRAGE_DATA_UPDATE:
+                    PineMediaPlayerBean pineMediaPlayerBean = mVideoView.getMediaPlayerBean();
+                    IPinePlayerPlugin barragePlugin =
+                            pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE);
+                    if (barragePlugin != null) {
+                        barragePlugin.addData(MockDataUtil.getBarrageList(mVideoView.getCurrentPosition()));
+                    }
+                    if (pineMediaPlayerBean != null && mVideoView.isPlaying()
+                            && mVideoView.getDuration() > mVideoView.getCurrentPosition() + 20000) {
+                        mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 20000);
+                    }
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -275,6 +298,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
         mCurrentVideoPosition = 0;
 
         videoSelected(mCurrentVideoPosition);
+        mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 20000);
     }
 
     private boolean hasMediaList() {

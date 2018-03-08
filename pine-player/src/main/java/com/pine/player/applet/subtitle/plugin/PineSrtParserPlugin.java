@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * SRT外挂字幕解析器
  */
-public class PineSrtParserPlugin extends PineSubtitlePlugin {
+public class PineSrtParserPlugin<T extends List> extends PineSubtitlePlugin<T> {
 
     private PinePluginViewHolder mFullPluginViewHolder, mPluginViewHolder, mCurViewHolder;
 
@@ -55,6 +55,16 @@ public class PineSrtParserPlugin extends PineSubtitlePlugin {
             mCurViewHolder = mPluginViewHolder;
         }
         return mCurViewHolder;
+    }
+
+    @Override
+    public void setData(T data) {
+
+    }
+
+    @Override
+    public void addData(T data) {
+
     }
 
     @Override
