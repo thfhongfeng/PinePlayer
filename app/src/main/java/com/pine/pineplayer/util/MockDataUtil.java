@@ -137,7 +137,7 @@ public class MockDataUtil {
         // 有弹幕的视频
         HashMap<Integer, IPinePlayerPlugin> pinePlayerPlugins9 = new HashMap<Integer, IPinePlayerPlugin>();
         pinePlayerPlugins9.put(PineConstants.PLUGIN_BARRAGE,
-                new PineBarragePlugin(400, MockDataUtil.getBarrageList(0)));
+                new PineBarragePlugin(0.0f, 0.8f, MockDataUtil.getBarrageList(0)));
         pineMediaBean = new PineMediaPlayerBean(String.valueOf(count++), "VideoBarrage",
                 Uri.parse(basePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, pinePlayerPlugins9, null);
@@ -201,50 +201,50 @@ public class MockDataUtil {
         List<PineBarrageBean> barrageList = new ArrayList<PineBarrageBean>();
         int count = 0;
         PineBarrageBean pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_哈哈", 1200 + startPosition);
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (1200 + startPosition) + "_哈哈", 1200 + startPosition);
         barrageList.add(pineBarrageBean);
         pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_还不错", 1300 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000,
-                "<b><u><font color='RED'>" + startPosition + "_我是HTML格式</font></u></b>", 5000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕1", 6000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕2", 6000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕3", 6000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕4", 6000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕5", 6000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕6", 6000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕7", 6000 + startPosition);
-        barrageList.add(pineBarrageBean);
-        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
-                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, startPosition + "_同时弹幕8", 6000 + startPosition);
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (1300 + startPosition) + "_还不错", 1300 + startPosition);
         barrageList.add(pineBarrageBean);
         pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
                 PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000,
-                startPosition + "_我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长", 8000 + startPosition);
+                "<b><u><font color='RED'>" + (5000 + startPosition) + "_我是HTML格式</font></u></b>", 5000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕1", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕2", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕3", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕4", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕5", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕6", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕7", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000, (6000 + startPosition) + "_同时弹幕8", 6000 + startPosition);
+        barrageList.add(pineBarrageBean);
+        pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
+                PineBarrageBean.FROM_RIGHT_TO_LEFT, 8000,
+                (8000 + startPosition) + "_我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长我很长", 8000 + startPosition);
         barrageList.add(pineBarrageBean);
         pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
                 PineBarrageBean.FROM_RIGHT_TO_LEFT, 16000,
-                startPosition + "_我很慢", 12000 + startPosition);
+                (12000 + startPosition) + "_我很慢", 12000 + startPosition);
         barrageList.add(pineBarrageBean);
         pineBarrageBean = new PineBarrageBean(count++, PineBarrageBean.NORMAL_BARRAGE,
                 PineBarrageBean.FROM_RIGHT_TO_LEFT, 4000,
-                startPosition + "_我很快", 12000 + startPosition);
+                (12000 + startPosition) + "_我很快", 12000 + startPosition);
         barrageList.add(pineBarrageBean);
         return barrageList;
     }

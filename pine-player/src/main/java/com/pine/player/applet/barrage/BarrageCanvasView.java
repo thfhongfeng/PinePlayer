@@ -5,9 +5,10 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.text.Html;
 import android.util.AttributeSet;
-import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.animation.LinearInterpolator;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -15,8 +16,6 @@ import android.widget.TextView;
 import com.pine.player.applet.barrage.bean.PartialDisplayBarrageNode;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
 import com.pine.player.util.LogUtil;
-
-import java.util.List;
 
 /**
  * Created by tanghongfeng on 2018/2/1.
@@ -26,16 +25,42 @@ public class BarrageCanvasView extends RelativeLayout {
     private final static String TAG = "BarrageCanvasView";
 
     private Context mContext;
+    private boolean isPrepare = false;
     private IBarrageItemViewListener mBarrageItemViewListener;
-    private int mDisplayTotalHeight = 200;
-
+    private int mCurHeight = -1;
+    private int mDisplayStartPx = 0;
+    private int mDisplayTotalHeight = -1;
+    private float mDisplayStartHeightPercent = -1f;
+    private float mDisplayEndHeightPercent = -1f;
+    // 双链表
     private PartialDisplayBarrageNode mDisplayableHeadNode;
     private PartialDisplayBarrageNode mRecycleHeadNode;
 
-    public BarrageCanvasView(Context context, int displayTotalHeight) {
+    ViewTreeObserver.OnGlobalLayoutListener mOnGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            if (mCurHeight != getHeight()) {
+                mCurHeight = getHeight();
+                mDisplayStartPx = (int) (getHeight() * mDisplayStartHeightPercent);
+                int newDisplayEndHeight = (int) (getHeight() * mDisplayEndHeightPercent);
+                mDisplayTotalHeight = newDisplayEndHeight - mDisplayStartPx + 1;
+            }
+        }
+    };
+
+    public BarrageCanvasView(Context context, int displayStartPx, int displayTotalHeight) {
         super(context);
         mContext = context;
+        mDisplayStartPx = displayStartPx < 0 ? 0 : displayStartPx;
         mDisplayTotalHeight = displayTotalHeight;
+        init();
+    }
+
+    public BarrageCanvasView(Context context, float displayStartPercent, float displayEndPercent) {
+        super(context);
+        mContext = context;
+        mDisplayStartHeightPercent = displayStartPercent < displayStartPercent ? 0.0f : displayStartPercent;
+        mDisplayEndHeightPercent = displayEndPercent > 1.0f ? 1.0f : displayEndPercent < 0.0f ? 0.0f : displayEndPercent;
         init();
     }
 
@@ -52,7 +77,25 @@ public class BarrageCanvasView extends RelativeLayout {
     }
 
     private void init() {
-        mDisplayableHeadNode = new PartialDisplayBarrageNode(null, null, 0, 0, mDisplayTotalHeight);
+        if (mDisplayTotalHeight == -1) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                getViewTreeObserver().removeOnGlobalLayoutListener(mOnGlobalLayoutListener);
+            }
+            getViewTreeObserver().addOnGlobalLayoutListener(mOnGlobalLayoutListener);
+        }
+    }
+
+    private void prepare() {
+        clearPartialDisplayBarrageNode(mDisplayableHeadNode);
+        clearPartialDisplayBarrageNode(mRecycleHeadNode);
+        if (mDisplayTotalHeight > 0) {
+            mDisplayableHeadNode = new PartialDisplayBarrageNode(null, null, mDisplayStartPx, 0, mDisplayTotalHeight);
+        } else {
+            mDisplayableHeadNode = new PartialDisplayBarrageNode(null, null, mDisplayStartPx, 0, 200);
+        }
+        LogUtil.d(TAG, "prepare StartPxIndex:" + mDisplayableHeadNode.getStartPixIndex()
+                + ", UntilNextRemainderPix:" + mDisplayableHeadNode.getUntilNextRemainderPix());
+        isPrepare = true;
     }
 
     public void setBarrageItemViewListener(IBarrageItemViewListener barrageItemViewListener) {
@@ -60,6 +103,9 @@ public class BarrageCanvasView extends RelativeLayout {
     }
 
     public boolean addBarrageItemView(final PineBarrageBean pineBarrageBean, float speed) {
+        if (!isPrepare) {
+            prepare();
+        }
         final TextView textView = new TextView(mContext);
         textView.setTextColor(Color.WHITE);
         textView.setText(Html.fromHtml(pineBarrageBean.getTextBody()));
@@ -133,26 +179,23 @@ public class BarrageCanvasView extends RelativeLayout {
         return true;
     }
 
-    public void recycleShownNode(List<PineBarrageBean> shownBarrageList) {
-        PineBarrageBean pineBarrageBean;
-        View itemView;
-        for (int i = 0; i < shownBarrageList.size(); i++) {
-            pineBarrageBean = shownBarrageList.get(i);
-            itemView = pineBarrageBean.getItemView();
-            if (itemView != null && pineBarrageBean.getPartialDisplayBarrageNode() != null) {
-                float translationX = Math.abs(itemView.getTranslationX());
-                if (translationX > itemView.getWidth() + 20) {
-                    freeNodeSpace(pineBarrageBean.getPartialDisplayBarrageNode());
-                    pineBarrageBean.setPartialDisplayBarrageNode(null);
-                }
-            }
-        }
-    }
-
     public void clear() {
         removeAllViews();
-        mDisplayableHeadNode = new PartialDisplayBarrageNode(null, null, 0, 0,
-                mDisplayTotalHeight);
+        clearPartialDisplayBarrageNode(mDisplayableHeadNode);
+        mDisplayableHeadNode = null;
+        clearPartialDisplayBarrageNode(mRecycleHeadNode);
+        mRecycleHeadNode = null;
+        isPrepare = false;
+    }
+
+    private void clearPartialDisplayBarrageNode(PartialDisplayBarrageNode node) {
+        PartialDisplayBarrageNode tmpNode = node;
+        while (node != null) {
+            node = node.getNextNode();
+            tmpNode.setPreNode(null);
+            tmpNode.setNextNode(null);
+            tmpNode = node;
+        }
     }
 
     private PartialDisplayBarrageNode getMatchedNode(int height) {
@@ -161,6 +204,7 @@ public class BarrageCanvasView extends RelativeLayout {
             LogUtil.v(TAG, "node: " + node);
             node = node.getNextNode();
         }
+        LogUtil.v(TAG, "after while node: " + node);
         if (node != null) {
             PartialDisplayBarrageNode newNode;
             if (mRecycleHeadNode != null) {

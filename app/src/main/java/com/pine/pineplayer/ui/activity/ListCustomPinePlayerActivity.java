@@ -72,14 +72,16 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
             switch (msg.what) {
                 case MSG_BARRAGE_DATA_UPDATE:
                     PineMediaPlayerBean pineMediaPlayerBean = mVideoView.getMediaPlayerBean();
-                    IPinePlayerPlugin barragePlugin =
-                            pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE);
-                    if (barragePlugin != null) {
-                        barragePlugin.addData(MockDataUtil.getBarrageList(mVideoView.getCurrentPosition()));
-                    }
-                    if (pineMediaPlayerBean != null && mVideoView.isPlaying()
-                            && mVideoView.getDuration() > mVideoView.getCurrentPosition() + 20000) {
-                        mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 20000);
+                    if (pineMediaPlayerBean.getPlayerPluginMap() != null) {
+                        IPinePlayerPlugin barragePlugin =
+                                pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE);
+                        if (barragePlugin != null) {
+                            barragePlugin.addData(MockDataUtil.getBarrageList(mVideoView.getCurrentPosition()));
+                        }
+                        if (pineMediaPlayerBean != null && mVideoView.isPlaying()
+                                && mVideoView.getDuration() > mVideoView.getCurrentPosition() + 20000) {
+                            mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 6000);
+                        }
                     }
                     break;
             }
@@ -298,7 +300,6 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
         mCurrentVideoPosition = 0;
 
         videoSelected(mCurrentVideoPosition);
-        mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 20000);
     }
 
     private boolean hasMediaList() {
@@ -323,6 +324,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy() {
+        mHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
 
@@ -396,6 +398,10 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
             pineMediaPlayerBean = mMediaList.get(position);
         } else {
             return;
+        }
+        if (pineMediaPlayerBean.getPlayerPluginMap() != null &&
+                pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE) != null) {
+            mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 10000);
         }
         mCurrentVideoPosition = position;
         mDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
