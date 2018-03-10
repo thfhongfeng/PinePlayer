@@ -32,6 +32,7 @@ public class BarrageCanvasView extends RelativeLayout {
     private int mDisplayTotalHeight = -1;
     private float mDisplayStartHeightPercent = -1f;
     private float mDisplayEndHeightPercent = -1f;
+    private int mTextViewHeight = 0;
     // 双链表
     private PartialDisplayBarrageNode mDisplayableHeadNode;
     private PartialDisplayBarrageNode mRecycleHeadNode;
@@ -106,18 +107,36 @@ public class BarrageCanvasView extends RelativeLayout {
         if (!isPrepare) {
             prepare();
         }
-        final TextView textView = new TextView(mContext);
-        textView.setTextColor(Color.WHITE);
-        textView.setText(Html.fromHtml(pineBarrageBean.getTextBody()));
-        int w = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-        int h = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-        textView.measure(w, h);
-        int height = textView.getMeasuredHeight();
-        final int width = textView.getMeasuredWidth();
-        final PartialDisplayBarrageNode node = getMatchedNode(height);
+        if (pineBarrageBean.getTextHeight() > 0) {
+            mTextViewHeight = pineBarrageBean.getTextHeight();
+        } else if (mTextViewHeight <= 0) {
+            TextView textView = new TextView(mContext);
+            textView.setTextColor(Color.WHITE);
+            textView.setText(Html.fromHtml(pineBarrageBean.getTextBody()));
+            int w = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+            int h = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+            textView.measure(w, h);
+            mTextViewHeight = textView.getMeasuredHeight();
+        }
+        final PartialDisplayBarrageNode node = getMatchedNode(mTextViewHeight);
         if (node == null) {
             return false;
         }
+        final int width;
+        final TextView textView = new TextView(mContext);
+        textView.setTextColor(Color.WHITE);
+        textView.setText(Html.fromHtml(pineBarrageBean.getTextBody()));
+        if (pineBarrageBean.getTextWidth() > 0) {
+            width = pineBarrageBean.getTextWidth();
+        } else {
+            // 单个TextView的measure不会太耗时，但是一次onTime时循环进行100个以上的measure会导致性能急剧下降
+            // 要尽量减小每次onTime时的measure动作。为此目前只能将TextView的高度固定或者由弹幕文字提供者自行提供。
+            int w = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+            int h = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+            textView.measure(w, h);
+            width = textView.getMeasuredWidth();
+        }
+
         LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT);
         lp.topMargin = node.getStartPixIndex();

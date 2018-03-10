@@ -1,6 +1,7 @@
 package com.pine.player.applet.barrage.bean;
 
 import android.animation.ObjectAnimator;
+import android.support.annotation.NonNull;
 import android.view.View;
 
 /**
@@ -8,13 +9,13 @@ import android.view.View;
  */
 
 public class PineBarrageBean {
-    // 普通弹幕
-    public static final int NORMAL_BARRAGE = 1;
+    // 弹幕类别: 普通弹幕
+    public static final int NORMAL_BARRAGE = 0;
 
-    // 从左往右
+    // 弹幕方向: 从右往左
+    public static final int FROM_RIGHT_TO_LEFT = 0;
+    // 弹幕方向: 从左往右
     public static final int FROM_LEFT_TO_RIGHT = 1;
-    // 从右往左
-    public static final int FROM_RIGHT_TO_LEFT = 2;
 
     private int order;
     // 弹幕类别
@@ -25,6 +26,10 @@ public class PineBarrageBean {
     private int duration;
     // 弹幕文字
     private String textBody;
+    // 弹幕文字宽度
+    private int textWidth;
+    // 弹幕文字高度
+    private int textHeight;
     // 弹幕开始时间戳
     private long beginTime;
 
@@ -37,12 +42,19 @@ public class PineBarrageBean {
     private ObjectAnimator animator;
 
     public PineBarrageBean(int order, int type, int direction, int duration,
-                           String textBody, long beginTime) {
+                           @NonNull String textBody, @NonNull long beginTime) {
+        this(order, type, direction, duration, textBody, 0, 0, beginTime);
+    }
+
+    public PineBarrageBean(int order, int type, int direction, int duration,
+                           String textBody, int textWidth, int textHeight, long beginTime) {
         this.order = order;
         this.type = type;
         this.direction = direction;
         this.duration = duration;
         this.textBody = textBody;
+        this.textWidth = textWidth;
+        this.textHeight = textHeight;
         this.beginTime = beginTime;
     }
 
@@ -84,6 +96,22 @@ public class PineBarrageBean {
 
     public void setTextBody(String textBody) {
         this.textBody = textBody;
+    }
+
+    public int getTextWidth() {
+        return textWidth;
+    }
+
+    public void setTextWidth(int textWidth) {
+        this.textWidth = textWidth;
+    }
+
+    public int getTextHeight() {
+        return textHeight;
+    }
+
+    public void setTextHeight(int textHeight) {
+        this.textHeight = textHeight;
     }
 
     public long getBeginTime() {

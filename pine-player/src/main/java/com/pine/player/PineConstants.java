@@ -10,4 +10,7 @@ public class PineConstants {
 
     public static final int PLUGIN_REFRESH_TIME_DELAY = 100;
     public static final int DEFAULT_SHOW_TIMEOUT = 6000;
+
+    public static final int PLUGIN_BARRAGE_MAX_DELAY_ITEM_COUNT = 80;
+    public static final int PLUGIN_BARRAGE_MAX_DELAY_POSITION = 8000;
 }

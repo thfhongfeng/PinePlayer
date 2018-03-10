@@ -52,7 +52,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
      * @param barrageList
      */
     public PineBarragePlugin(int displayStartPx, int displayTotalHeight, T barrageList) {
-        setData(barrageList);
+        onCreate(barrageList);
         mDisplayStartPx = displayStartPx;
         mDisplayTotalHeight = displayTotalHeight;
         mShownBarrageList = new LinkedList<PineBarrageBean>();
@@ -69,11 +69,15 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
      * @param barrageList
      */
     public PineBarragePlugin(float displayStartPercent, float displayEndPercent, T barrageList) {
-        setData(barrageList);
+        onCreate(barrageList);
         mDisplayStartHeightPercent = displayStartPercent;
         mDisplayEndHeightPercent = displayEndPercent;
         mShownBarrageList = new LinkedList<PineBarrageBean>();
         mDelayShowBarrageList = new ArrayList<PineBarrageBean>();
+    }
+
+    private void onCreate(T barrageList) {
+        setData(barrageList);
     }
 
     @Override
@@ -109,7 +113,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     }
 
     @Override
-    public void setData(T data) {
+    public synchronized void setData(T data) {
         if (data == null) {
             return;
         }
@@ -125,7 +129,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
      * @param data 添加的列表必须是按BeginTime升序排列
      */
     @Override
-    public void addData(T data) {
+    public synchronized void addData(T data) {
         if (data == null || data.size() < 1) {
             return;
         }
@@ -298,6 +302,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 mDelayShowBarrageList.clear();
             }
             PineBarrageBean pineBarrageBean = null;
+            LogUtil.d(TAG, "onTime start add barrage text positionBarrageList size:" + positionBarrageList.size());
             for (int i = 0; i < positionBarrageList.size(); i++) {
                 pineBarrageBean = positionBarrageList.get(i);
                 LogUtil.d(TAG, "onTime prepare to add barrage text:" + pineBarrageBean.getTextBody());
@@ -305,10 +310,12 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                     LogUtil.d(TAG, "onTime barrage added text:" + pineBarrageBean.getTextBody());
                     pineBarrageBean.setShow(true);
                     mShownBarrageList.add(pineBarrageBean);
-                } else if (pineBarrageBean.getBeginTime() < position + 60000) {
+                } else if (pineBarrageBean.getBeginTime() < position + PineConstants.PLUGIN_BARRAGE_MAX_DELAY_POSITION &&
+                        mDelayShowBarrageList.size() < PineConstants.PLUGIN_BARRAGE_MAX_DELAY_ITEM_COUNT) {
                     mDelayShowBarrageList.add(pineBarrageBean);
                 }
             }
+            LogUtil.d(TAG, "onTime end add barrage text positionBarrageList size:" + positionBarrageList.size());
         }
     }
 
@@ -378,6 +385,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         }
         long startPosition = position - (long) Math.ceil(speed * 3 * PineConstants.PLUGIN_REFRESH_TIME_DELAY);
         synchronized (LIST_LOCK) {
+            LogUtil.d(TAG, "findNeedAddBarrageList begin");
             ArrayList<PineBarrageBean> resultList = new ArrayList<PineBarrageBean>();
             PineBarrageBean tmpBean;
             long preFirstPosition = -1;
