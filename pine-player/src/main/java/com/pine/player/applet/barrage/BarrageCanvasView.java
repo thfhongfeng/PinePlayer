@@ -220,10 +220,10 @@ public class BarrageCanvasView extends RelativeLayout {
     private PartialDisplayBarrageNode getMatchedNode(int height) {
         PartialDisplayBarrageNode node = mDisplayableHeadNode;
         while (node != null && node.getUntilNextRemainderPix() < height) {
-            LogUtil.v(TAG, "node: " + node);
+            LogUtil.v(TAG, "getMatchedNode node: " + node);
             node = node.getNextNode();
         }
-        LogUtil.v(TAG, "after while node: " + node);
+        LogUtil.v(TAG, "getMatchedNode after find node: " + node);
         if (node != null) {
             PartialDisplayBarrageNode newNode;
             if (mRecycleHeadNode != null) {
@@ -242,7 +242,7 @@ public class BarrageCanvasView extends RelativeLayout {
             if (newNode.getNextNode() != null) {
                 newNode.getNextNode().setPreNode(newNode);
             }
-            LogUtil.v(TAG, "matched node:" + newNode);
+            LogUtil.d(TAG, "matched node:" + newNode);
             return newNode;
         } else {
             return null;
