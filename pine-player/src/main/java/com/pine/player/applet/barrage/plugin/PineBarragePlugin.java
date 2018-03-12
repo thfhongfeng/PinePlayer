@@ -29,6 +29,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     private PineMediaWidget.IPineMediaPlayer mPlayer;
     private PinePluginViewHolder mCurViewHolder;
     private BarrageCanvasView mBarrageCanvasView;
+    private int mMaxShownItemCount;
     private int mDisplayStartPx = 0;
     private int mDisplayTotalHeight = -1;
     private float mDisplayStartHeightPercent = -1f;
@@ -42,17 +43,28 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     private int mPreLastPDBIndex = -1;
     private long mPrePosition = -1;
 
+    public PineBarragePlugin(T barrageList) {
+        this(0, 0.4f, barrageList);
+    }
+
     public PineBarragePlugin(int displayTotalHeight, T barrageList) {
         this(0, displayTotalHeight, barrageList);
     }
 
+    public PineBarragePlugin(int displayStartPx, int displayTotalHeight, T barrageList) {
+        this(PineConstants.PLUGIN_BARRAGE_MAX_ITEM_COUNT, displayStartPx, displayTotalHeight, barrageList);
+    }
+
     /**
-     * @param displayStartPx     单位px
-     * @param displayTotalHeight 单位px
+     *
+     * @param maxShownItemCount
+     * @param displayStartPx        单位px
+     * @param displayTotalHeight        单位px
      * @param barrageList
      */
-    public PineBarragePlugin(int displayStartPx, int displayTotalHeight, T barrageList) {
+    public PineBarragePlugin(int maxShownItemCount, int displayStartPx, int displayTotalHeight, T barrageList) {
         onCreate(barrageList);
+        mMaxShownItemCount = maxShownItemCount;
         mDisplayStartPx = displayStartPx;
         mDisplayTotalHeight = displayTotalHeight;
         mShownBarrageList = new LinkedList<PineBarrageBean>();
@@ -63,13 +75,20 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         this(0.0f, displayEndPercent, barrageList);
     }
 
+    public PineBarragePlugin(float displayStartPercent, float displayEndPercent, T barrageList) {
+        this(PineConstants.PLUGIN_BARRAGE_MAX_ITEM_COUNT, displayStartPercent, displayEndPercent, barrageList);
+    }
+
     /**
-     * @param displayStartPercent [0.0-displayEndPercent)
-     * @param displayEndPercent   [displayStartPercent-1.0]
+     *
+     * @param maxShownItemCount
+     * @param displayStartPercent        [0.0-displayEndPercent)
+     * @param displayEndPercent        [displayStartPercent-1.0]
      * @param barrageList
      */
-    public PineBarragePlugin(float displayStartPercent, float displayEndPercent, T barrageList) {
+    public PineBarragePlugin(int maxShownItemCount, float displayStartPercent, float displayEndPercent, T barrageList) {
         onCreate(barrageList);
+        mMaxShownItemCount = maxShownItemCount;
         mDisplayStartHeightPercent = displayStartPercent;
         mDisplayEndHeightPercent = displayEndPercent;
         mShownBarrageList = new LinkedList<PineBarrageBean>();
@@ -156,7 +175,6 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 }
                 isStartIndexSet = true;
                 mergeList.add(0, tmpBean);
-                LogUtil.d(TAG, "mergeList start mBarrageList(" + i + "):" + tmpBean.getTextBody());
             }
             for (int i = startSearchIndex + 1; i < mBarrageList.size(); i++) {
                 tmpBean = mBarrageList.get(i);
@@ -168,22 +186,16 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 }
                 isEndIndexSet = true;
                 mergeList.add(tmpBean);
-                LogUtil.d(TAG, "mergeList end mBarrageList(" + i + "):" + tmpBean.getTextBody());
             }
-            LogUtil.d(TAG, "mergeList mBarrageList 1" + ", startIndex:" + startIndex + ", endIndex:" + endIndex +
-                    ", isStartIndexSet:" + isStartIndexSet + ", isEndIndexSet:" + isEndIndexSet);
             if (isStartIndexSet) {
                 endIndex = startIndex + mergeList.size() - 1;
             } else if (isEndIndexSet) {
                 startIndex = endIndex - mergeList.size() + 1;
             }
-            LogUtil.d(TAG, "mergeList mBarrageList 2" + ", startIndex:" + startIndex + ", endIndex:" + endIndex);
             ArrayList<PineBarrageBean> resultList = mergeList(barrageList, mergeList);
-            LogUtil.d(TAG, "mergeList mBarrageList 3" + ", startIndex:" + startIndex + ", endIndex:" + endIndex);
             synchronized (LIST_LOCK) {
                 int k = 0;
                 for (int i = startIndex; i <= endIndex; i++) {
-                    LogUtil.d(TAG, "mBarrageList(" + i + "):" + mBarrageList.get(i).getTextBody());
                     mBarrageList.set(i, resultList.get(k++));
                 }
                 mBarrageList.addAll(endIndex + 1, resultList.subList(k, resultList.size()));
@@ -301,9 +313,10 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 positionBarrageList.addAll(mDelayShowBarrageList);
                 mDelayShowBarrageList.clear();
             }
-            PineBarrageBean pineBarrageBean = null;
             LogUtil.d(TAG, "onTime start add barrage text positionBarrageList size:" + positionBarrageList.size());
-            for (int i = 0; i < positionBarrageList.size(); i++) {
+            PineBarrageBean pineBarrageBean = null;
+            int itemSize = Math.min(mMaxShownItemCount, positionBarrageList.size());
+            for (int i = 0; i < itemSize; i++) {
                 pineBarrageBean = positionBarrageList.get(i);
                 LogUtil.d(TAG, "onTime prepare to add barrage text:" + pineBarrageBean.getTextBody());
                 if (mBarrageCanvasView.addBarrageItemView(pineBarrageBean, mPlayer.getSpeed())) {
@@ -407,7 +420,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                         }
                         countMatchSize++;
                         lastFoundIndex = i;
-                    } else if (lastFoundIndex > 0) {
+                    } else if (lastFoundIndex > 0 || resultList.size() >= mMaxShownItemCount) {
                         break;
                     }
                 }
@@ -430,7 +443,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                         }
                         countMatchSize++;
                         lastFoundIndex = i;
-                    } else if (lastFoundIndex > 0) {
+                    } else if (lastFoundIndex > 0 || resultList.size() >= mMaxShownItemCount) {
                         break;
                     }
                 }

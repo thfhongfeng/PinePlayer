@@ -45,7 +45,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
     private static final String TAG = "ListCustomPinePlayerActivity";
 
     private final int MSG_BARRAGE_DATA_ADD = 1;
-    private final int MSG_BARRAGE_DATA_UPDATE = 2;
+    private final int MSG_BARRAGE_DATA_ADD_LARGE = 2;
     private PineMediaPlayerView mVideoView;
     private PineMediaController mController;
     private int mCurrentVideoPosition = -1;
@@ -72,7 +72,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             PineMediaPlayerBean pineMediaPlayerBean = mVideoView.getMediaPlayerBean();
             switch (msg.what) {
-                case MSG_BARRAGE_DATA_ADD:
+                case MSG_BARRAGE_DATA_ADD_LARGE:
                     if (pineMediaPlayerBean.getPlayerPluginMap() != null) {
                         final IPinePlayerPlugin barragePlugin =
                                 pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE);
@@ -88,7 +88,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
                         }
                     }
                     break;
-                case MSG_BARRAGE_DATA_UPDATE:
+                case MSG_BARRAGE_DATA_ADD:
                     if (pineMediaPlayerBean.getPlayerPluginMap() != null) {
                         IPinePlayerPlugin barragePlugin =
                                 pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE);
@@ -97,9 +97,9 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
                         }
                         if (pineMediaPlayerBean != null && mVideoView.isPlaying()) {
                             if (mVideoView.getCurrentPosition() < mVideoView.getDuration() - 35000) {
-                                mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 5000);
-                            } else {
                                 mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_ADD, 5000);
+                            } else {
+                                mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_ADD_LARGE, 5000);
                             }
                         }
                     }
@@ -421,7 +421,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
         }
         if (pineMediaPlayerBean.getPlayerPluginMap() != null &&
                 pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE) != null) {
-            mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_UPDATE, 10000);
+            mHandler.sendEmptyMessageDelayed(MSG_BARRAGE_DATA_ADD, 10000);
         }
         mCurrentVideoPosition = position;
         mDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);

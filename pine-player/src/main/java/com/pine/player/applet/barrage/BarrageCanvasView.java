@@ -25,7 +25,7 @@ public class BarrageCanvasView extends RelativeLayout {
     private final static String TAG = "BarrageCanvasView";
 
     private Context mContext;
-    private boolean isPrepare = false;
+    private boolean mIsPrepare = false;
     private IBarrageItemViewListener mBarrageItemViewListener;
     private int mCurHeight = -1;
     private int mDisplayStartPx = 0;
@@ -96,7 +96,7 @@ public class BarrageCanvasView extends RelativeLayout {
         }
         LogUtil.d(TAG, "prepare StartPxIndex:" + mDisplayableHeadNode.getStartPixIndex()
                 + ", UntilNextRemainderPix:" + mDisplayableHeadNode.getUntilNextRemainderPix());
-        isPrepare = true;
+        mIsPrepare = true;
     }
 
     public void setBarrageItemViewListener(IBarrageItemViewListener barrageItemViewListener) {
@@ -104,7 +104,7 @@ public class BarrageCanvasView extends RelativeLayout {
     }
 
     public boolean addBarrageItemView(final PineBarrageBean pineBarrageBean, float speed) {
-        if (!isPrepare) {
+        if (!mIsPrepare) {
             prepare();
         }
         if (pineBarrageBean.getTextHeight() > 0) {
@@ -204,7 +204,7 @@ public class BarrageCanvasView extends RelativeLayout {
         mDisplayableHeadNode = null;
         clearPartialDisplayBarrageNode(mRecycleHeadNode);
         mRecycleHeadNode = null;
-        isPrepare = false;
+        mIsPrepare = false;
     }
 
     private void clearPartialDisplayBarrageNode(PartialDisplayBarrageNode node) {
