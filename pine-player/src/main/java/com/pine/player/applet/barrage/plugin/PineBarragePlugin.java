@@ -56,10 +56,9 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     }
 
     /**
-     *
      * @param maxShownItemCount
-     * @param displayStartPx        单位px
-     * @param displayTotalHeight        单位px
+     * @param displayStartPx     单位px
+     * @param displayTotalHeight 单位px
      * @param barrageList
      */
     public PineBarragePlugin(int maxShownItemCount, int displayStartPx, int displayTotalHeight, T barrageList) {
@@ -80,19 +79,19 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     }
 
     /**
-     *
      * @param maxShownItemCount
-     * @param displayStartPercent        [0.0-displayEndPercent)
-     * @param displayEndPercent        [displayStartPercent-1.0]
+     * @param displayStartPercent [0.0-displayEndPercent)
+     * @param displayEndPercent   [displayStartPercent-1.0]
      * @param barrageList
      */
     public PineBarragePlugin(int maxShownItemCount, float displayStartPercent, float displayEndPercent, T barrageList) {
-        onCreate(barrageList);
         mMaxShownItemCount = maxShownItemCount;
         mDisplayStartHeightPercent = displayStartPercent;
         mDisplayEndHeightPercent = displayEndPercent;
+        mBarrageList = new ArrayList<PineBarrageBean>();
         mShownBarrageList = new LinkedList<PineBarrageBean>();
         mDelayShowBarrageList = new ArrayList<PineBarrageBean>();
+        onCreate(barrageList);
     }
 
     private void onCreate(T barrageList) {
@@ -137,7 +136,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
             return;
         }
         synchronized (LIST_LOCK) {
-            mBarrageList = new ArrayList<PineBarrageBean>(data);
+            mBarrageList.addAll(data);
             mPreFirstPDBIndex = -1;
             mPreLastPDBIndex = -1;
         }
@@ -152,6 +151,10 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         if (data == null || data.size() < 1) {
             return;
         }
+        if (mBarrageList.size() < 1) {
+            setData(data);
+            return;
+        }
         ArrayList<PineBarrageBean> barrageList = new ArrayList<PineBarrageBean>(data);
         long startPosition = barrageList.get(0).getBeginTime();
         long endPosition = barrageList.get(barrageList.size() - 1).getBeginTime();
@@ -159,7 +162,8 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
             return;
         }
         LogUtil.d(TAG, "before addBarrageData total size:" + mBarrageList.size());
-        if (startPosition < mBarrageList.get(mBarrageList.size() - 1).getBeginTime()) {
+        if (mBarrageList.size() > 0 &&
+                startPosition < mBarrageList.get(mBarrageList.size() - 1).getBeginTime()) {
             int startSearchIndex = mPreFirstPDBIndex < 0 ? 0 : mPreFirstPDBIndex;
             int startIndex = 0, endIndex = mBarrageList.size() - 1;
             boolean isStartIndexSet = false, isEndIndexSet = false;
@@ -300,12 +304,12 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 (PineConstants.PLUGIN_REFRESH_TIME_DELAY << 2) * mPlayer.getSpeed()) {
             resetBarrage();
         }
-        ArrayList<PineBarrageBean> positionBarrageList = findNeedAddBarrages(position, mPlayer.getSpeed());
-        mPrePosition = position;
-        if (positionBarrageList == null && mDelayShowBarrageList.size() < 1) {
-            return;
-        }
         synchronized (LIST_LOCK) {
+            ArrayList<PineBarrageBean> positionBarrageList = findNeedAddBarrages(position, mPlayer.getSpeed());
+            mPrePosition = position;
+            if (positionBarrageList == null && mDelayShowBarrageList.size() < 1) {
+                return;
+            }
             if (mDelayShowBarrageList.size() > 0) {
                 if (positionBarrageList == null) {
                     positionBarrageList = new ArrayList<PineBarrageBean>();
@@ -393,73 +397,72 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     }
 
     private ArrayList<PineBarrageBean> findNeedAddBarrages(long position, float speed) {
-        if (mBarrageList == null) {
+        if (mBarrageList == null || mBarrageList.size() < 1) {
             return null;
         }
         long startPosition = position - (long) Math.ceil(speed * 3 * PineConstants.PLUGIN_REFRESH_TIME_DELAY);
-        synchronized (LIST_LOCK) {
-            LogUtil.d(TAG, "findNeedAddBarrageList begin");
-            ArrayList<PineBarrageBean> resultList = new ArrayList<PineBarrageBean>();
-            PineBarrageBean tmpBean;
-            long preFirstPosition = -1;
-            long preLastPosition = -1;
-            if (mPreFirstPDBIndex > -1 && mPreFirstPDBIndex < mBarrageList.size()) {
-                preFirstPosition = mBarrageList.get(mPreFirstPDBIndex).getBeginTime();
-            }
-            if (mPreLastPDBIndex > -1 && mPreLastPDBIndex < mBarrageList.size()) {
-                preLastPosition = mBarrageList.get(mPreLastPDBIndex).getBeginTime();
-            }
-            int lastFoundIndex = -1;
-            int countMatchSize = 0;
-            if (preLastPosition <= position) {
-                for (int i = mPreLastPDBIndex + 1; i < mBarrageList.size(); i++) {
-                    tmpBean = mBarrageList.get(i);
-                    if (tmpBean.getBeginTime() >= startPosition && tmpBean.getBeginTime() <= position) {
-                        if (!tmpBean.isShow()) {
-                            resultList.add(tmpBean);
-                        }
-                        countMatchSize++;
-                        lastFoundIndex = i;
-                    } else if (lastFoundIndex > 0 || resultList.size() >= mMaxShownItemCount) {
-                        break;
-                    }
-                }
-                if (lastFoundIndex >= 0) {
-                    LogUtil.d(TAG, "findNeedAddBarrageList after index " + mPreLastPDBIndex +
-                            ", found index rang firstPDBIndex:" + (lastFoundIndex - countMatchSize + 1) +
-                            ", lastPDBIndex:" + lastFoundIndex +
-                            ", preLastPosition:" + preLastPosition +
-                            ", startPosition:" + startPosition + ", position:" + position +
-                            ". actual found size (exclude is already show):" + resultList.size());
-                    mPreFirstPDBIndex = lastFoundIndex - countMatchSize + 1;
-                    mPreLastPDBIndex = lastFoundIndex;
-                }
-            } else if (preFirstPosition >= position) {
-                for (int i = mPreFirstPDBIndex - 1; i >= 0; i--) {
-                    tmpBean = mBarrageList.get(i);
-                    if (tmpBean.getBeginTime() >= startPosition && tmpBean.getBeginTime() <= position) {
-                        if (!tmpBean.isShow()) {
-                            resultList.add(tmpBean);
-                        }
-                        countMatchSize++;
-                        lastFoundIndex = i;
-                    } else if (lastFoundIndex > 0 || resultList.size() >= mMaxShownItemCount) {
-                        break;
-                    }
-                }
-                if (lastFoundIndex >= 0) {
-                    LogUtil.d(TAG, "findNeedAddBarrageList before index " + mPreFirstPDBIndex +
-                            ", found index rang firstPDBIndex:" + (lastFoundIndex + countMatchSize - 1) +
-                            ", lastPDBIndex:" + lastFoundIndex +
-                            ", preLastPosition:" + preLastPosition +
-                            ", startPosition:" + startPosition + ", position:" + position +
-                            ". actual found size (exclude is already show):" + resultList.size());
-                    mPreLastPDBIndex = lastFoundIndex + countMatchSize - 1;
-                    mPreFirstPDBIndex = lastFoundIndex;
-                }
-                Collections.reverse(resultList);
-            }
-            return resultList.size() > 0 ? resultList : null;
+        LogUtil.d(TAG, "findNeedAddBarrageList begin");
+        ArrayList<PineBarrageBean> resultList = new ArrayList<PineBarrageBean>();
+        PineBarrageBean tmpBean;
+        long preFirstPosition = -1;
+        long preLastPosition = -1;
+        if (mPreFirstPDBIndex > -1 && mPreFirstPDBIndex < mBarrageList.size()) {
+            preFirstPosition = mBarrageList.get(mPreFirstPDBIndex).getBeginTime();
         }
+        if (mPreLastPDBIndex > -1 && mPreLastPDBIndex < mBarrageList.size()) {
+            preLastPosition = mBarrageList.get(mPreLastPDBIndex).getBeginTime();
+        }
+        int lastFoundIndex = -1;
+        int countMatchSize = 0;
+        if (preLastPosition <= position) {
+            for (int i = mPreLastPDBIndex + 1; i < mBarrageList.size(); i++) {
+                tmpBean = mBarrageList.get(i);
+                if (tmpBean.getBeginTime() >= startPosition && tmpBean.getBeginTime() <= position) {
+                    if (!tmpBean.isShow()) {
+                        resultList.add(tmpBean);
+                    }
+                    countMatchSize++;
+                    lastFoundIndex = i;
+                } else if (lastFoundIndex > 0 || resultList.size() >= mMaxShownItemCount) {
+                    break;
+                }
+            }
+            if (lastFoundIndex >= 0) {
+                LogUtil.d(TAG, "findNeedAddBarrageList after index " + mPreLastPDBIndex +
+                        ", found index rang firstPDBIndex:" + (lastFoundIndex - countMatchSize + 1) +
+                        ", lastPDBIndex:" + lastFoundIndex +
+                        ", preLastPosition:" + preLastPosition +
+                        ", startPosition:" + startPosition + ", position:" + position +
+                        ". actual found size (exclude is already show):" + resultList.size());
+                mPreFirstPDBIndex = lastFoundIndex - countMatchSize + 1;
+                mPreLastPDBIndex = lastFoundIndex;
+            }
+        } else if (preFirstPosition >= position) {
+            for (int i = mPreFirstPDBIndex - 1; i >= 0; i--) {
+                tmpBean = mBarrageList.get(i);
+                if (tmpBean.getBeginTime() >= startPosition && tmpBean.getBeginTime() <= position) {
+                    if (!tmpBean.isShow()) {
+                        resultList.add(tmpBean);
+                    }
+                    countMatchSize++;
+                    lastFoundIndex = i;
+                } else if (lastFoundIndex > 0 || resultList.size() >= mMaxShownItemCount) {
+                    break;
+                }
+            }
+            if (lastFoundIndex >= 0) {
+                LogUtil.d(TAG, "findNeedAddBarrageList before index " + mPreFirstPDBIndex +
+                        ", found index rang firstPDBIndex:" + (lastFoundIndex + countMatchSize - 1) +
+                        ", lastPDBIndex:" + lastFoundIndex +
+                        ", preLastPosition:" + preLastPosition +
+                        ", startPosition:" + startPosition + ", position:" + position +
+                        ". actual found size (exclude is already show):" + resultList.size());
+                mPreLastPDBIndex = lastFoundIndex + countMatchSize - 1;
+                mPreFirstPDBIndex = lastFoundIndex;
+            }
+            Collections.reverse(resultList);
+        }
+        return resultList.size() > 0 ? resultList : null;
     }
+
 }

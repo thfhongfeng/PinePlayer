@@ -7,6 +7,7 @@ package com.pine.player;
 public class PineConstants {
     public static final int PATH_ASSETS = 0x01;
     public static final int PATH_STORAGE = 0x02;
+    public static final int PATH_NETWORK = 0x03;
 
     public static final int PLUGIN_REFRESH_TIME_DELAY = 100;
     public static final int DEFAULT_SHOW_TIMEOUT = 6000;

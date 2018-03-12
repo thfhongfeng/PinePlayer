@@ -99,15 +99,15 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
     public void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
                        PineMediaWidget.IPineMediaController controller,
                        boolean isPlayerReset, boolean isResumeState) {
-        if (mAdvertBeanList == null) {
-            return;
-        }
         mContext = context;
         mIsPauseByAdvert = false;
         mIsPlayingHeadAdvert = false;
         mIsPlayingPauseAdvert = false;
         mIsPlayingCompleteAdvert = false;
         mIsPlayingTimeAdvert = false;
+        if (mAdvertBeanList == null) {
+            return;
+        }
         if (isPlayerReset && !isResumeState) {
             constructAdvertBeans();
         }

@@ -1,6 +1,9 @@
 package com.pine.player.applet.subtitle.plugin;
 
 import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.view.View;
 
@@ -16,6 +19,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -36,11 +41,11 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     private PineMediaWidget.IPineMediaPlayer mPlayer;
     private boolean mIsOpen = true;
 
+    private HandlerThread mHandlerThread;
+    private Handler mThreadHandler;
+
     public PineSubtitlePlugin(Context context, String subtitleFilePath, String charset) {
-        mContext = context;
-        mSubtitleFilePath = subtitleFilePath;
-        mSubtitleFileType = PineConstants.PATH_STORAGE;
-        mCharset = charset;
+        this(context, subtitleFilePath, PineConstants.PATH_STORAGE, charset);
     }
 
     public PineSubtitlePlugin(Context context, String subtitleFilePath, int pathType, String charset) {
@@ -62,28 +67,46 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
         if (mSubtitleFilePath == null && mSubtitleFilePath == "") {
             return;
         }
-        InputStream inputStream = null;
-        try {
-            switch (mSubtitleFileType) {
-                case PineConstants.PATH_ASSETS:
-                    inputStream = mContext.getAssets().open(mSubtitleFilePath);
-                    break;
-                case PineConstants.PATH_STORAGE:
-                    inputStream = new FileInputStream(mSubtitleFilePath);
-                    break;
-            }
-            if (inputStream == null) {
-                return;
-            }
-            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, mCharset));
-            mSubtitleBeanList = parseSubtitleBufferedReader(br);
-        } catch (FileNotFoundException e) {
-            mSubtitleBeanList = null;
-            e.printStackTrace();
-        } catch (IOException e) {
-            mSubtitleBeanList = null;
-            e.printStackTrace();
+        if (mHandlerThread == null || !mHandlerThread.isAlive()) {
+            mHandlerThread = new HandlerThread("PineSubtitlePlugin");
+            mHandlerThread.start();
+            mThreadHandler = new Handler(mHandlerThread.getLooper());
         }
+        mThreadHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                InputStream inputStream = null;
+                try {
+                    switch (mSubtitleFileType) {
+                        case PineConstants.PATH_ASSETS:
+                            inputStream = mContext.getAssets().open(mSubtitleFilePath);
+                            break;
+                        case PineConstants.PATH_STORAGE:
+                            inputStream = new FileInputStream(mSubtitleFilePath);
+                            break;
+                        case PineConstants.PATH_NETWORK:
+                            URL fileUrl = new URL(mSubtitleFilePath);
+                            HttpURLConnection conn = (HttpURLConnection) fileUrl
+                                    .openConnection();
+                            conn.setDoInput(true);
+                            conn.connect();
+                            inputStream = conn.getInputStream();
+                            break;
+                    }
+                    if (inputStream == null) {
+                        return;
+                    }
+                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, mCharset));
+                    mSubtitleBeanList = parseSubtitleBufferedReader(br);
+                } catch (FileNotFoundException e) {
+                    mSubtitleBeanList = null;
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    mSubtitleBeanList = null;
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -169,6 +192,12 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
 
     @Override
     public void onRelease() {
+        mThreadHandler.removeCallbacksAndMessages(null);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            mHandlerThread.quitSafely();
+        } else {
+            mHandlerThread.quit();
+        }
         resetState();
         mContext = null;
         mPlayer = null;
