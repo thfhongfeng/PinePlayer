@@ -62,12 +62,13 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
      * @param barrageList
      */
     public PineBarragePlugin(int maxShownItemCount, int displayStartPx, int displayTotalHeight, T barrageList) {
-        onCreate(barrageList);
         mMaxShownItemCount = maxShownItemCount;
         mDisplayStartPx = displayStartPx;
         mDisplayTotalHeight = displayTotalHeight;
+        mBarrageList = new ArrayList<PineBarrageBean>();
         mShownBarrageList = new LinkedList<PineBarrageBean>();
         mDelayShowBarrageList = new ArrayList<PineBarrageBean>();
+        setData(barrageList);
     }
 
     public PineBarragePlugin(float displayEndPercent, T barrageList) {
@@ -91,10 +92,6 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         mBarrageList = new ArrayList<PineBarrageBean>();
         mShownBarrageList = new LinkedList<PineBarrageBean>();
         mDelayShowBarrageList = new ArrayList<PineBarrageBean>();
-        onCreate(barrageList);
-    }
-
-    private void onCreate(T barrageList) {
         setData(barrageList);
     }
 
@@ -296,7 +293,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         if (mBarrageCanvasView == null) {
             return;
         }
-        if (mBarrageCanvasView == null) {
+        if (mBarrageList == null || !mIsOpen) {
             mPrePosition = position;
             return;
         }
@@ -401,7 +398,6 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
             return null;
         }
         long startPosition = position - (long) Math.ceil(speed * 3 * PineConstants.PLUGIN_REFRESH_TIME_DELAY);
-        LogUtil.d(TAG, "findNeedAddBarrageList begin");
         ArrayList<PineBarrageBean> resultList = new ArrayList<PineBarrageBean>();
         PineBarrageBean tmpBean;
         long preFirstPosition = -1;

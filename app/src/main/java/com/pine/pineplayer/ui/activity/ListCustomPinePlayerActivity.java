@@ -19,6 +19,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -173,7 +174,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
                                 mFullControllerView.findViewById(R.id.go_back_btn));
                     }
                     PineMediaPlayerBean pineMediaPlayerBean = player.getMediaPlayerBean();
-                    View barrageBtn = mFullControllerView.findViewById(R.id.switch_barrage);
+                    Switch barrageBtn = (Switch) mFullControllerView.findViewById(R.id.switch_barrage);
                     final HashMap<Integer, IPinePlayerPlugin> pluginHashMap =
                             pineMediaPlayerBean.getPlayerPluginMap();
                     if (pluginHashMap != null && pluginHashMap.containsKey(PineConstants.PLUGIN_BARRAGE)) {
@@ -191,6 +192,7 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
                                 }
                             }
                         });
+                        barrageBtn.setChecked(barragePlugin.isOpen());
                         barrageBtn.setVisibility(View.VISIBLE);
                     } else {
                         barrageBtn.setVisibility(View.GONE);
