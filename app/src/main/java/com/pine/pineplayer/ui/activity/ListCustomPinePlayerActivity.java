@@ -340,8 +340,8 @@ public class ListCustomPinePlayerActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        super.onPause();
         mVideoView.savePlayerState();
+        super.onPause();
     }
 
     @Override

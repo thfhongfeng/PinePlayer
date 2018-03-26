@@ -251,12 +251,13 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        super.onPause();
         mVideoView.savePlayerState();
+        super.onPause();
     }
 
     @Override
     public void onDestroy() {
+        mVideoView.release();
         super.onDestroy();
     }
 

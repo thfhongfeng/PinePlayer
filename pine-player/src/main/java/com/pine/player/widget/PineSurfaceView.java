@@ -681,7 +681,6 @@ public class PineSurfaceView extends SurfaceView implements PineMediaWidget.IPin
     public void savePlayerState() {
         mShouldPlayWhenPrepared = isPlaying();
         mSeekWhenPrepared = getCurrentPosition();
-        pause();
     }
 
     @Override
