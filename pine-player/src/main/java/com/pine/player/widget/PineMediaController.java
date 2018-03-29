@@ -724,7 +724,6 @@ public class PineMediaController extends RelativeLayout
                             new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                 }
             }
-            mRightViewContainer.setVisibility(GONE);
             mIsNeedResizeRightContainerView = true;
             addPreDrawListener(mRightViewContainer, mRightViewContainerPreDrawListener);
             addView(mRightViewContainer, new RelativeLayout.LayoutParams(0, 0));
@@ -765,6 +764,7 @@ public class PineMediaController extends RelativeLayout
                 rightViewControlBtnList.get(i).setOnClickListener(mRightControlBtnListener);
                 rightViewControlBtnList.get(i).setVisibility(View.VISIBLE);
             }
+            mRightViewContainer.setVisibility(VISIBLE);
         }
         if (mControllerViewHolder.getLockControllerButton() != null) {
             mControllerViewHolder.getLockControllerButton().setOnClickListener(mLockControllerListener);
@@ -1167,7 +1167,7 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void setControllerEnabled(boolean enabled) {
-        setControllerEnabled(enabled, enabled, enabled, enabled, enabled, enabled, enabled, enabled,
+        setControllerEnabled(enabled, true, enabled, enabled, enabled, enabled, enabled, enabled,
                 enabled, enabled);
     }
 
