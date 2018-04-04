@@ -10,11 +10,13 @@ import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
+import com.pine.player.component.PineMediaWidget;
 
 public class SimpleDefaultPinePlayerActivity extends AppCompatActivity {
     private static final String TAG = "SimpleDefaultPinePlayerActivity";
 
     private PineMediaPlayerView mVideoView;
+    private PineMediaWidget.IPineMediaPlayer mPlayer;
     private PineMediaController mController;
     private String mBasePath;
 
@@ -31,26 +33,29 @@ public class SimpleDefaultPinePlayerActivity extends AppCompatActivity {
             return;
         }
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
+        mVideoView.init(TAG);
         mController = new PineMediaController(this);
 
         mVideoView.setMediaController(mController);
-
+        mPlayer = mVideoView.getMediaPlayer();
+        mPlayer.setLocalStreamMode(true);
+        mPlayer.setBackgroundPlayerMode(false);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "VideoDefinitionSelect",
                 MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);
-        mVideoView.setPlayingMedia(pineMediaBean);
-        mVideoView.start();
+        mPlayer.setPlayingMedia(pineMediaBean);
+        mPlayer.start();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mVideoView.resume();
+        mPlayer.resume();
 
     }
 
     @Override
     public void onPause() {
-        mVideoView.savePlayerState();
+        mPlayer.savePlayerState();
         super.onPause();
     }
 

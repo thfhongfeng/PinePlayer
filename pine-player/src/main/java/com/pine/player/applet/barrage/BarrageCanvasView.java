@@ -223,7 +223,6 @@ public class BarrageCanvasView extends RelativeLayout {
             LogUtil.v(TAG, "getMatchedNode node: " + node);
             node = node.getNextNode();
         }
-        LogUtil.v(TAG, "getMatchedNode after find node: " + node);
         if (node != null) {
             PartialDisplayBarrageNode newNode;
             if (mRecycleHeadNode != null) {

@@ -27,7 +27,7 @@ import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
-import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineRightViewHolder;
@@ -40,6 +40,7 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
     private static final String TAG = "SimpleCustomPinePlayerActivity";
 
     private PineMediaPlayerView mVideoView;
+    private PineMediaWidget.IPineMediaPlayer mPlayer;
     private PineMediaController mController;
     private String mBasePath;
     private PineMediaController.AbstractMediaControllerAdapter mMediaControllerAdapter;
@@ -68,6 +69,7 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
         mDefinitionNameArr = getResources().getStringArray(R.array.media_definition_text_arr);
         initRecycleView();
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
+        mVideoView.init(TAG);
         mController = new PineMediaController(this);
 
         mMediaControllerAdapter = new PineMediaController.AbstractMediaControllerAdapter() {
@@ -174,7 +176,8 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
 
             @Override
             public PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-                Uri imgUri = player.getMediaPlayerBean().getMediaImgUri();
+                PineMediaPlayerBean playerBean = player.getMediaPlayerBean();
+                Uri imgUri = playerBean == null ? null : playerBean.getMediaImgUri();
                 ImageView mediaBackgroundView = new ImageView(SimpleCustomPinePlayerActivity.this);
                 mediaBackgroundView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 if (imgUri == null) {
@@ -220,8 +223,10 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
 
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
         mVideoView.setMediaController(mController);
-        mVideoView.setLocalStreamMode(true);
-        mVideoView.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
+        mPlayer = mVideoView.getMediaPlayer();
+        mPlayer.setLocalStreamMode(true);
+        mPlayer.setBackgroundPlayerMode(false);
+        mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
             @Override
             public boolean onError(int framework_err, int impl_err) {
                 return false;
@@ -232,8 +237,8 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
                 MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);
         mDefinitionListInPlayerAdapter.setData(pineMediaBean);
         mDefinitionListInPlayerAdapter.notifyDataSetChanged();
-        mVideoView.setPlayingMedia(pineMediaBean);
-        mVideoView.start();
+        mPlayer.setPlayingMedia(pineMediaBean);
+        mPlayer.start();
         if (mDefinitionBtn != null) {
             mDefinitionBtn.setText(getDefinitionName(pineMediaBean.getCurrentDefinition()));
         }
@@ -246,18 +251,18 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mVideoView.resume();
+        mPlayer.resume();
     }
 
     @Override
     public void onPause() {
-        mVideoView.savePlayerState();
+        mPlayer.savePlayerState();
         super.onPause();
     }
 
     @Override
     public void onDestroy() {
-        mVideoView.release();
+        mPlayer.release();
         super.onDestroy();
     }
 
@@ -291,7 +296,7 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
         }
         mDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
         mDefinitionListInPlayerAdapter.notifyDataSetChanged();
-        mVideoView.resetPlayingMediaAndResume(pineMediaPlayerBean, null);
+        mPlayer.resetPlayingMediaAndResume(pineMediaPlayerBean, null);
         if (mDefinitionBtn != null) {
             mDefinitionBtn.setText(getDefinitionName(pineMediaPlayerBean.getCurrentDefinition()));
         }
@@ -355,7 +360,7 @@ public class SimpleCustomPinePlayerActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     pineMediaPlayerBean.setCurrentDefinitionByPosition(position);
-                    mVideoView.savePlayerState();
+                    mPlayer.savePlayerState();
                     videoDefinitionSelected(pineMediaPlayerBean);
                 }
             });

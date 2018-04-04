@@ -1,20 +1,21 @@
 package com.pine.player.widget;
 
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-import com.pine.player.bean.PineMediaPlayerBean;
+import com.pine.player.PineConstants;
+import com.pine.player.R;
+import com.pine.player.component.PineMediaPlayerComponent;
+import com.pine.player.component.PineMediaPlayerProxy;
+import com.pine.player.component.PineMediaWidget;
+import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.util.LogUtil;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by tanghongfeng on 2017/9/15.
@@ -24,71 +25,117 @@ import java.util.Map;
  * 且该父全屏布局必须是RelativeLayout,FrameLayout,LinearLayout中的一种
  */
 
-public class PineMediaPlayerView extends RelativeLayout
-        implements PineMediaWidget.IPineMediaPlayer {
+public class PineMediaPlayerView extends RelativeLayout {
     private final static String TAG = "PineMediaPlayerView";
-
+    private static final long BACK_PRESSED_EXIT_TIME = 2000;
     private Context mContext;
+    private String mMediaPlayerTag;
+    private boolean mIsInit;
+    private boolean mEnableSurface;
     private PineSurfaceView mPineSurfaceView;
+    private PineMediaWidget.IPineMediaController mMediaController;
+    private PineMediaPlayerComponent mMediaPlayerComponent;
+    private PineMediaPlayerProxy mMediaPlayer;
     private ViewGroup.LayoutParams mHalfAnchorLayout;
+    ViewTreeObserver.OnPreDrawListener mOnPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+        @Override
+        public boolean onPreDraw() {
+            if (mMediaPlayerComponent != null) {
+                // 在第一次绘制之前保存布局layoutParams
+                if (!mMediaPlayerComponent.isFullScreenMode() && mHalfAnchorLayout == null) {
+                    mHalfAnchorLayout = getLayoutParams();
+                }
+                getViewTreeObserver().removeOnPreDrawListener(this);
+            }
+            return true;
+        }
+    };
+    // 点击回退按键时，使用两次点击的时间间隔限定回退行为
+    private long mExitTime = -1l;
 
     public PineMediaPlayerView(Context context) {
         super(context);
         mContext = context;
-        initView(mContext);
     }
 
     public PineMediaPlayerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
-        initView(mContext);
     }
 
     public PineMediaPlayerView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
-        initView(mContext);
     }
 
-    private void initView(Context context) {
-        mPineSurfaceView = new PineSurfaceView(context);
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        layoutParams.addRule(CENTER_IN_PARENT);
-        addView(mPineSurfaceView, layoutParams);
-        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                // 在第一次绘制之前保存布局layoutParams
-                if (!mPineSurfaceView.isFullScreenMode() && mHalfAnchorLayout == null) {
-                    mHalfAnchorLayout = getLayoutParams();
-                }
-                getViewTreeObserver().removeOnPreDrawListener(this);
-                return true;
+    public void init(String tag) {
+        init(tag, true);
+    }
+
+    public void init(String tag, boolean enableSurface) {
+        if (!mIsInit) {
+            mIsInit = true;
+            mMediaPlayerTag = tag;
+            mEnableSurface = enableSurface;
+            mMediaPlayer = (PineMediaPlayerProxy) PineMediaPlayerService.getMediaPlayerByTag(tag);
+            if (mMediaPlayer != null) {
+                mMediaPlayerComponent = mMediaPlayer.getPineMediaPlayerComponent();
+            } else {
+                mMediaPlayerComponent = new PineMediaPlayerComponent(mContext.getApplicationContext());
+                mMediaPlayer = new PineMediaPlayerProxy(mMediaPlayerComponent);
+                PineMediaPlayerService.setMediaPlayerByTag(tag, mMediaPlayer);
             }
-        });
+            mMediaPlayerComponent.setMediaPlayerView(this);
+            if (enableSurface) {
+                mPineSurfaceView = new PineSurfaceView(mContext);
+                mPineSurfaceView.setMediaPlayerComponent(mMediaPlayerComponent);
+                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+                        LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+                layoutParams.addRule(CENTER_IN_PARENT);
+                addView(mPineSurfaceView, layoutParams);
+            }
+            mMediaPlayerComponent.enableSurfaceView(enableSurface);
+            getViewTreeObserver().removeOnPreDrawListener(mOnPreDrawListener);
+            getViewTreeObserver().addOnPreDrawListener(mOnPreDrawListener);
+        }
+    }
+
+    private boolean checkIsInit() {
+        if (!mIsInit) {
+            Toast.makeText(mContext, R.string.init_method_need_call_toast, Toast.LENGTH_SHORT);
+        }
+        return mIsInit;
+    }
+
+    public PineSurfaceView getMediaSurfaceView() {
+        return mPineSurfaceView;
+    }
+
+    public ViewGroup.LayoutParams getHalfAnchorLayout() {
+        return mHalfAnchorLayout;
+    }
+
+    public PineMediaWidget.IPineMediaController getMediaController() {
+        return mMediaController;
     }
 
     public void setMediaController(PineMediaWidget.IPineMediaController controller) {
-        if (mPineSurfaceView == null) {
-            initView(mContext);
+        if (!checkIsInit()) {
+            return;
         }
-        mPineSurfaceView.setMediaController(controller);
-        controller.setAnchorView(this);
-        controller.setMediaPlayer(this);
+        mMediaController = controller;
+        if (controller != null) {
+            controller.setAnchorView(this);
+            controller.setMediaPlayer(mMediaPlayer);
+        }
+        mMediaPlayerComponent.setMediaController(mMediaController);
     }
 
-    public void setLocalStreamMode(boolean isLocalStream) {
-        mPineSurfaceView.setLocalStreamMode(isLocalStream, 0);
-    }
-
-    public void setLocalStreamMode(boolean isLocalStream, int port) {
-        mPineSurfaceView.setLocalStreamMode(isLocalStream, port);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        return true;
+    public PineMediaWidget.IPineMediaPlayer getMediaPlayer() {
+        if (!checkIsInit()) {
+            return null;
+        }
+        return mMediaPlayer;
     }
 
     @Override
@@ -99,217 +146,133 @@ public class PineMediaPlayerView extends RelativeLayout
 
     @Override
     protected void onDetachedFromWindow() {
-        LogUtil.d(TAG, "Detach to window");
+        LogUtil.d(TAG, "Detach from window");
+        if (mMediaPlayerComponent != null) {
+            mMediaPlayerComponent.onMediaPlayerViewDetached();
+            if (!mMediaPlayerComponent.isBackgroundPlayerMode()) {
+                PineMediaPlayerService.destroyMediaPlayerByTag(mMediaPlayerTag);
+            }
+        }
         mPineSurfaceView = null;
+        mMediaController = null;
         super.onDetachedFromWindow();
     }
 
-    /**
-     * ----------------   PineMediaWidget.IPineMediaPlayer impl begin   --------------
-     **/
-
     @Override
-    public float getSpeed() {
-        return mPineSurfaceView.getSpeed();
-    }
-
-    @Override
-    public void setSpeed(float speed) {
-        mPineSurfaceView.setSpeed(speed);
-    }
-
-    @Override
-    public void start() {
-        mPineSurfaceView.start();
-    }
-
-    @Override
-    public void pause() {
-        mPineSurfaceView.pause();
-    }
-
-    @Override
-    public void suspend() {
-        mPineSurfaceView.suspend();
-    }
-
-    @Override
-    public void resume() {
-        mPineSurfaceView.resume();
-    }
-
-    @Override
-    public void release() {
-        mPineSurfaceView.release(true);
-    }
-
-    @Override
-    public PineMediaWidget.IPineMediaController getController() {
-        return mPineSurfaceView.getController();
-    }
-
-    @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
-        mPineSurfaceView.setPlayingMedia(pineMediaPlayerBean, null);
-    }
-
-    @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers) {
-        mPineSurfaceView.setPlayingMedia(pineMediaPlayerBean, headers);
-    }
-
-    @Override
-    public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
-                                    Map<String, String> headers) {
-        mPineSurfaceView.resetPlayingMediaAndResume(pineMediaPlayerBean, headers);
-    }
-
-    @Override
-    public void savePlayerState() {
-        mPineSurfaceView.savePlayerState();
-    }
-
-    @Override
-    public int getDuration() {
-        return mPineSurfaceView.getDuration();
-    }
-
-    @Override
-    public int getCurrentPosition() {
-        return mPineSurfaceView.getCurrentPosition();
-    }
-
-    @Override
-    public int getMediaViewWidth() {
-        return mPineSurfaceView.getMediaViewWidth();
-    }
-
-    @Override
-    public int getMediaViewHeight() {
-        return mPineSurfaceView.getMediaViewHeight();
-    }
-
-    @Override
-    public void setMediaList(List<PineMediaPlayerBean> pineMediaPlayerBeanList, List<Map<String, String>> headerList) {
-        mPineSurfaceView.setMediaList(pineMediaPlayerBeanList, headerList);
-    }
-
-    @Override
-    public List<Map<String, String>> getMediaHeadList() {
-        return mPineSurfaceView.getMediaHeadList();
-    }
-
-    @Override
-    public List<PineMediaPlayerBean> getMediaList() {
-        return mPineSurfaceView.getMediaList();
-    }
-
-    @Override
-    public PineMediaPlayerBean getMediaPlayerBean() {
-        return mPineSurfaceView.getMediaPlayerBean();
-    }
-
-    @Override
-    public MediaPlayer.TrackInfo[] getTrackInfo() {
-        return mPineSurfaceView.getTrackInfo();
-    }
-
-    @Override
-    public void seekTo(int pos) {
-        mPineSurfaceView.seekTo(pos);
-    }
-
-    @Override
-    public boolean isPlaying() {
-        return mPineSurfaceView.isPlaying();
-    }
-
-    @Override
-    public boolean isPause() {
-        return mPineSurfaceView.isPause();
-    }
-
-    @Override
-    public void toggleFullScreenMode(boolean isLocked) {
-        mPineSurfaceView.toggleFullScreenMode(isLocked);
-        ViewGroup.LayoutParams layoutParams;
-        if (mPineSurfaceView.isFullScreenMode()) {
-            if (getParent() instanceof RelativeLayout) {
-                layoutParams = new RelativeLayout.LayoutParams(
-                        LayoutParams.MATCH_PARENT,
-                        LayoutParams.MATCH_PARENT);
-            } else if (getParent() instanceof LinearLayout) {
-                layoutParams = new LinearLayout.LayoutParams(
-                        LayoutParams.MATCH_PARENT,
-                        LayoutParams.MATCH_PARENT);
-            } else if (getParent() instanceof FrameLayout) {
-                layoutParams = new FrameLayout.LayoutParams(
-                        LayoutParams.MATCH_PARENT,
-                        LayoutParams.MATCH_PARENT);
-            } else {
-                layoutParams = new ViewGroup.LayoutParams(
-                        LayoutParams.MATCH_PARENT,
-                        LayoutParams.MATCH_PARENT);
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (mMediaController != null) {
+            int keyCode = event.getKeyCode();
+            final boolean uniqueDown = event.getRepeatCount() == 0
+                    && event.getAction() == KeyEvent.ACTION_DOWN;
+            if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK
+                    || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+                    || keyCode == KeyEvent.KEYCODE_SPACE) {
+                if (uniqueDown) {
+                    mMediaController.doPauseResume();
+                    mMediaController.show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                    mMediaController.pausePlayBtnRequestFocus();
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                if (uniqueDown && !mMediaPlayerComponent.isPlaying()) {
+                    mMediaPlayerComponent.start();
+                    mMediaController.show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
+                    || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+                if (uniqueDown && mMediaPlayerComponent.isPlaying()) {
+                    mMediaPlayerComponent.pause();
+                    mMediaController.show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+                    || keyCode == KeyEvent.KEYCODE_VOLUME_UP
+                    || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE
+                    || keyCode == KeyEvent.KEYCODE_CAMERA) {
+                // don't show the controls for volume adjustment
+                mMediaController.updateVolumesText();
+                return super.dispatchKeyEvent(event);
+            } else if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
+                if (uniqueDown && mMediaPlayerComponent.getMediaPlayerState() ==
+                        PineMediaPlayerComponent.STATE_PLAYING
+                        && System.currentTimeMillis() - mExitTime > BACK_PRESSED_EXIT_TIME) {
+                    if (mMediaPlayerComponent.isFullScreenMode()) {
+                        mMediaPlayerComponent.toggleFullScreenMode(mMediaController.isLocked());
+                    } else {
+                        mMediaController.hide();
+                        mExitTime = System.currentTimeMillis();
+                        Toast.makeText(mContext, R.string.pine_media_back_pressed_toast,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                    return true;
+                }
             }
-        } else {
-            layoutParams = mHalfAnchorLayout;
         }
-        setLayoutParams(layoutParams);
+        return super.dispatchKeyEvent(event);
     }
 
     @Override
-    public boolean isFullScreenMode() {
-        return mPineSurfaceView.isFullScreenMode();
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        boolean isKeyCodeSupported = keyCode != KeyEvent.KEYCODE_BACK &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_MUTE &&
+                keyCode != KeyEvent.KEYCODE_MENU &&
+                keyCode != KeyEvent.KEYCODE_CALL &&
+                keyCode != KeyEvent.KEYCODE_ENDCALL;
+        if (mMediaPlayerComponent.isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
+            if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+                if (mMediaPlayerComponent.isPlaying()) {
+                    mMediaPlayerComponent.pause();
+                    mMediaController.show();
+                } else {
+                    mMediaPlayerComponent.start();
+                    mMediaController.hide();
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                if (!mMediaPlayerComponent.isPlaying()) {
+                    mMediaPlayerComponent.start();
+                    mMediaController.hide();
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
+                    || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+                if (mMediaPlayerComponent.isPlaying()) {
+                    mMediaPlayerComponent.pause();
+                    mMediaController.show();
+                }
+                return true;
+            } else {
+                mMediaController.toggleMediaControlsVisibility();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
-    public int getBufferPercentage() {
-        return mPineSurfaceView.getBufferPercentage();
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (mMediaController != null) {
+                    if (mMediaPlayerComponent.isPlaying() || mMediaPlayerComponent.isPause()) {
+                        mMediaController.toggleMediaControlsVisibility();
+                    } else {
+                        mMediaController.show(0);
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                break;
+            default:
+                break;
+        }
+        return true;
     }
-
-    @Override
-    public boolean canPause() {
-        return mPineSurfaceView.canPause();
-    }
-
-    @Override
-    public boolean canSeekBackward() {
-        return mPineSurfaceView.canSeekBackward();
-    }
-
-    @Override
-    public boolean canSeekForward() {
-        return mPineSurfaceView.canSeekForward();
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return mPineSurfaceView.getAudioSessionId();
-    }
-
-    @Override
-    public boolean isInPlaybackState() {
-        return mPineSurfaceView.isInPlaybackState();
-    }
-
-    @Override
-    public int getMediaPlayerState() {
-        return mPineSurfaceView.getMediaPlayerState();
-    }
-
-    @Override
-    public PineMediaViewLayout getMediaAdaptionLayout() {
-        return mPineSurfaceView.getMediaAdaptionLayout();
-    }
-
-    @Override
-    public void setMediaPlayerListener(PineMediaWidget.PineMediaPlayerListener listener) {
-        mPineSurfaceView.setMediaPlayerListener(listener);
-    }
-
-    /**
-     * ----------------   PineMediaWidget.IPineMediaPlayer impl end   --------------
-     **/
 
     public static final class PineMediaViewLayout {
         public int width;

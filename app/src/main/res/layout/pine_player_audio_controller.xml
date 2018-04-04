@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/pine_controller_bg"
+    android:gravity="center_vertical"
+    android:layoutDirection="ltr"
+    android:orientation="horizontal"
+    android:paddingEnd="5dp"
+    android:paddingLeft="5dp"
+    android:paddingRight="5dp"
+    android:paddingStart="5dp">
+
+    <ImageButton
+        android:id="@+id/media_pre"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:background="@color/pine_media_bg"
+        android:gravity="center"
+        android:paddingBottom="10dp"
+        android:paddingEnd="10dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="10dp"
+        android:paddingStart="5dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/previous_btn" />
+
+    <ImageButton
+        android:id="@+id/pause_play_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:background="@color/pine_media_bg"
+        android:gravity="center"
+        android:paddingBottom="10dp"
+        android:paddingEnd="10dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="10dp"
+        android:paddingStart="5dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/play_pause_audio_btn" />
+
+    <ImageButton
+        android:id="@+id/media_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:background="@color/pine_media_bg"
+        android:gravity="center"
+        android:paddingBottom="10dp"
+        android:paddingEnd="10dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="10dp"
+        android:paddingStart="5dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/next_btn" />
+
+    <SeekBar
+        android:id="@+id/media_progress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:maxHeight="20dp"
+        android:minHeight="20dp"
+        android:progressDrawable="@drawable/pine_player_seek_bar_progress"
+        android:thumb="@drawable/pine_player_seek_bar_thumb"
+        android:thumbOffset="0dp" />
+
+    <TextView
+        android:id="@+id/cur_time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:textColor="@color/pine_controller_text"
+        android:textSize="12sp" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:textColor="@color/pine_controller_text"
+        android:textSize="12sp"
+        android:text="/"/>
+    <TextView
+        android:id="@+id/end_time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:textColor="@color/pine_controller_text"
+        android:textSize="12sp" />
+</LinearLayout>

@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -25,6 +23,8 @@ import android.widget.TextView;
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
+import com.pine.player.component.PineMediaPlayerComponent;
+import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.adapter.DefaultMediaControllerAdapter;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
@@ -47,7 +47,7 @@ import java.util.Map;
 
 public class PineMediaController extends RelativeLayout
         implements PineMediaWidget.IPineMediaController, GestureDetector.OnGestureListener {
-    private final static String TAG = "PineMediaController";
+    private final static String TAG = LogUtil.makeLogTag(PineMediaController.class);
 
     private static final int MSG_FADE_OUT = 1;
     private static final int MSG_SHOW_PROGRESS = 2;
@@ -94,7 +94,6 @@ public class PineMediaController extends RelativeLayout
         public void onClick(View v) {
             if (mControllersActionListener == null
                     || !mControllersActionListener.onGoBackBtnClick(v, mPlayer)) {
-
             }
         }
     };
@@ -112,6 +111,15 @@ public class PineMediaController extends RelativeLayout
     private boolean mUseFastForward;
     // 控制器锁是否锁定状态
     private boolean mIsControllerLocked;
+    private final View.OnClickListener mFullScreenListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (mControllersActionListener == null
+                    || !mControllersActionListener.onFullScreenBtnClick(v, mPlayer)) {
+                mPlayer.toggleFullScreenMode(mIsControllerLocked);
+            }
+        }
+    };
     // 在第一次绘制MediaList之前需要调整它的布局属性以适应Controller布局。
     // 设置此变量是为了防止每次绘制之前重复去调整布局
     private boolean mIsNeedResizeRightContainerView;
@@ -367,6 +375,9 @@ public class PineMediaController extends RelativeLayout
             }
 
             long duration = mPlayer.getDuration();
+            if (duration < 0) {
+                return;
+            }
             long newPosition = (duration * progress) / 1000L;
             mPlayer.seekTo((int) newPosition);
             updateCurrentTimeText((int) newPosition);
@@ -468,16 +479,6 @@ public class PineMediaController extends RelativeLayout
                     show();
                 }
                 judgeAndChangeRequestedOrientation();
-            }
-        }
-    };
-    private final View.OnClickListener mFullScreenListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            if (mControllersActionListener == null
-                    || !mControllersActionListener.onFullScreenBtnClick(v, mPlayer)) {
-                mPlayer.toggleFullScreenMode(mIsControllerLocked);
-                updateFullScreenMode();
             }
         }
     };
@@ -627,8 +628,10 @@ public class PineMediaController extends RelativeLayout
         mControllersActionListener = mAdapter.onCreateControllersActionListener();
         mBackgroundViewHolder
                 = mAdapter.onCreateBackgroundViewHolder(mPlayer);
+        releasePlugin();
         mPinePluginMap = mMediaBean.getPlayerPluginMap();
-        if (mPinePluginMap != null && mPinePluginMap.size() > 0) {
+        if (needInitPlugin()) {
+            LogUtil.d(TAG, "construct plugin view holder map");
             mPluginViewHolderMap = new HashMap<Integer, PinePluginViewHolder>();
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
@@ -684,17 +687,20 @@ public class PineMediaController extends RelativeLayout
                 }
             }
             if (mSurfacePluginViewContainer.getChildCount() > 0) {
+                LogUtil.d(TAG, "attach surface plugin container");
                 mIsNeedResizeSurfacePluginView = true;
                 addPreDrawListener(mSurfacePluginViewContainer, mSurfacePluginPreDrawListener);
                 mPluginViewContainer.addView(mSurfacePluginViewContainer,
                         new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             }
             if (mControllerPluginViewContainer.getChildCount() > 0) {
+                LogUtil.d(TAG, "attach controller plugin container");
                 mIsNeedResizeControllerPluginView = true;
                 addPreDrawListener(mControllerPluginViewContainer, mControllerPluginPreDrawListener);
                 mPluginViewContainer.addView(mControllerPluginViewContainer,
                         new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             }
+            LogUtil.d(TAG, "attach all plugin containers root");
             addView(mPluginViewContainer, new RelativeLayout.LayoutParams(
                     LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         }
@@ -731,10 +737,11 @@ public class PineMediaController extends RelativeLayout
         if (mIsFirstAttach) {
             mAnchor.addView(mRoot, layoutParams);
         }
-        initControllerView();
+        initControllerView(isPlayerReset, isResumeState);
         mIsFirstAttach = false;
 
-        if (mPinePluginMap != null) {
+        if (needInitPlugin()) {
+            LogUtil.d(TAG, "init plugin mPlayer:" + mPlayer);
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -751,7 +758,7 @@ public class PineMediaController extends RelativeLayout
         }
     }
 
-    private void initControllerView() {
+    private void initControllerView(boolean isPlayerReset, boolean isResumeState) {
         LogUtil.d(TAG, "initControllerView");
         setControllerEnabled(false);
         if (mControllerViewHolder.getGoBackButton() != null) {
@@ -776,6 +783,11 @@ public class PineMediaController extends RelativeLayout
             mControllerViewHolder.getFullScreenButton().setVisibility(View.VISIBLE);
         }
         show(0);
+        if (!isPlayerReset && isResumeState) {
+            LogUtil.d(TAG, "resume media controller");
+            onMediaPlayerPrepared();
+            onMediaPlayerStart();
+        }
     }
 
     private void installClickListeners() {
@@ -887,7 +899,7 @@ public class PineMediaController extends RelativeLayout
         // paused with the progress bar showing the user hits play.
         mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
         mHandler.removeMessages(MSG_FADE_OUT);
-        if (timeout > 0) {
+        if (timeout > 0 && mPlayer.getSurfaceView() != null) {
             Message msg = mHandler.obtainMessage(MSG_FADE_OUT);
             mHandler.sendMessageDelayed(msg, timeout);
         }
@@ -899,7 +911,8 @@ public class PineMediaController extends RelativeLayout
     @Override
     public void hide() {
         if (mAnchor == null || mControllerViewHolder == null
-                || mControllerViewHolder.getContainer() == null) {
+                || mControllerViewHolder.getContainer() == null ||
+                mPlayer == null || mPlayer.getSurfaceView() == null) {
             return;
         }
         if (mControllerViewHolder.getContainer().getVisibility() == VISIBLE) {
@@ -924,7 +937,7 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         updatePausePlayButton();
-        if (mPinePluginMap != null && mPinePluginMap.size() > 0) {
+        if (needActivePlugin()) {
             // 启动插件刷新
             if (!mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
                 mHandler.sendEmptyMessage(MSG_PLUGIN_REFRESH);
@@ -950,7 +963,7 @@ public class PineMediaController extends RelativeLayout
         }
         updatePausePlayButton();
         mHandler.removeMessages(MSG_PLUGIN_REFRESH);
-        if (mPinePluginMap != null) {
+        if (needActivePlugin()) {
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -973,6 +986,7 @@ public class PineMediaController extends RelativeLayout
         judgeAndChangeRequestedOrientation();
         updateMediaNameText(mPlayer.getMediaPlayerBean());
         installClickListeners();
+        setControllerEnabled(true);
         if (mPluginViewContainer != null) {
             mPluginViewContainer.setVisibility(VISIBLE);
         }
@@ -981,7 +995,7 @@ public class PineMediaController extends RelativeLayout
         if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO) {
             mHandler.sendEmptyMessageDelayed(MSG_BACKGROUND_FADE_OUT, 200);
         }
-        if (mPinePluginMap != null) {
+        if (needActivePlugin()) {
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -994,7 +1008,7 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void onMediaPlayerInfo(int what, int extra) {
-        if (mPinePluginMap != null) {
+        if (needActivePlugin()) {
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -1011,7 +1025,7 @@ public class PineMediaController extends RelativeLayout
         float duration = (float) mPlayer.getDuration();
         LogUtil.v(TAG, "onBufferingUpdate percent: " + percent + ", duration:" + duration
                 + ", position:" + position);
-        if (mPlayer.getMediaPlayerState() == PineSurfaceView.STATE_PLAYBACK_COMPLETED
+        if (mPlayer.getMediaPlayerState() == PineMediaPlayerComponent.STATE_PLAYBACK_COMPLETED
                 || position >= duration) {
             return;
         }
@@ -1043,7 +1057,7 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         show(0);
-        if (mPinePluginMap != null) {
+        if (needActivePlugin()) {
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -1069,7 +1083,7 @@ public class PineMediaController extends RelativeLayout
             setControllerEnabled(false, false, false, false, true, false, false, false, false, false);
             show(0);
         }
-        if (mPinePluginMap != null) {
+        if (needActivePlugin()) {
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -1083,7 +1097,7 @@ public class PineMediaController extends RelativeLayout
     @Override
     public void onAbnormalComplete() {
         show(0);
-        if (mPinePluginMap != null) {
+        if (needActivePlugin()) {
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -1096,16 +1110,7 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void onMediaPlayerRelease(boolean clearTargetState) {
-        mHandler.removeMessages(MSG_PLUGIN_REFRESH);
-        if (mPinePluginMap != null) {
-            Iterator iterator = mPinePluginMap.entrySet().iterator();
-            IPinePlayerPlugin pinePlayerPlugin = null;
-            while (iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry) iterator.next();
-                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
-                pinePlayerPlugin.onRelease();
-            }
-        }
+        releasePlugin();
     }
 
     @Override
@@ -1146,7 +1151,11 @@ public class PineMediaController extends RelativeLayout
         }
         int position = mPlayer.getCurrentPosition();
         int duration = mPlayer.getDuration();
-        if (mPlayer.getMediaPlayerState() == PineSurfaceView.STATE_PLAYBACK_COMPLETED) {
+        if (duration < 0) {
+            return position;
+        }
+        if (mPlayer.getMediaPlayerState() == PineMediaPlayerComponent.STATE_PLAYBACK_COMPLETED
+                || position > duration) {
             position = duration;
         }
         if (mControllerViewHolder.getPlayProgressBar() != null) {
@@ -1190,9 +1199,9 @@ public class PineMediaController extends RelativeLayout
                 + ", enabledFastBackward: " + enabledFastBackward
                 + ", enabledNext: " + enabledNext
                 + ", enabledPrev: " + enabledPrev);
-        if (mPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            MediaPlayer.TrackInfo[] trackInfoArr = mPlayer.getTrackInfo();
-        }
+//        if (mPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//            MediaPlayer.TrackInfo[] trackInfoArr = mPlayer.getTrackInfo();
+//        }
         if (mControllerViewHolder.getSpeedButton() != null) {
             mControllerViewHolder.getSpeedButton().setEnabled(enabledSpeed);
         }
@@ -1449,30 +1458,6 @@ public class PineMediaController extends RelativeLayout
         });
     }
 
-    private void updateFullScreenMode() {
-        if (mControllerMonitor == null
-                || !mControllerMonitor.onFullScreenModeUpdate(mPlayer.isFullScreenMode())) {
-            judgeAndChangeRequestedOrientation();
-            attachToParentView(false, true);
-
-            updateMediaNameText(mPlayer.getMediaPlayerBean());
-            updateSpeedButton();
-            mControllerViewHolder.getFullScreenButton().setSelected(mPlayer.isFullScreenMode());
-            if (mPlayer.isInPlaybackState()) {
-                installClickListeners();
-                show();
-                mHandler.sendEmptyMessageDelayed(MSG_WAITING_FADE_OUT, 50);
-                if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO
-                        && mBackgroundViewHolder.getContainer() != null) {
-                    mBackgroundViewHolder.getContainer().setVisibility(GONE);
-                }
-            }
-            if (!mPlayer.isFullScreenMode()) {
-                setAppBrightness(-1);
-            }
-        }
-    }
-
     /**
      * 更新播放/暂停按键显示状态(默认方式)
      */
@@ -1576,6 +1561,31 @@ public class PineMediaController extends RelativeLayout
         }
     }
 
+    @Override
+    public void updateFullScreenMode() {
+        if (mControllerMonitor == null
+                || !mControllerMonitor.onFullScreenModeUpdate(mPlayer.isFullScreenMode())) {
+            judgeAndChangeRequestedOrientation();
+            attachToParentView(false, true);
+
+            updateMediaNameText(mPlayer.getMediaPlayerBean());
+            updateSpeedButton();
+            mControllerViewHolder.getFullScreenButton().setSelected(mPlayer.isFullScreenMode());
+            if (mPlayer.isInPlaybackState()) {
+                installClickListeners();
+                show();
+                mHandler.sendEmptyMessageDelayed(MSG_WAITING_FADE_OUT, 50);
+                if (mMediaBean.getMediaType() == PineMediaPlayerBean.MEDIA_TYPE_VIDEO
+                        && mBackgroundViewHolder.getContainer() != null) {
+                    mBackgroundViewHolder.getContainer().setVisibility(GONE);
+                }
+            }
+            if (!mPlayer.isFullScreenMode()) {
+                setAppBrightness(-1);
+            }
+        }
+    }
+
     private String stringForTime(int timeMs) {
         int totalSeconds = timeMs / 1000;
         int seconds = totalSeconds % 60;
@@ -1616,8 +1626,10 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     protected void onDetachedFromWindow() {
+        releasePlugin();
         //  If null, all callbacks and messages will be removed.
         mHandler.removeCallbacksAndMessages(null);
+        removeAllViews();
         mAnchor = null;
         super.onDetachedFromWindow();
     }
@@ -1737,6 +1749,29 @@ public class PineMediaController extends RelativeLayout
                 }
             }
         }
+    }
+
+    private void releasePlugin() {
+        mHandler.removeMessages(MSG_PLUGIN_REFRESH);
+        if (needInitPlugin()) {
+            Iterator iterator = mPinePluginMap.entrySet().iterator();
+            IPinePlayerPlugin pinePlayerPlugin = null;
+            while (iterator.hasNext()) {
+                Map.Entry entry = (Map.Entry) iterator.next();
+                pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
+                pinePlayerPlugin.onRelease();
+            }
+        }
+        mPinePluginMap = null;
+    }
+
+    private boolean needInitPlugin() {
+        return mPinePluginMap != null && mPinePluginMap.size() > 0 && mPlayer != null &&
+                mPlayer.isSurfaceViewEnable();
+    }
+
+    private boolean needActivePlugin() {
+        return needInitPlugin() && mPlayer.getSurfaceView() != null;
     }
 
     /**

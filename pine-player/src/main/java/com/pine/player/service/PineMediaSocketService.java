@@ -8,6 +8,7 @@ import android.os.IBinder;
 import com.pine.player.decrytor.IPineMediaDecryptor;
 import com.pine.player.util.LogUtil;
 
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -17,17 +18,42 @@ import java.util.concurrent.ThreadFactory;
  */
 
 public class PineMediaSocketService extends Service {
-
-    public final static String PINE_MEDIA_SOCKET_PORT_KEY = "port_key";
+    public static final String MEDIA_LOCAL_SOCKET_URL = "http://127.0.0.1:";
+    // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
+    public static final int SERVICE_STATE_IDLE = 0;
+    public static final int SERVICE_STATE_DISCONNECTED = 1;
+    public static final int SERVICE_STATE_CONNECTING = 2;
+    public static final int SERVICE_STATE_CONNECTED = 3;
     private final static String TAG = "PineMediaSocketService";
+    private static int mSocketPort;
+    private static PineMediaSocketThread mPineMediaServerThread;
+
+    static {
+        mSocketPort = 18888 + new Random().nextInt(100);
+    }
+
     private ExecutorService mThreads;
-    private PineMediaServerThread mPineMediaServerThread;
+
+    public static String getMediaLocalSocketUrl() {
+        return MEDIA_LOCAL_SOCKET_URL + mSocketPort;
+    }
+
+    public static int getMediaServiceState() {
+        return mPineMediaServerThread == null ? SERVICE_STATE_IDLE :
+                mPineMediaServerThread.getMediaSocketState();
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
-        int port = intent.getIntExtra(PINE_MEDIA_SOCKET_PORT_KEY, 0);
-        if (mPineMediaServerThread == null && port > 0) {
-            mPineMediaServerThread = new PineMediaServerThread(port);
+        if (mSocketPort <= 0) {
+            return null;
+        }
+        if (getMediaServiceState() != SERVICE_STATE_CONNECTED ||
+                getMediaServiceState() != SERVICE_STATE_CONNECTING) {
+            if (mPineMediaServerThread != null) {
+                mPineMediaServerThread.release();
+            }
+            mPineMediaServerThread = new PineMediaSocketThread(mSocketPort);
             mThreads.submit(mPineMediaServerThread);
         }
         return new MyBinder();
@@ -57,13 +83,10 @@ public class PineMediaSocketService extends Service {
         super.onDestroy();
     }
 
-    public void setPlayerDecryptor(IPineMediaDecryptor pinePlayerDecryptor) {
-        mPineMediaServerThread.setPlayerDecryptor(pinePlayerDecryptor);
-    }
-
-    public class MyBinder extends Binder {
-        public PineMediaSocketService getService() {
-            return PineMediaSocketService.this;
+    public class MyBinder extends Binder implements IPineMediaSocketService {
+        @Override
+        public void setPlayerDecryptor(IPineMediaDecryptor pinePlayerDecryptor) {
+            mPineMediaServerThread.setPlayerDecryptor(pinePlayerDecryptor);
         }
     }
 }

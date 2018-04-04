@@ -1,11 +1,14 @@
-package com.pine.player.widget;
+package com.pine.player.component;
 
 import android.media.MediaPlayer;
+import android.view.SurfaceView;
 import android.view.ViewGroup;
 
 import com.pine.player.bean.PineMediaPlayerBean;
+import com.pine.player.component.PineMediaPlayerComponent;
+import com.pine.player.widget.PineMediaPlayerView;
+import com.pine.player.widget.PineSurfaceView;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,7 +42,7 @@ public class PineMediaWidget {
          * @param videoViewTag
          */
         void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
-                      String videoViewTag);
+                             String videoViewTag);
 
         /**
          * 挂载控制器到播放器上
@@ -135,6 +138,11 @@ public class PineMediaWidget {
         void updateVolumesText();
 
         /**
+         * 更新全屏模式
+         */
+        void updateFullScreenMode();
+
+        /**
          * 播放按键RequestFocus
          */
         void pausePlayBtnRequestFocus();
@@ -224,10 +232,30 @@ public class PineMediaWidget {
         void release();
 
         /**
+         * 销毁
+         */
+        void onDestroy();
+
+        /**
+         * 设置是否本地流播放需求
+         *
+         * @param isLocalStream 是否本地播放流
+         */
+        void setLocalStreamMode(boolean isLocalStream);
+
+        /**
+         * 设置是否为后台播放模式（退出界面，不会停止播放）
+         *
+         * @param isBackgroundPlayerMode 是否为后台播放模式
+         */
+        void setBackgroundPlayerMode(boolean isBackgroundPlayerMode);
+
+        /**
          * 获取播放器的IPineMediaController
+         *
          * @return
          */
-        IPineMediaController getController();
+        IPineMediaController getMediaController();
 
         /**
          * 设置多媒体播放参数
@@ -245,13 +273,31 @@ public class PineMediaWidget {
         void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers);
 
         /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean 多媒体播放参数对象
+         * @param isBackgroundPlayerMode  是否后台播放模式
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isBackgroundPlayerMode);
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean 多媒体播放参数对象
+         * @param headers             多媒体播放信息头
+         * @param isBackgroundPlayerMode  是否后台播放模式
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers,
+                             boolean isBackgroundPlayerMode);
+
+        /**
          * 重新设置播放参数并恢复到之前的播放状态
          *
          * @param pineMediaPlayerBean 播放参数对象
          * @param headers             播放头
          */
         void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
-                                 Map<String, String> headers);
+                                        Map<String, String> headers);
 
         /**
          * 保存播放状态和进度
@@ -273,40 +319,6 @@ public class PineMediaWidget {
         int getCurrentPosition();
 
         /**
-         * 获取播放器控件宽度
-         *
-         * @return
-         */
-        int getMediaViewWidth();
-
-        /**
-         * 获取播放器控件高度
-         *
-         * @return
-         */
-        int getMediaViewHeight();
-
-        /**
-         * 设置多媒体列表
-         * @param pineMediaPlayerBeanList
-         * @param headerList
-         */
-        void setMediaList(List<PineMediaPlayerBean> pineMediaPlayerBeanList,
-                          List<Map<String, String>> headerList);
-
-        /**
-         * 获取多媒体列表
-         * @return
-         */
-        List<PineMediaPlayerBean> getMediaList();
-
-        /**
-         * 获取多媒体头部信息列表
-         * @return
-         */
-        List<Map<String, String>> getMediaHeadList();
-
-        /**
          * 获取准备播放的media实体
          *
          * @return
@@ -315,6 +327,7 @@ public class PineMediaWidget {
 
         /**
          * 获取Track信息
+         *
          * @return
          */
         MediaPlayer.TrackInfo[] getTrackInfo();
@@ -339,6 +352,12 @@ public class PineMediaWidget {
          * @return
          */
         boolean isPause();
+
+        /**
+         * 当前player是否允许挂载SurfaceView
+         * @return
+         */
+        boolean isSurfaceViewEnable();
 
         /**
          * 全屏模式装换
@@ -397,11 +416,45 @@ public class PineMediaWidget {
         boolean isInPlaybackState();
 
         /**
+         * 是否是前台View播放模式
+         *
+         * @return
+         */
+        boolean isAttachToFrontMode();
+
+
+        /**
+         * 是否是后台播放模式
+         *
+         * @return
+         */
+        boolean isBackgroundPlayerMode();
+
+        /**
          * 获取播放器具体状态
          *
          * @return
          */
         int getMediaPlayerState();
+
+        /**
+         * 设置播放状态监听器
+         *
+         * @param listener
+         */
+        void setMediaPlayerListener(PineMediaPlayerListener listener);
+
+        /**
+         * 获取播放器当前的播放MediaPlayerView
+         * @return
+         */
+        PineMediaPlayerView getMediaPlayerView();
+
+        /**
+         * 获取播放器当前的播放SurfaceView
+         * @return
+         */
+        PineSurfaceView getSurfaceView();
 
         /**
          * 获取MediaView在onMeasure中调整后的布局属性，只有在onMeasure之后获取才有效
@@ -411,11 +464,27 @@ public class PineMediaWidget {
         PineMediaPlayerView.PineMediaViewLayout getMediaAdaptionLayout();
 
         /**
-         * 设置播放状态监听器
+         * 获取播放器控件宽度
          *
-         * @param listener
+         * @return
          */
-        void setMediaPlayerListener(PineMediaPlayerListener listener);
+        int getMediaViewWidth();
+
+        /**
+         * 获取播放器控件高度
+         *
+         * @return
+         */
+        int getMediaViewHeight();
+    }
+
+    public interface IPineMediaSurfaceListener {
+        void onSurfaceChanged(SurfaceView surfaceView, int format,
+                              int w, int h);
+
+        void onSurfaceCreated(SurfaceView surfaceView);
+
+        void onSurfaceDestroyed(SurfaceView surfaceView);
     }
 
     /**

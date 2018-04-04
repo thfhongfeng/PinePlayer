@@ -18,6 +18,7 @@ public class PinePlayerApp extends Application {
     private final static String TAG = "PineDemoApp";
 
     private static Application mInstance;
+    public static int mMockCount = 0;
 
     public static Context getAppContext() {
         return mInstance.getApplicationContext();

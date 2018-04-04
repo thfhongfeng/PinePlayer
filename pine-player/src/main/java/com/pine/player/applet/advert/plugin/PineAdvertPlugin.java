@@ -9,7 +9,7 @@ import android.view.View;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.advert.bean.PineAdvertBean;
 import com.pine.player.util.LogUtil;
-import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;

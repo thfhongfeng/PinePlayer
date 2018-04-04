@@ -25,7 +25,7 @@ import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.widget.AdvanceDecoration;
 import com.pine.player.widget.PineMediaController;
-import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineRightViewHolder;
@@ -92,15 +92,16 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected boolean init(PineMediaWidget.IPineMediaPlayer player) {
+    protected final boolean init(PineMediaWidget.IPineMediaPlayer player) {
         mDPlayer = player;
         return true;
     }
 
     @Override
-    protected PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected final PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
         if (mDBackgroundViewHolder == null) {
             mDBackgroundViewHolder = new PineBackgroundViewHolder();
+            mDBackgroundView = getBackgroundView();
             if (mDBackgroundView == null) {
                 ImageView backgroundView = new ImageView(mDContext);
                 backgroundView.setBackgroundResource(android.R.color.darker_gray);
@@ -118,8 +119,18 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         return mDBackgroundViewHolder;
     }
 
+    public RelativeLayout getBackgroundView() {
+        return null;
+    }
+
     @Override
-    protected PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected final PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+        PineControllerViewHolder pineControllerViewHolder =
+                getInRootControllerViewHolder(player.isFullScreenMode());
+        if (pineControllerViewHolder != null) {
+            mDDefinitionBtn = getDefinitionBtn(player.isFullScreenMode());
+            return pineControllerViewHolder;
+        }
         if (player.isFullScreenMode()) {
             if (mDFullControllerViewHolder == null) {
                 mDFullControllerViewHolder = new PineControllerViewHolder();
@@ -178,7 +189,15 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         }
     }
 
-    private void initControllerViewHolder(
+    public PineControllerViewHolder getInRootControllerViewHolder(boolean isFullScreen) {
+        return null;
+    }
+
+    public TextView getDefinitionBtn(boolean isFullScreen) {
+        return null;
+    }
+
+    private final void initControllerViewHolder(
             PineControllerViewHolder viewHolder, View root) {
         viewHolder.setPausePlayButton(root.findViewById(R.id.pause_play_btn));
         SeekBar seekBar = (SeekBar) root.findViewById(R.id.media_progress);
@@ -222,14 +241,15 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    public PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
         return null;
     }
 
     @Override
-    protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected final PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
         if (mDWaitingProgressViewHolder == null) {
             mDWaitingProgressViewHolder = new PineWaitingProgressViewHolder();
+            mDWaitingProgressView = getWaitingProgressView();
             if (mDWaitingProgressView == null) {
                 mDWaitingProgressView = new LinearLayout(mDContext);
                 mDWaitingProgressView.setGravity(Gravity.CENTER);
@@ -248,9 +268,17 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         return mDWaitingProgressViewHolder;
     }
 
+    public LinearLayout getWaitingProgressView() {
+        return null;
+    }
+
     @Override
-    protected List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
-        List<PineRightViewHolder> viewHolderList = new ArrayList<PineRightViewHolder>();
+    protected final List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
+        List<PineRightViewHolder> viewHolderList = getRightViewHolderList(player);
+        if (viewHolderList != null) {
+            return viewHolderList;
+        }
+        viewHolderList = new ArrayList<>();
         if (player.isFullScreenMode()) {
             if (hasMediaList() && mDEnableMediaList) {
                 PineRightViewHolder mediaListViewHolder = new PineRightViewHolder();
@@ -269,8 +297,12 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         return viewHolderList.size() > 0 ? viewHolderList : null;
     }
 
+    public List<PineRightViewHolder> getRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
+        return null;
+    }
+
     @Override
-    protected PineMediaController.ControllersActionListener onCreateControllersActionListener() {
+    public PineMediaController.ControllersActionListener onCreateControllersActionListener() {
         return new PineMediaController.ControllersActionListener() {
             @Override
             public boolean onGoBackBtnClick(View fullScreenBtn,
@@ -376,7 +408,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
             pineMediaPlayerBean = mDPlayer.getMediaPlayerBean();
         }
         mDCurrentVideoPosition = position;
-        if (hasDefinitionList(pineMediaPlayerBean)) {
+        if (hasDefinitionList(pineMediaPlayerBean) && mDDefinitionBtn != null) {
             mDDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
             mDDefinitionListInPlayerAdapter.notifyDataSetChanged();
             mDDefinitionBtn.setVisibility(View.VISIBLE);
@@ -413,7 +445,7 @@ public class DefaultMediaControllerAdapter extends PineMediaController.AbstractM
         mDEnableFullScreen = enableFullScreen;
     }
 
-    public void setCurrentVideoPosition(int position) {
+    public final void setCurrentVideoPosition(int position) {
         mDCurrentVideoPosition = position;
     }
 

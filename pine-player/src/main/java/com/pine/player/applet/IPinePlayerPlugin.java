@@ -2,7 +2,7 @@ package com.pine.player.applet;
 
 import android.content.Context;
 
-import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.List;

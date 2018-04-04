@@ -17,19 +17,20 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by tanghongfeng on 2017/8/18.
  */
 
-public class PineMediaServerThread implements Runnable {
+public class PineMediaSocketThread implements Runnable {
 
     private final static String TAG = "PineMediaServerThread";
 
     private static final int TIME_OUT = 0;
     private static final int BUFFER_SIZE = 1024 * 1024;
-
+    private static int mMediaSocketState = PineMediaSocketService.SERVICE_STATE_DISCONNECTED;
     private Selector mSelector;
     private AtomicBoolean mIsStop;
     private FileChannel mFileChannel;
@@ -40,7 +41,8 @@ public class PineMediaServerThread implements Runnable {
     private ServerSocketChannel mServerSocketChannel;
     private IPineMediaDecryptor mPlayerDecryptor;
 
-    public PineMediaServerThread(int port) {
+
+    public PineMediaSocketThread(int port) {
         LogUtil.d(TAG, "construct");
         try {
             mIsStop = new AtomicBoolean(false);
@@ -51,7 +53,9 @@ public class PineMediaServerThread implements Runnable {
             mServerSocketChannel.configureBlocking(false);
             mServerSocketChannel.socket().bind(new InetSocketAddress(port), 1024);
             mServerSocketChannel.register(mSelector, SelectionKey.OP_ACCEPT);
+            mMediaSocketState = PineMediaSocketService.SERVICE_STATE_CONNECTING;
         } catch (IOException e) {
+            mMediaSocketState = PineMediaSocketService.SERVICE_STATE_DISCONNECTED;
             e.printStackTrace();
         }
     }
@@ -60,9 +64,14 @@ public class PineMediaServerThread implements Runnable {
         mPlayerDecryptor = pinePlayerDecryptor;
     }
 
+    public int getMediaSocketState() {
+        return mMediaSocketState;
+    }
+
     public void release() {
         LogUtil.d(TAG, "release");
         mIsStop.set(true);
+        mMediaSocketState = PineMediaSocketService.SERVICE_STATE_DISCONNECTED;
         if (null != mSelector) {
             try {
                 if (mFileChannel != null) {
@@ -87,6 +96,7 @@ public class PineMediaServerThread implements Runnable {
     @Override
     public void run() {
         LogUtil.d(TAG, "run");
+        mMediaSocketState = PineMediaSocketService.SERVICE_STATE_CONNECTED;
         while (!mIsStop.get() && mSelector != null) {
             try {
                 mSelector.select(TIME_OUT);

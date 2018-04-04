@@ -21,6 +21,9 @@ public class PineMediaPlayerBean {
     public final static int MEDIA_TYPE_VIDEO = 1;
     public final static int MEDIA_TYPE_AUDIO = 2;
 
+    /**
+     * media唯一标识符
+     */
     @NonNull
     private String mediaCode;
     @NonNull

@@ -8,14 +8,14 @@ import android.view.WindowManager;
 
 import com.pine.pineplayer.R;
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
-import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.component.PineMediaWidget;
 
 public class SimplePinePlayerActivity extends AppCompatActivity {
     private static final String TAG = "SimpleDefaultPinePlayerActivity";
 
     private PineMediaPlayerView mVideoView;
+    private PineMediaWidget.IPineMediaPlayer mPlayer;
     private String mBasePath;
 
     @Override
@@ -31,23 +31,26 @@ public class SimplePinePlayerActivity extends AppCompatActivity {
             return;
         }
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
-
+        mVideoView.init(TAG);
+        mPlayer = mVideoView.getMediaPlayer();
+        mPlayer.setLocalStreamMode(true);
+        mPlayer.setBackgroundPlayerMode(false);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "Horizontal",
                 Uri.parse(mBasePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
-        mVideoView.setPlayingMedia(pineMediaBean);
-        mVideoView.start();
+        mPlayer.setPlayingMedia(pineMediaBean);
+        mPlayer.start();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mVideoView.resume();
+        mPlayer.resume();
     }
 
     @Override
     public void onPause() {
-        mVideoView.savePlayerState();
+        mPlayer.savePlayerState();
         super.onPause();
     }
 

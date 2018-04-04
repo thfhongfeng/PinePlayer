@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal">
+
+    <com.pine.player.widget.PineMediaPlayerView
+        android:id="@+id/video_view"
+        android:layout_width="match_parent"
+        android:layout_height="202dp"
+        android:layout_alignParentTop="true"
+        android:background="#DDDDDD"
+        android:gravity="center"
+        android:visibility="gone"/>
+
+    <com.pine.player.widget.PineMediaPlayerView
+        android:id="@+id/audio_view"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:background="#DDDDDD"
+        android:gravity="center"
+        android:visibility="gone"/>
+
+</RelativeLayout>

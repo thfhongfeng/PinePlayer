@@ -10,7 +10,7 @@ import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.barrage.BarrageCanvasView;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
 import com.pine.player.util.LogUtil;
-import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.List;
  */
 
 public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
-    private final static String TAG = "PineBarragePlugin";
+    private final static String TAG = LogUtil.makeLogTag(PineBarragePlugin.class);
     private final Object LIST_LOCK = new Object();
     private Context mContext;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -122,6 +122,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     public void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
                        PineMediaWidget.IPineMediaController controller,
                        boolean isPlayerReset, boolean isResumeState) {
+        LogUtil.d(TAG, "onInit isPlayerReset:" + isPlayerReset + ", isResumeState:" + isResumeState);
         clear();
         mContext = context;
         mPlayer = player;
@@ -460,5 +461,4 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         }
         return resultList.size() > 0 ? resultList : null;
     }
-
 }

@@ -5,10 +5,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.TextView;
 
 import com.pine.pineplayer.PinePlayerApp;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.util.FileUtil;
+import com.pine.player.component.PineMediaWidget;
+import com.pine.player.service.PineMediaPlayerService;
+import com.pine.player.util.LogUtil;
+
+import java.io.File;
 
 /**
  * Created by tanghongfeng on 2018/3/8.
@@ -16,6 +22,9 @@ import com.pine.pineplayer.util.FileUtil;
 
 public class MainActivity extends AppCompatActivity {
     private String mBasePath;
+    private boolean mNeedCopyAssets = false;
+    private PineMediaWidget.IPineMediaPlayer mBackgroundMediaPlayer;
+    private TextView mPausePlayBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             mBasePath = getCacheDir().getPath().toString();
         }
-        findViewById(R.id.label_tv).setVisibility(View.VISIBLE);
+        findViewById(R.id.label_tv).setVisibility(View.GONE);
         copyAssets();
     }
 
@@ -35,8 +44,12 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                FileUtil.unZipAssets(PinePlayerApp.getAppContext(), "resource.zip",
-                        mBasePath, true, "GBK");
+                File file = new File(mBasePath + File.separator + "resource");
+                if (!file.exists() || mNeedCopyAssets) {
+                    findViewById(R.id.label_tv).setVisibility(View.VISIBLE);
+                    FileUtil.unZipAssets(PinePlayerApp.getAppContext(), "resource.zip",
+                            mBasePath, true, "GBK");
+                }
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -87,9 +100,55 @@ public class MainActivity extends AppCompatActivity {
                                 startActivity(intent);
                             }
                         });
+                        findViewById(R.id.background_player_tv).setVisibility(View.VISIBLE);
+                        findViewById(R.id.background_player_tv).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent = new Intent(MainActivity.this, BackgroundPlayerActivity.class);
+                                intent.putExtra("path", mBasePath);
+                                startActivity(intent);
+                            }
+                        });
+                        findViewById(R.id.release_background_player_tv).setVisibility(View.VISIBLE);
+                        findViewById(R.id.release_background_player_tv).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                PineMediaWidget.IPineMediaPlayer backgroundMediaPlayer = PineMediaPlayerService
+                                        .getMediaPlayerByTag(LogUtil.makeLogTag(BackgroundPlayerActivity.class));
+                                if (backgroundMediaPlayer != null) {
+                                    backgroundMediaPlayer.release();
+                                }
+                            }
+                        });
+                        mPausePlayBtn = (TextView) findViewById(R.id.pause_play_background_player_tv);
+                        mPausePlayBtn.setVisibility(View.VISIBLE);
+                        mPausePlayBtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (mBackgroundMediaPlayer != null) {
+                                    if ("暂停".equals(mPausePlayBtn.getText())) {
+                                        mBackgroundMediaPlayer.pause();
+                                        mPausePlayBtn.setText("播放");
+                                    } else if ("播放".equals(mPausePlayBtn.getText())) {
+                                        mBackgroundMediaPlayer.start();
+                                        mPausePlayBtn.setText("暂停");
+                                    }
+                                }
+                            }
+                        });
                     }
                 });
             }
         }).start();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mBackgroundMediaPlayer = PineMediaPlayerService
+                .getMediaPlayerByTag(LogUtil.makeLogTag(BackgroundPlayerActivity.class));
+        if (mBackgroundMediaPlayer != null) {
+            mPausePlayBtn.setText(mBackgroundMediaPlayer.isPlaying() ? "暂停" : "播放");
+        }
     }
 }

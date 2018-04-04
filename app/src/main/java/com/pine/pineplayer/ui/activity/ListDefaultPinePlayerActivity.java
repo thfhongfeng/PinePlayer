@@ -8,17 +8,19 @@ import android.view.WindowManager;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.bean.PineMediaPlayerBean;
+import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
-import com.pine.player.widget.PineMediaWidget;
+import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.adapter.DefaultMediaControllerAdapter;
 
 import java.util.List;
 
 public class ListDefaultPinePlayerActivity extends AppCompatActivity {
-    private static final String TAG = "ListDefaultPinePlayerActivity";
+    private static final String TAG = LogUtil.makeLogTag(ListDefaultPinePlayerActivity.class);
 
     private PineMediaPlayerView mVideoView;
+    private PineMediaWidget.IPineMediaPlayer mPlayer;
     private PineMediaController mController;
     private int mCurrentVideoPosition = -1;
     private List<PineMediaPlayerBean> mMediaList;
@@ -39,14 +41,17 @@ public class ListDefaultPinePlayerActivity extends AppCompatActivity {
         }
         mMediaList = MockDataUtil.getMediaList(this, mBasePath);
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
+        mVideoView.init(TAG);
         mController = new PineMediaController(this);
 
         mMediaControllerAdapter = new DefaultMediaControllerAdapter(this, mMediaList);
 
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
         mVideoView.setMediaController(mController);
-        mVideoView.setLocalStreamMode(true);
-        mVideoView.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
+        mPlayer = mVideoView.getMediaPlayer();
+        mPlayer.setLocalStreamMode(true);
+        mPlayer.setBackgroundPlayerMode(false);
+        mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
             @Override
             public boolean onError(int framework_err, int impl_err) {
                 return false;
@@ -54,19 +59,19 @@ public class ListDefaultPinePlayerActivity extends AppCompatActivity {
         });
         mCurrentVideoPosition = 0;
         mMediaControllerAdapter.setCurrentVideoPosition(mCurrentVideoPosition);
-        mVideoView.setPlayingMedia(mMediaList.get(mCurrentVideoPosition));
-        mVideoView.start();
+        mPlayer.setPlayingMedia(mMediaList.get(mCurrentVideoPosition));
+        mPlayer.start();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mVideoView.resume();
+        mPlayer.resume();
     }
 
     @Override
     public void onPause() {
-        mVideoView.savePlayerState();
+        mPlayer.savePlayerState();
         super.onPause();
     }
 
