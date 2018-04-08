@@ -237,11 +237,9 @@ public class PineMediaWidget {
         void onDestroy();
 
         /**
-         * 设置是否本地流播放需求
-         *
-         * @param isLocalStream 是否本地播放流
+         * 是否本地视频流服务方式播放
          */
-        void setLocalStreamMode(boolean isLocalStream);
+        boolean isLocalStreamMode();
 
         /**
          * 设置是否为独立播放模式（不与播放界面共生命周期）
@@ -276,19 +274,19 @@ public class PineMediaWidget {
          * 设置多媒体播放参数
          *
          * @param pineMediaPlayerBean 多媒体播放参数对象
-         * @param isBackgroundPlayerMode  是否后台播放模式
+         * @param isAutocephalyPlayMode  是否独立播放模式
          */
-        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isBackgroundPlayerMode);
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isAutocephalyPlayMode);
 
         /**
          * 设置多媒体播放参数
          *
          * @param pineMediaPlayerBean 多媒体播放参数对象
          * @param headers             多媒体播放信息头
-         * @param isBackgroundPlayerMode  是否后台播放模式
+         * @param isAutocephalyPlayMode  是否独立播放模式
          */
         void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers,
-                             boolean isBackgroundPlayerMode);
+                             boolean isAutocephalyPlayMode);
 
         /**
          * 重新设置播放参数并恢复到之前的播放状态
@@ -424,11 +422,11 @@ public class PineMediaWidget {
 
 
         /**
-         * 是否是后台播放模式
+         * 是否是独立播放模式
          *
          * @return
          */
-        boolean isBackgroundPlayerMode();
+        boolean isAutocephalyPlayMode();
 
         /**
          * 获取播放器具体状态

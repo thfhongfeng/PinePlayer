@@ -1,7 +1,9 @@
 package com.pine.player.bean;
 
+import android.content.ContentResolver;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.decrytor.IPineMediaDecryptor;
@@ -267,6 +269,15 @@ public class PineMediaPlayerBean {
 
     public void setCurrentDefinition(int currentDefinition) {
         this.currentDefinition = currentDefinition;
+    }
+
+    public boolean isLocalMediaBean() {
+        String scheme = getMediaUriByDefinition(currentDefinition).getScheme();
+        return TextUtils.isEmpty(scheme) || scheme.equals(ContentResolver.SCHEME_FILE);
+    }
+
+    public boolean isLocalStreamBean() {
+        return isLocalMediaBean() && playerDecryptor != null;
     }
 
     @Override

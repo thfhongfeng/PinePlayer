@@ -39,7 +39,6 @@ public class DefaultPlayerActivity extends AppCompatActivity {
 
         mVideoView.setMediaController(mController);
         mPlayer = mVideoView.getMediaPlayer();
-        mPlayer.setLocalStreamMode(true);
         mPlayer.setAutocephalyPlayMode(false);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "VideoDefinitionSelect",
                 MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);

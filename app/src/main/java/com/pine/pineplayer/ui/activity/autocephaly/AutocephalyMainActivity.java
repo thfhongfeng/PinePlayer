@@ -45,7 +45,9 @@ public class AutocephalyMainActivity extends AppCompatActivity {
                 PineMediaWidget.IPineMediaPlayer autocephalyMediaPlayer = PineMediaPlayerService
                         .getMediaPlayerByTag(LogUtil.makeLogTag(AutocephalyPlayerActivity.class));
                 if (autocephalyMediaPlayer != null) {
-                    autocephalyMediaPlayer.release();
+                    PineMediaPlayerService.destroyMediaPlayerByTag(
+                            LogUtil.makeLogTag(AutocephalyPlayerActivity.class));
+                    mAutocephalyReleaseBtn.setVisibility(View.GONE);
                     mAutocephalyPausePlayBtn.setVisibility(View.GONE);
                 }
             }

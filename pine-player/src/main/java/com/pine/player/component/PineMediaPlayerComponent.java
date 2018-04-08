@@ -48,17 +48,15 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     public static final int STATE_PLAYING = 3;
     public static final int STATE_PAUSED = 4;
     public static final int STATE_PLAYBACK_COMPLETED = 5;
-    private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerComponent.class);
-
-    // 是否使用5.0之后的新API，该API支持本地流播放
-    private static final boolean USE_NEW_API = true;
-
-    private int mCurrentState = STATE_IDLE;
-    private int mTargetState = STATE_IDLE;
     // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
     public static final int SERVICE_STATE_DISCONNECTED = 1;
     public static final int SERVICE_STATE_CONNECTING = 2;
     public static final int SERVICE_STATE_CONNECTED = 3;
+    private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerComponent.class);
+    // 是否使用5.0之后的新API，该API支持本地流播放
+    private static final boolean USE_NEW_API = true;
+    private int mCurrentState = STATE_IDLE;
+    private int mTargetState = STATE_IDLE;
     private boolean mIsAutocephalyPlayMode;
     private boolean mEnableSurfaceView;
     private Context mContext;
@@ -78,10 +76,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     private MediaPlayer mMediaPlayer = null;
     private int mAudioSession;
     private int mMediaWidth, mMediaHeight;
-    private int mSurfaceWidth;
-    private int mSurfaceHeight;
-    // 播放器的控制器
-    private PineMediaWidget.IPineMediaController mMediaController;
     MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
             new MediaPlayer.OnVideoSizeChangedListener() {
                 public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
@@ -93,6 +87,10 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                     }
                 }
             };
+    private int mSurfaceWidth;
+    private int mSurfaceHeight;
+    // 播放器的控制器
+    private PineMediaWidget.IPineMediaController mMediaController;
     private PineMediaWidget.PineMediaPlayerListener mMediaPlayerListener;
     private int mCurrentBufferPercentage;
     // 记录播放位置，在界面切换等情况下，自动恢复到之前的播放位置
@@ -127,11 +125,9 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             if (seekToPosition != 0) {
                 seekTo(seekToPosition);
             }
-            if (mMediaWidth != 0 && mMediaHeight != 0 && isAttachToFrontMode()) {
+            if (mMediaWidth != 0 && mMediaHeight != 0 && isAttachToFrontMode() && mSurfaceView != null) {
                 //LogUtil.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
-                if (isAttachToFrontMode() && mSurfaceView != null) {
-                    mSurfaceView.getHolder().setFixedSize(mMediaWidth, mMediaHeight);
-                }
+                mSurfaceView.getHolder().setFixedSize(mMediaWidth, mMediaHeight);
                 if (mSurfaceWidth == mMediaWidth && mSurfaceHeight == mMediaHeight) {
                     // We didn't actually change the size (it was already at the size
                     // we need), so we won't get a "surface changed" callback, so
@@ -303,10 +299,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         mTargetState = STATE_IDLE;
     }
 
-    public void setMediaPlayerView(PineMediaPlayerView playerView) {
-        mMediaPlayerView = playerView;
-    }
-
     /**
      * 挂载控制器界面
      *
@@ -322,37 +314,18 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     }
 
     /**
-     * 设置是否本地视频播放需求（低版本播放本地视频需要用到PineMediaSocketService时必须设置为true）
-     *
-     * @param isLocalStream 是否本地播放流
+     * 是否本地视频流服务方式播放
      */
-    public void setLocalStreamMode(boolean isLocalStream) {
-        // 设置是否本地流播放需求
-        mIsLocalStreamMedia = isLocalStream;
-        if (isNeedLocalService() && mLocalServiceState == SERVICE_STATE_DISCONNECTED) {
-            mLocalServiceState = SERVICE_STATE_CONNECTING;
-            Intent intent = new Intent("media.socket.server");
-            intent.setPackage(mContext.getPackageName());
-            LogUtil.d(TAG, "Bind local service");
-            mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
-        }
-    }
-
-    /**
-     * 设置是否为独立播放模式（不与播放界面共生命周期）
-     *
-     * @param isAutocephalyPlayMode 设置是否为独立播放模式
-     */
-    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
-        mIsAutocephalyPlayMode = isAutocephalyPlayMode;
+    public boolean isLocalStreamMode() {
+        return false;
     }
 
     /**
      * 设置多媒体播放参数
      *
-     * @param pineMediaPlayerBean    多媒体播放参数对象
-     * @param headers                多媒体播放信息头
-     * @param resumeState            此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
+     * @param pineMediaPlayerBean 多媒体播放参数对象
+     * @param headers             多媒体播放信息头
+     * @param resumeState         此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
      */
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
                                 Map<String, String> headers, boolean resumeState) {
@@ -362,9 +335,9 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     /**
      * 设置多媒体播放参数
      *
-     * @param pineMediaPlayerBean    多媒体播放参数对象
-     * @param headers                多媒体播放信息头
-     * @param resumeState            此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
+     * @param pineMediaPlayerBean   多媒体播放参数对象
+     * @param headers               多媒体播放信息头
+     * @param resumeState           此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
      * @param isAutocephalyPlayMode 是否独立播放模式
      */
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
@@ -372,6 +345,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         mMediaBean = pineMediaPlayerBean;
         mHeaders = headers;
         mIsAutocephalyPlayMode = isAutocephalyPlayMode;
+        mIsLocalStreamMedia = pineMediaPlayerBean.isLocalStreamBean();
         if (mLocalService != null) {
             mLocalService.setPlayerDecryptor(pineMediaPlayerBean.getPlayerDecryptor());
         }
@@ -388,6 +362,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         } else {
             // 如果需要使用到本地播放流服务，若流服务还未启动，则延时到服务启动完成后在打开Media
             mIsDelayOpenMedia = true;
+            mLocalServiceState = SERVICE_STATE_CONNECTING;
+            Intent intent = new Intent("media.socket.server");
+            intent.setPackage(mContext.getPackageName());
+            LogUtil.d(TAG, "Bind local service");
+            mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
         }
     }
 
@@ -623,6 +602,10 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         return mMediaPlayerView;
     }
 
+    public void setMediaPlayerView(PineMediaPlayerView playerView) {
+        mMediaPlayerView = playerView;
+    }
+
     public PineSurfaceView getSurfaceView() {
         return mSurfaceView;
     }
@@ -766,6 +749,15 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
 
     public boolean isAutocephalyPlayMode() {
         return mIsAutocephalyPlayMode;
+    }
+
+    /**
+     * 设置是否为独立播放模式（不与播放界面共生命周期）
+     *
+     * @param isAutocephalyPlayMode 设置是否为独立播放模式
+     */
+    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
+        mIsAutocephalyPlayMode = isAutocephalyPlayMode;
     }
 
     public int getMediaPlayerState() {

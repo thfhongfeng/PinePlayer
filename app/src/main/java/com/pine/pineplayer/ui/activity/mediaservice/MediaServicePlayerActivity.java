@@ -79,7 +79,6 @@ public class MediaServicePlayerActivity extends AppCompatActivity {
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
         mCurMediaView.setMediaController(mController);
         mPlayer = mCurMediaView.getMediaPlayer();
-        mPlayer.setLocalStreamMode(true);
         mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
             @Override
             public boolean onError(int framework_err, int impl_err) {

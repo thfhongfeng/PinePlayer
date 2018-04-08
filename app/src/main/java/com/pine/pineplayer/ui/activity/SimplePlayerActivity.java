@@ -34,7 +34,6 @@ public class SimplePlayerActivity extends AppCompatActivity {
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
         mVideoView.init(TAG);
         mPlayer = mVideoView.getMediaPlayer();
-        mPlayer.setLocalStreamMode(true);
         mPlayer.setAutocephalyPlayMode(false);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "Horizontal",
                 Uri.parse(mBasePath + "/resource/Scenery.mp4"),

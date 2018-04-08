@@ -33,9 +33,7 @@ public class MediaServiceMainActivity extends AppCompatActivity {
             mMediaServicePlayer = mPlayerService.getMediaPlayer();
             findViewById(R.id.release_service_player_tv).setVisibility(View.VISIBLE);
             findViewById(R.id.service_player_tv).setVisibility(View.VISIBLE);
-            mMediaServicePausePlayerBtn.setText(mMediaServicePlayer.isPlaying() ? "暂停" : "播放");
 
-            mMediaServicePlayer.setLocalStreamMode(true);
             mMediaServicePlayer.setPlayingMedia(MockDataUtil
                     .getMediaList(MediaServiceMainActivity.this, mBasePath).get(15), true);
             mMediaServicePlayer.start();

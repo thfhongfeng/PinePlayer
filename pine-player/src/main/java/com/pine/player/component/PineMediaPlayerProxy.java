@@ -69,8 +69,8 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
-    public void setLocalStreamMode(boolean isLocalStream) {
-        mMediaPlayerComponent.setLocalStreamMode(isLocalStream);
+    public boolean isLocalStreamMode() {
+        return mMediaPlayerComponent.isLocalStreamMode();
     }
     @Override
     public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
@@ -93,13 +93,13 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isBackgroundPlayerMode) {
-        mMediaPlayerComponent.setPlayingMedia(pineMediaPlayerBean, null, false, isBackgroundPlayerMode);
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isAutocephalyPlayMode) {
+        mMediaPlayerComponent.setPlayingMedia(pineMediaPlayerBean, null, false, isAutocephalyPlayMode);
     }
 
     @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers, boolean isBackgroundPlayerMode) {
-        mMediaPlayerComponent.setPlayingMedia(pineMediaPlayerBean, headers, false, isBackgroundPlayerMode);
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers, boolean isAutocephalyPlayMode) {
+        mMediaPlayerComponent.setPlayingMedia(pineMediaPlayerBean, headers, false, isAutocephalyPlayMode);
     }
 
     @Override
@@ -198,8 +198,8 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
-    public boolean isBackgroundPlayerMode() {
-        return false;
+    public boolean isAutocephalyPlayMode() {
+        return mMediaPlayerComponent.isAutocephalyPlayMode();
     }
 
     @Override
