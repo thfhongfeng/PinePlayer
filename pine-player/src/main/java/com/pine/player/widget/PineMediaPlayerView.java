@@ -68,22 +68,22 @@ public class PineMediaPlayerView extends RelativeLayout {
         mContext = context;
     }
 
-    public void init(String tag) {
-        init(tag, true);
+    public void init(String mediaPlayerTag) {
+        init(mediaPlayerTag, true);
     }
 
-    public void init(String tag, boolean enableSurface) {
+    public void init(String mediaPlayerTag, boolean enableSurface) {
         if (!mIsInit) {
             mIsInit = true;
-            mMediaPlayerTag = tag;
+            mMediaPlayerTag = mediaPlayerTag;
             mEnableSurface = enableSurface;
-            mMediaPlayer = (PineMediaPlayerProxy) PineMediaPlayerService.getMediaPlayerByTag(tag);
+            mMediaPlayer = (PineMediaPlayerProxy) PineMediaPlayerService.getMediaPlayerByTag(mMediaPlayerTag);
             if (mMediaPlayer != null) {
                 mMediaPlayerComponent = mMediaPlayer.getPineMediaPlayerComponent();
             } else {
                 mMediaPlayerComponent = new PineMediaPlayerComponent(mContext.getApplicationContext());
                 mMediaPlayer = new PineMediaPlayerProxy(mMediaPlayerComponent);
-                PineMediaPlayerService.setMediaPlayerByTag(tag, mMediaPlayer);
+                PineMediaPlayerService.setMediaPlayerByTag(mMediaPlayerTag, mMediaPlayer);
             }
             mMediaPlayerComponent.setMediaPlayerView(this);
             if (enableSurface) {
@@ -149,7 +149,7 @@ public class PineMediaPlayerView extends RelativeLayout {
         LogUtil.d(TAG, "Detach from window");
         if (mMediaPlayerComponent != null) {
             mMediaPlayerComponent.onMediaPlayerViewDetached();
-            if (!mMediaPlayerComponent.isBackgroundPlayerMode()) {
+            if (!mMediaPlayerComponent.isAutocephalyPlayMode()) {
                 PineMediaPlayerService.destroyMediaPlayerByTag(mMediaPlayerTag);
             }
         }

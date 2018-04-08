@@ -23,7 +23,7 @@ import java.util.Map;
 public class PineMediaPlayerService extends Service {
     public final static String SERVICE_MEDIA_PLAYER_TAG = "ServiceMediaPlayer";
     private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerService.class);
-    private static Map<String, PineMediaWidget.IPineMediaPlayer> mMediaPlayerProxyMap =
+    private static HashMap<String, PineMediaWidget.IPineMediaPlayer> mMediaPlayerProxyMap =
             new HashMap<>();
 
     public synchronized static PineMediaWidget.IPineMediaPlayer getMediaPlayerByTag(String tag) {
@@ -40,14 +40,18 @@ public class PineMediaPlayerService extends Service {
         while (iterator.hasNext()) {
             Map.Entry entry = (Map.Entry) iterator.next();
             pineMediaPlayer = (PineMediaWidget.IPineMediaPlayer) entry.getValue();
-            pineMediaPlayer.onDestroy();
+            if (pineMediaPlayer != null) {
+                pineMediaPlayer.onDestroy();
+            }
         }
         mMediaPlayerProxyMap.clear();
     }
 
     public synchronized static void destroyMediaPlayerByTag(String tag) {
         PineMediaWidget.IPineMediaPlayer pineMediaPlayer = mMediaPlayerProxyMap.remove(tag);
-        pineMediaPlayer.onDestroy();
+        if (pineMediaPlayer != null) {
+            pineMediaPlayer.onDestroy();
+        }
     }
 
     @Override
@@ -61,8 +65,15 @@ public class PineMediaPlayerService extends Service {
     }
 
     @Override
+    public boolean onUnbind(Intent intent) {
+        LogUtil.d(TAG, "onUnbind");
+        return super.onUnbind(intent); // 返回false
+    }
+
+    @Override
     public void onDestroy() {
         LogUtil.d(TAG, "onDestroy");
+        destroyMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG);
         super.onDestroy();
     }
 
@@ -72,7 +83,7 @@ public class PineMediaPlayerService extends Service {
         return new MediaPlayerBinder();
     }
 
-    private class MediaPlayerBinder extends Binder {
+    private class MediaPlayerBinder extends Binder implements IPineMediaPlayerService {
         public PineMediaWidget.IPineMediaPlayer getMediaPlayer() {
             return getMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG);
         }

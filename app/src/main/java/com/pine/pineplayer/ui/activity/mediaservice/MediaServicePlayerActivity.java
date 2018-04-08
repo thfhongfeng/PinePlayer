@@ -1,4 +1,4 @@
-package com.pine.pineplayer.ui.activity;
+package com.pine.pineplayer.ui.activity.mediaservice;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,10 +12,11 @@ import com.pine.pineplayer.PinePlayerApp;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.bean.PineMediaPlayerBean;
+import com.pine.player.component.PineMediaWidget;
+import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
-import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.adapter.DefaultMediaControllerAdapter;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 
@@ -25,8 +26,8 @@ import java.util.List;
  * Created by tanghongfeng on 2018/4/2.
  */
 
-public class BackgroundPlayerActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(BackgroundPlayerActivity.class);
+public class MediaServicePlayerActivity extends AppCompatActivity {
+    private static final String TAG = LogUtil.makeLogTag(MediaServicePlayerActivity.class);
 
     private PineMediaPlayerView mCurMediaView;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -39,7 +40,7 @@ public class BackgroundPlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_background_pine_player);
+        setContentView(R.layout.activity_media_service_player);
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -52,16 +53,16 @@ public class BackgroundPlayerActivity extends AppCompatActivity {
         mController = new PineMediaController(this);
         if (PinePlayerApp.mMockCount++ % 2 == 0) {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.video_view);
-            mCurMediaView.init(TAG);
+            mCurMediaView.init(PineMediaPlayerService.SERVICE_MEDIA_PLAYER_TAG);
             mMediaControllerAdapter = new DefaultMediaControllerAdapter(this, mMediaList);
         } else {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.audio_view);
-            mCurMediaView.init(TAG, false);
+            mCurMediaView.init(PineMediaPlayerService.SERVICE_MEDIA_PLAYER_TAG, false);
             mMediaControllerAdapter = new DefaultMediaControllerAdapter(this, mMediaList) {
                 @Override
                 public PineControllerViewHolder getInRootControllerViewHolder(boolean isFullScreen) {
-                    ViewGroup container = (ViewGroup) View.inflate(BackgroundPlayerActivity.this,
-                            R.layout.pine_player_audio_controller, null);
+                    ViewGroup container = (ViewGroup) View.inflate(MediaServicePlayerActivity.this,
+                            R.layout.player_audio_controller, null);
                     PineControllerViewHolder viewHolder = new PineControllerViewHolder();
                     viewHolder.setPrevButton(container.findViewById(R.id.media_pre));
                     viewHolder.setPausePlayButton(container.findViewById(R.id.pause_play_btn));

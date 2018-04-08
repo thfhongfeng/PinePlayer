@@ -5,13 +5,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.TextView;
 
 import com.pine.pineplayer.PinePlayerApp;
 import com.pine.pineplayer.R;
+import com.pine.pineplayer.ui.activity.autocephaly.AutocephalyMainActivity;
+import com.pine.pineplayer.ui.activity.mediaservice.MediaServiceMainActivity;
 import com.pine.pineplayer.util.FileUtil;
-import com.pine.player.component.PineMediaWidget;
-import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.util.LogUtil;
 
 import java.io.File;
@@ -21,10 +20,9 @@ import java.io.File;
  */
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = LogUtil.makeLogTag(MainActivity.class);
     private String mBasePath;
     private boolean mNeedCopyAssets = false;
-    private PineMediaWidget.IPineMediaPlayer mBackgroundMediaPlayer;
-    private TextView mPausePlayBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                         findViewById(R.id.simple_tv).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity.this, SimplePinePlayerActivity.class);
+                                Intent intent = new Intent(MainActivity.this, SimplePlayerActivity.class);
                                 intent.putExtra("path", mBasePath);
                                 startActivity(intent);
                             }
@@ -68,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                         findViewById(R.id.simple_default_tv).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity.this, SimpleDefaultPinePlayerActivity.class);
+                                Intent intent = new Intent(MainActivity.this, DefaultPlayerActivity.class);
                                 intent.putExtra("path", mBasePath);
                                 startActivity(intent);
                             }
@@ -77,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                         findViewById(R.id.simple_custom_tv).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity.this, SimpleCustomPinePlayerActivity.class);
+                                Intent intent = new Intent(MainActivity.this, CustomPlayerActivity.class);
                                 intent.putExtra("path", mBasePath);
                                 startActivity(intent);
                             }
@@ -86,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                         findViewById(R.id.list_default_tv).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity.this, ListDefaultPinePlayerActivity.class);
+                                Intent intent = new Intent(MainActivity.this, DefaultMediaListPlayerActivity.class);
                                 intent.putExtra("path", mBasePath);
                                 startActivity(intent);
                             }
@@ -95,45 +93,27 @@ public class MainActivity extends AppCompatActivity {
                         findViewById(R.id.list_custom_tv).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity.this, ListCustomPinePlayerActivity.class);
+                                Intent intent = new Intent(MainActivity.this, CustomMediaListPlayerActivity.class);
                                 intent.putExtra("path", mBasePath);
                                 startActivity(intent);
                             }
                         });
-                        findViewById(R.id.background_player_tv).setVisibility(View.VISIBLE);
-                        findViewById(R.id.background_player_tv).setOnClickListener(new View.OnClickListener() {
+                        findViewById(R.id.autocephaly_tv).setVisibility(View.VISIBLE);
+                        findViewById(R.id.autocephaly_tv).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent intent = new Intent(MainActivity.this, BackgroundPlayerActivity.class);
+                                Intent intent = new Intent(MainActivity.this, AutocephalyMainActivity.class);
                                 intent.putExtra("path", mBasePath);
                                 startActivity(intent);
                             }
                         });
-                        findViewById(R.id.release_background_player_tv).setVisibility(View.VISIBLE);
-                        findViewById(R.id.release_background_player_tv).setOnClickListener(new View.OnClickListener() {
+                        findViewById(R.id.media_service_tv).setVisibility(View.VISIBLE);
+                        findViewById(R.id.media_service_tv).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                PineMediaWidget.IPineMediaPlayer backgroundMediaPlayer = PineMediaPlayerService
-                                        .getMediaPlayerByTag(LogUtil.makeLogTag(BackgroundPlayerActivity.class));
-                                if (backgroundMediaPlayer != null) {
-                                    backgroundMediaPlayer.release();
-                                }
-                            }
-                        });
-                        mPausePlayBtn = (TextView) findViewById(R.id.pause_play_background_player_tv);
-                        mPausePlayBtn.setVisibility(View.VISIBLE);
-                        mPausePlayBtn.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (mBackgroundMediaPlayer != null) {
-                                    if ("暂停".equals(mPausePlayBtn.getText())) {
-                                        mBackgroundMediaPlayer.pause();
-                                        mPausePlayBtn.setText("播放");
-                                    } else if ("播放".equals(mPausePlayBtn.getText())) {
-                                        mBackgroundMediaPlayer.start();
-                                        mPausePlayBtn.setText("暂停");
-                                    }
-                                }
+                                Intent intent = new Intent(MainActivity.this, MediaServiceMainActivity.class);
+                                intent.putExtra("path", mBasePath);
+                                startActivity(intent);
                             }
                         });
                     }
@@ -145,10 +125,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mBackgroundMediaPlayer = PineMediaPlayerService
-                .getMediaPlayerByTag(LogUtil.makeLogTag(BackgroundPlayerActivity.class));
-        if (mBackgroundMediaPlayer != null) {
-            mPausePlayBtn.setText(mBackgroundMediaPlayer.isPlaying() ? "暂停" : "播放");
-        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }

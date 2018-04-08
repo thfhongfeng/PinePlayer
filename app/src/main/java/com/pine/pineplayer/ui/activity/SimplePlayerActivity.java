@@ -8,11 +8,12 @@ import android.view.WindowManager;
 
 import com.pine.pineplayer.R;
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.widget.PineMediaPlayerView;
 import com.pine.player.component.PineMediaWidget;
+import com.pine.player.util.LogUtil;
+import com.pine.player.widget.PineMediaPlayerView;
 
-public class SimplePinePlayerActivity extends AppCompatActivity {
-    private static final String TAG = "SimpleDefaultPinePlayerActivity";
+public class SimplePlayerActivity extends AppCompatActivity {
+    private static final String TAG = LogUtil.makeLogTag(SimplePlayerActivity.class);
 
     private PineMediaPlayerView mVideoView;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -21,7 +22,7 @@ public class SimplePinePlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_simple_default_pine_player);
+        setContentView(R.layout.activity_default_simple_player);
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -34,7 +35,7 @@ public class SimplePinePlayerActivity extends AppCompatActivity {
         mVideoView.init(TAG);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setLocalStreamMode(true);
-        mPlayer.setBackgroundPlayerMode(false);
+        mPlayer.setAutocephalyPlayMode(false);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "Horizontal",
                 Uri.parse(mBasePath + "/resource/Scenery.mp4"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);

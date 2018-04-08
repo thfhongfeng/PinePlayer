@@ -244,11 +244,11 @@ public class PineMediaWidget {
         void setLocalStreamMode(boolean isLocalStream);
 
         /**
-         * 设置是否为后台播放模式（退出界面，不会停止播放）
+         * 设置是否为独立播放模式（不与播放界面共生命周期）
          *
-         * @param isBackgroundPlayerMode 是否为后台播放模式
+         * @param isAutocephalyPlayMode 设置是否为独立播放模式
          */
-        void setBackgroundPlayerMode(boolean isBackgroundPlayerMode);
+        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
 
         /**
          * 获取播放器的IPineMediaController

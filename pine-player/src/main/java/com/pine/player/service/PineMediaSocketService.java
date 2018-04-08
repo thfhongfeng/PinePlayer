@@ -56,7 +56,13 @@ public class PineMediaSocketService extends Service {
             mPineMediaServerThread = new PineMediaSocketThread(mSocketPort);
             mThreads.submit(mPineMediaServerThread);
         }
-        return new MyBinder();
+        return new MediaSocketBinder();
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        LogUtil.d(TAG, "onUnbind");
+        return super.onUnbind(intent); // 返回false
     }
 
     @Override
@@ -83,7 +89,7 @@ public class PineMediaSocketService extends Service {
         super.onDestroy();
     }
 
-    public class MyBinder extends Binder implements IPineMediaSocketService {
+    public class MediaSocketBinder extends Binder implements IPineMediaSocketService {
         @Override
         public void setPlayerDecryptor(IPineMediaDecryptor pinePlayerDecryptor) {
             mPineMediaServerThread.setPlayerDecryptor(pinePlayerDecryptor);

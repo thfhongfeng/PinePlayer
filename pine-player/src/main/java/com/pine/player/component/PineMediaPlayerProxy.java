@@ -73,8 +73,8 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
         mMediaPlayerComponent.setLocalStreamMode(isLocalStream);
     }
     @Override
-    public void setBackgroundPlayerMode(boolean isBackgroundPlayerMode) {
-        mMediaPlayerComponent.setBackgroundPlayerMode(isBackgroundPlayerMode);
+    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
+        mMediaPlayerComponent.setAutocephalyPlayMode(isAutocephalyPlayMode);
     }
 
     @Override

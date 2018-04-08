@@ -59,7 +59,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     public static final int SERVICE_STATE_DISCONNECTED = 1;
     public static final int SERVICE_STATE_CONNECTING = 2;
     public static final int SERVICE_STATE_CONNECTED = 3;
-    private boolean mIsBackgroundPlayerMode;
+    private boolean mIsAutocephalyPlayMode;
     private boolean mEnableSurfaceView;
     private Context mContext;
     // 准备播放的多媒体对象
@@ -127,7 +127,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             if (seekToPosition != 0) {
                 seekTo(seekToPosition);
             }
-            if (mMediaWidth != 0 && mMediaHeight != 0) {
+            if (mMediaWidth != 0 && mMediaHeight != 0 && isAttachToFrontMode()) {
                 //LogUtil.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
                 if (isAttachToFrontMode() && mSurfaceView != null) {
                     mSurfaceView.getHolder().setFixedSize(mMediaWidth, mMediaHeight);
@@ -322,7 +322,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     }
 
     /**
-     * 设置是否本地流播放需求
+     * 设置是否本地视频播放需求（低版本播放本地视频需要用到PineMediaSocketService时必须设置为true）
      *
      * @param isLocalStream 是否本地播放流
      */
@@ -339,12 +339,12 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     }
 
     /**
-     * 设置是否为后台播放模式（退出界面，不会停止播放）
+     * 设置是否为独立播放模式（不与播放界面共生命周期）
      *
-     * @param isBackgroundPlayerMode 是否为后台播放模式
+     * @param isAutocephalyPlayMode 设置是否为独立播放模式
      */
-    public void setBackgroundPlayerMode(boolean isBackgroundPlayerMode) {
-        mIsBackgroundPlayerMode = isBackgroundPlayerMode;
+    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
+        mIsAutocephalyPlayMode = isAutocephalyPlayMode;
     }
 
     /**
@@ -356,7 +356,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
      */
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
                                 Map<String, String> headers, boolean resumeState) {
-        setPlayingMedia(pineMediaPlayerBean, headers, resumeState, mIsBackgroundPlayerMode);
+        setPlayingMedia(pineMediaPlayerBean, headers, resumeState, mIsAutocephalyPlayMode);
     }
 
     /**
@@ -365,13 +365,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
      * @param pineMediaPlayerBean    多媒体播放参数对象
      * @param headers                多媒体播放信息头
      * @param resumeState            此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
-     * @param isBackgroundPlayerMode 是否后台播放模式
+     * @param isAutocephalyPlayMode 是否独立播放模式
      */
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
-                                Map<String, String> headers, boolean resumeState, boolean isBackgroundPlayerMode) {
+                                Map<String, String> headers, boolean resumeState, boolean isAutocephalyPlayMode) {
         mMediaBean = pineMediaPlayerBean;
         mHeaders = headers;
-        mIsBackgroundPlayerMode = isBackgroundPlayerMode;
+        mIsAutocephalyPlayMode = isAutocephalyPlayMode;
         if (mLocalService != null) {
             mLocalService.setPlayerDecryptor(pineMediaPlayerBean.getPlayerDecryptor());
         }
@@ -572,7 +572,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     }
 
     public void resume() {
-        if (!isBackgroundPlayerMode()) {
+        if (!isAutocephalyPlayMode()) {
             openMedia(true);
         }
     }
@@ -590,14 +590,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             mMediaController.hide();
         }
         mMediaController = controller;
-        if (isBackgroundPlayerMode()) {
+        if (isAutocephalyPlayMode()) {
             attachMediaController(false, true);
         }
     }
 
     public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
                                            Map<String, String> headers) {
-        setPlayingMedia(pineMediaPlayerBean, headers, true, mIsBackgroundPlayerMode);
+        setPlayingMedia(pineMediaPlayerBean, headers, true, mIsAutocephalyPlayMode);
     }
 
     public void savePlayerState() {
@@ -764,8 +764,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         return mMediaPlayerView != null && (mMediaController != null || mSurfaceView != null);
     }
 
-    public boolean isBackgroundPlayerMode() {
-        return mIsBackgroundPlayerMode;
+    public boolean isAutocephalyPlayMode() {
+        return mIsAutocephalyPlayMode;
     }
 
     public int getMediaPlayerState() {
@@ -807,7 +807,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         if (mMediaController != null) {
             mMediaController.hide();
         }
-        if (isBackgroundPlayerMode()) {
+        if (isAutocephalyPlayMode()) {
             setDisplaySurface(null);
         } else {
             release();
@@ -880,6 +880,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
             LogUtil.d(TAG, "Unbind local service");
             mContext.unbindService(mServiceConnection);
+            mLocalService = null;
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
     }
