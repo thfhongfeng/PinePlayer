@@ -4,9 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.SeekBar;
 
 import com.pine.pineplayer.PinePlayerApp;
 import com.pine.pineplayer.R;
@@ -16,8 +14,8 @@ import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
-import com.pine.player.widget.adapter.DefaultMediaControllerAdapter;
-import com.pine.player.widget.viewholder.PineControllerViewHolder;
+import com.pine.player.widget.adapter.DefaultAudioControllerAdapter;
+import com.pine.player.widget.adapter.DefaultVideoControllerAdapter;
 
 import java.util.List;
 
@@ -34,7 +32,7 @@ public class AutocephalyPlayerActivity extends AppCompatActivity {
     private int mCurrentVideoPosition = -1;
     private List<PineMediaPlayerBean> mMediaList;
     private String mBasePath;
-    private DefaultMediaControllerAdapter mMediaControllerAdapter;
+    private PineMediaController.AbstractMediaControllerAdapter mMediaControllerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,26 +51,11 @@ public class AutocephalyPlayerActivity extends AppCompatActivity {
         if (PinePlayerApp.mMockCount++ % 2 == 0) {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.video_view);
             mCurMediaView.init(TAG);
-            mMediaControllerAdapter = new DefaultMediaControllerAdapter(this, mMediaList);
+            mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mMediaList);
         } else {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.audio_view);
             mCurMediaView.init(TAG, false);
-            mMediaControllerAdapter = new DefaultMediaControllerAdapter(this, mMediaList) {
-                @Override
-                public PineControllerViewHolder getInRootControllerViewHolder(boolean isFullScreen) {
-                    ViewGroup container = (ViewGroup) View.inflate(AutocephalyPlayerActivity.this,
-                            R.layout.player_audio_controller, null);
-                    PineControllerViewHolder viewHolder = new PineControllerViewHolder();
-                    viewHolder.setPrevButton(container.findViewById(R.id.media_pre));
-                    viewHolder.setPausePlayButton(container.findViewById(R.id.pause_play_btn));
-                    viewHolder.setNextButton(container.findViewById(R.id.media_next));
-                    viewHolder.setPlayProgressBar((SeekBar) container.findViewById(R.id.media_progress));
-                    viewHolder.setCurrentTimeText(container.findViewById(R.id.cur_time_text));
-                    viewHolder.setEndTimeText(container.findViewById(R.id.end_time_text));
-                    viewHolder.setContainer(container);
-                    return viewHolder;
-                }
-            };
+            mMediaControllerAdapter = new DefaultAudioControllerAdapter(this, mMediaList);
         }
         mCurMediaView.setVisibility(View.VISIBLE);
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
@@ -89,13 +72,13 @@ public class AutocephalyPlayerActivity extends AppCompatActivity {
             for (int i = 0; i < mMediaList.size(); i++) {
                 if (playerBean.getMediaCode().equals(mMediaList.get(i).getMediaCode())) {
                     mCurrentVideoPosition = i;
-                    mMediaControllerAdapter.setCurrentVideoPosition(mCurrentVideoPosition);
+                    mMediaControllerAdapter.setCurrentMediaPosition(mCurrentVideoPosition);
                     break;
                 }
             }
         } else {
             mCurrentVideoPosition = 15;
-            mMediaControllerAdapter.setCurrentVideoPosition(mCurrentVideoPosition);
+            mMediaControllerAdapter.setCurrentMediaPosition(mCurrentVideoPosition);
             mPlayer.setPlayingMedia(mMediaList.get(mCurrentVideoPosition), true);
             mPlayer.start();
         }

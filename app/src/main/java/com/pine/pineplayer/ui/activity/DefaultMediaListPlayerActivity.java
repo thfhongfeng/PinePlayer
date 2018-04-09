@@ -12,7 +12,7 @@ import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
-import com.pine.player.widget.adapter.DefaultMediaControllerAdapter;
+import com.pine.player.widget.adapter.DefaultVideoControllerAdapter;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
     private int mCurrentVideoPosition = -1;
     private List<PineMediaPlayerBean> mMediaList;
     private String mBasePath;
-    private DefaultMediaControllerAdapter mMediaControllerAdapter;
+    private DefaultVideoControllerAdapter mMediaControllerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +44,7 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
         mVideoView.init(TAG);
         mController = new PineMediaController(this);
 
-        mMediaControllerAdapter = new DefaultMediaControllerAdapter(this, mMediaList);
+        mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mMediaList);
 
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
         mVideoView.setMediaController(mController);
@@ -57,7 +57,7 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
             }
         });
         mCurrentVideoPosition = 0;
-        mMediaControllerAdapter.setCurrentVideoPosition(mCurrentVideoPosition);
+        mMediaControllerAdapter.setCurrentMediaPosition(mCurrentVideoPosition);
         mPlayer.setPlayingMedia(mMediaList.get(mCurrentVideoPosition));
         mPlayer.start();
     }

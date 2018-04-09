@@ -198,7 +198,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
 
     @Override
     public void onTime(long position) {
-        if (!mIsOpen || mTimeAdvertList == null && isPlayingAdvert()) {
+        if (!mIsOpen || mTimeAdvertList == null || isPlayingAdvert()) {
             return;
         }
         PineAdvertBean pineAdvertBean = null;
