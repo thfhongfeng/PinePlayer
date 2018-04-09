@@ -151,7 +151,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
             } else {
                 mediaListBtn.setVisibility(View.GONE);
             }
-            mDDefinitionBtn = mDFullControllerView.findViewById(R.id.media_definition_text);
+            mDDefinitionBtn = (TextView) mDFullControllerView.findViewById(R.id.media_definition_text);
             PineMediaPlayerBean pineMediaPlayerBean = player.getMediaPlayerBean();
             if (hasDefinitionList(pineMediaPlayerBean) && mDEnableDefinition) {
                 rightViewControlBtnList.add(mDDefinitionBtn);
@@ -302,7 +302,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     private void initVideoRecycleView() {
         mDVideoListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
                 .inflate(R.layout.pine_player_media_list_recycler_view, null);
-        mDVideoListInPlayerRv = mDVideoListContainerInPlayer
+        mDVideoListInPlayerRv = (RecyclerView) mDVideoListContainerInPlayer
                 .findViewById(R.id.video_recycler_view_in_player);
 
         // 播放器内置播放列表初始化
@@ -328,7 +328,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     private void initDefinitionRecycleView() {
         mDDefinitionListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
                 .inflate(R.layout.pine_player_definition_recycler_view, null);
-        mDDefinitionListInPlayerRv = mDDefinitionListContainerInPlayer
+        mDDefinitionListInPlayerRv = (RecyclerView) mDDefinitionListContainerInPlayer
                 .findViewById(R.id.definition_recycler_view_in_player);
 
         // 播放器内置清晰度列表初始化

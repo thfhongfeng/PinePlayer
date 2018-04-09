@@ -10,7 +10,7 @@
         android:id="@+id/video_recycler_view_in_player"
         android:layout_width="200dp"
         android:layout_height="match_parent"
-        android:background="#AA000000"
+        android:background="#AA457DD7"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"/>
 </RelativeLayout>

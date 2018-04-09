@@ -53,7 +53,7 @@ public class PineImageAdvertPlugin<T extends List> extends PineAdvertPlugin<T> {
             }
             mCurViewHolder = mPluginViewHolder;
         }
-        mTimerTaskTv = mCurViewHolder.getContainer().findViewById(R.id.timer_tick_tv);
+        mTimerTaskTv = (TextView) mCurViewHolder.getContainer().findViewById(R.id.timer_tick_tv);
         mTimerTaskTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -6,7 +6,7 @@
 
     <color name="media_bg">#00000000</color>
 
-    <color name="controller_bg">#CC000000</color>
+    <color name="controller_bg">#CC457DD7</color>
     <color name="controller_text">#DFDFDF</color>
 
     <color name="subtitle_text">#FFFFFF</color>
