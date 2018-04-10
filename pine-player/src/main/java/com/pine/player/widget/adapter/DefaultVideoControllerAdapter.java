@@ -282,7 +282,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
             public boolean onGoBackBtnClick(View fullScreenBtn,
                                             PineMediaWidget.IPineMediaPlayer player) {
                 if (player.isFullScreenMode() && mDEnableFullScreen) {
-                    mDControllerViewHolder.getFullScreenButton().performClick();
+                    mDFullControllerViewHolder.getFullScreenButton().performClick();
                 } else {
                     mDContext.finish();
                 }
@@ -328,7 +328,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     private void initDefinitionRecycleView() {
         mDDefinitionListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
                 .inflate(R.layout.pine_player_definition_recycler_view, null);
-        mDDefinitionListInPlayerRv = (RecyclerView) mDDefinitionListContainerInPlayer
+        mDDefinitionListInPlayerRv = (RecyclerView)mDDefinitionListContainerInPlayer
                 .findViewById(R.id.definition_recycler_view_in_player);
 
         // 播放器内置清晰度列表初始化

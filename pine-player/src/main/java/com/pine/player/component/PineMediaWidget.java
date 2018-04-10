@@ -542,17 +542,17 @@ public class PineMediaWidget {
 
         @Override
         public boolean onInfo(int what, int extra) {
-            return true;
+            return false;
         }
 
         @Override
         public boolean onError(int framework_err, int impl_err) {
-            return true;
+            return false;
         }
 
         @Override
         public boolean onAbnormalComplete() {
-            return true;
+            return false;
         }
     }
 }
