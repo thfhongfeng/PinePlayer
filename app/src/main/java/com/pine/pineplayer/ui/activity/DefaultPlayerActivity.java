@@ -34,10 +34,8 @@ public class DefaultPlayerActivity extends AppCompatActivity {
             return;
         }
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
-        mVideoView.init(TAG);
         mController = new PineMediaController(this);
-
-        mVideoView.setMediaController(mController);
+        mVideoView.init(TAG, mController);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "VideoDefinitionSelect",

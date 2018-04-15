@@ -6,11 +6,10 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.component.PineMediaPlayerComponent;
-import com.pine.player.util.LogUtil;
 import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.component.PineMediaWidget;
+import com.pine.player.util.LogUtil;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,6 +58,7 @@ public class PineMediaPlayerService extends Service {
         LogUtil.d(TAG, "onCreate");
         if (getMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG) == null) {
             setMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG, new PineMediaPlayerProxy(
+                    SERVICE_MEDIA_PLAYER_TAG,
                     new PineMediaPlayerComponent(getApplicationContext())));
         }
         super.onCreate();

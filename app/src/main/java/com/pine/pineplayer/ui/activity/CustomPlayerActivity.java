@@ -70,9 +70,7 @@ public class CustomPlayerActivity extends AppCompatActivity {
         mDefinitionNameArr = getResources().getStringArray(R.array.media_definition_text_arr);
         initRecycleView();
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
-        mVideoView.init(TAG);
         mController = new PineMediaController(this);
-
         mMediaControllerAdapter = new PineMediaController.AbstractMediaControllerAdapter() {
 
             @Override
@@ -81,9 +79,10 @@ public class CustomPlayerActivity extends AppCompatActivity {
             }
 
             @Override
-            public List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
+            public List<PineRightViewHolder> onCreateRightViewHolderList(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 List<PineRightViewHolder> viewHolderList = new ArrayList<PineRightViewHolder>();
-                if (player.isFullScreenMode()) {
+                if (isFullScreenMode) {
                     PineMediaPlayerBean pineMediaPlayerBean = player.getMediaPlayerBean();
                     if (hasDefinitionList(pineMediaPlayerBean)) {
                         PineRightViewHolder definitionViewHolder = new PineRightViewHolder();
@@ -95,8 +94,9 @@ public class CustomPlayerActivity extends AppCompatActivity {
             }
 
             @Override
-            public PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-                if (player.isFullScreenMode()) {
+            public PineControllerViewHolder onCreateInRootControllerViewHolder(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+                if (isFullScreenMode) {
                     if (mFullControllerViewHolder == null) {
                         mFullControllerViewHolder = new PineControllerViewHolder();
                         if (mFullControllerView == null) {
@@ -166,17 +166,20 @@ public class CustomPlayerActivity extends AppCompatActivity {
             }
 
             @Override
-            protected PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+            protected PineControllerViewHolder onCreateOutRootControllerViewHolder(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 return null;
             }
 
             @Override
-            protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+            protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 return null;
             }
 
             @Override
-            public PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+            public PineBackgroundViewHolder onCreateBackgroundViewHolder(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 PineMediaPlayerBean playerBean = player.getMediaPlayerBean();
                 Uri imgUri = playerBean == null ? null : playerBean.getMediaImgUri();
                 ImageView mediaBackgroundView = new ImageView(CustomPlayerActivity.this);
@@ -210,8 +213,8 @@ public class CustomPlayerActivity extends AppCompatActivity {
                 return new PineMediaController.ControllersActionListener() {
                     @Override
                     public boolean onGoBackBtnClick(View fullScreenBtn,
-                                                    PineMediaWidget.IPineMediaPlayer player) {
-                        if (player.isFullScreenMode()) {
+                                                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+                        if (isFullScreenMode) {
                             mControllerViewHolder.getFullScreenButton().performClick();
                         } else {
                             finish();
@@ -221,9 +224,8 @@ public class CustomPlayerActivity extends AppCompatActivity {
                 };
             }
         };
-
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
-        mVideoView.setMediaController(mController);
+        mVideoView.init(TAG, mController);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
         mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {

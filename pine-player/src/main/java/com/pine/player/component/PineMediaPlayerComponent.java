@@ -14,10 +14,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.pine.player.bean.PineMediaPlayerBean;
@@ -39,7 +35,8 @@ import java.util.Map;
  * Created by tanghongfeng on 2017/8/14.
  */
 
-public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfaceListener {
+public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlayer,
+        PineMediaWidget.IPineMediaSurfaceListener {
     // 播放器状态
     public static final int STATE_ERROR = -1;
     public static final int STATE_IDLE = 0;
@@ -58,7 +55,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     private int mCurrentState = STATE_IDLE;
     private int mTargetState = STATE_IDLE;
     private boolean mIsAutocephalyPlayMode;
-    private boolean mEnableSurfaceView;
     private Context mContext;
     // 准备播放的多媒体对象
     private PineMediaPlayerBean mMediaBean;
@@ -89,8 +85,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             };
     private int mSurfaceWidth;
     private int mSurfaceHeight;
-    // 播放器的控制器
-    private PineMediaWidget.IPineMediaController mMediaController;
     private PineMediaWidget.PineMediaPlayerListener mMediaPlayerListener;
     private int mCurrentBufferPercentage;
     // 记录播放位置，在界面切换等情况下，自动恢复到之前的播放位置
@@ -100,23 +94,19 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     private boolean mCanPause;
     private boolean mCanSeekBack;
     private boolean mCanSeekForward;
-    private boolean mIsFullScreenMode;
-    private float mSpeed = 1.0f;
     MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         public void onPrepared(MediaPlayer mp) {
             LogUtil.d(TAG, "onPrepared");
+            int fromState = mCurrentState;
             mCurrentState = STATE_PREPARED;
 
             // Get the capabilities of the player for this stream
             setMetaData(mp);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(mSpeed));
-            }
             if (mMediaPlayerListener != null) {
-                mMediaPlayerListener.onPrepared();
+                mMediaPlayerListener.onStateChange(fromState, STATE_PREPARED);
             }
-            if (isAttachToFrontMode() && mMediaController != null) {
-                mMediaController.onMediaPlayerPrepared();
+            if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                mMediaPlayerView.getMediaController().onMediaPlayerPrepared();
             }
             mMediaWidth = mp.getVideoWidth();
             mMediaHeight = mp.getVideoHeight();
@@ -125,7 +115,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             if (seekToPosition != 0) {
                 seekTo(seekToPosition);
             }
-            if (mMediaWidth != 0 && mMediaHeight != 0 && isAttachToFrontMode() && mSurfaceView != null) {
+            if (mMediaWidth != 0 && mMediaHeight != 0 && isAttachViewMode() && mSurfaceView != null) {
                 //LogUtil.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
                 mSurfaceView.getHolder().setFixedSize(mMediaWidth, mMediaHeight);
                 if (mSurfaceWidth == mMediaWidth && mSurfaceHeight == mMediaHeight) {
@@ -135,29 +125,31 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                     if (mTargetState == STATE_PLAYING || mShouldPlayWhenPrepared) {
                         mShouldPlayWhenPrepared = false;
                         start();
-                        if (isAttachToFrontMode() && mMediaController != null) {
-                            mMediaController.show();
+                        if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                            mMediaPlayerView.getMediaController().show();
                         }
                     } else if (!isPlaying() &&
                             (seekToPosition != 0 || getCurrentPosition() > 0)) {
-                        if (isAttachToFrontMode() && mMediaController != null) {
+                        if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                             // Show the media controls when we're paused into a media and make 'em stick.
-                            mMediaController.show(0);
+                            mMediaPlayerView.getMediaController().show(0);
                         }
                     }
                 }
             } else {
                 // We don't know the media size yet, but should start anyway.
                 // The media size might be reported to us later.
-                if (mTargetState == STATE_PLAYING) {
+                if (mTargetState == STATE_PLAYING || mShouldPlayWhenPrepared) {
+                    mShouldPlayWhenPrepared = false;
                     start();
                 }
             }
-            if (isAttachToFrontMode() && mSurfaceView != null) {
+            if (isAttachViewMode() && mSurfaceView != null) {
                 mSurfaceView.requestFocus();
             }
         }
     };
+    private float mSpeed = 1.0f;
     private MediaPlayer.OnCompletionListener mCompletionListener =
             new MediaPlayer.OnCompletionListener() {
                 public void onCompletion(MediaPlayer mp) {
@@ -172,20 +164,21 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                         mTargetState = STATE_PLAYING;
                         mSeekWhenPrepared = currentPos;
                         mShouldPlayWhenPrepared = true;
-                        if (isAttachToFrontMode() && mMediaController != null) {
-                            mMediaController.onAbnormalComplete();
+                        if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                            mMediaPlayerView.getMediaController().onAbnormalComplete();
                         }
                         if (mMediaPlayerListener != null) {
                             mMediaPlayerListener.onAbnormalComplete();
                         }
                     } else {
+                        int fromState = mCurrentState;
                         mCurrentState = STATE_PLAYBACK_COMPLETED;
                         mTargetState = STATE_PLAYBACK_COMPLETED;
-                        if (isAttachToFrontMode() && mMediaController != null) {
-                            mMediaController.onMediaPlayerComplete();
+                        if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                            mMediaPlayerView.getMediaController().onMediaPlayerComplete();
                         }
                         if (mMediaPlayerListener != null) {
-                            mMediaPlayerListener.onCompletion();
+                            mMediaPlayerListener.onStateChange(fromState, STATE_PLAYBACK_COMPLETED);
                         }
                     }
                 }
@@ -195,8 +188,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
                     LogUtil.d(TAG, "onInfo what: " + what + ", extra:" + extra);
-                    if (isAttachToFrontMode() && mMediaController != null) {
-                        mMediaController.onMediaPlayerInfo(what, extra);
+                    if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                        mMediaPlayerView.getMediaController().onMediaPlayerInfo(what, extra);
                     }
                     if (mMediaPlayerListener != null) {
                         mMediaPlayerListener.onInfo(what, extra);
@@ -210,8 +203,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                     LogUtil.d(TAG, "Error: " + framework_err + "," + impl_err);
                     mCurrentState = STATE_ERROR;
                     mTargetState = STATE_ERROR;
-                    if (isAttachToFrontMode() && mMediaController != null) {
-                        mMediaController.onMediaPlayerError(framework_err, impl_err);
+                    if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                        mMediaPlayerView.getMediaController().onMediaPlayerError(framework_err, impl_err);
                     }
                     release(true);
                     /* If an error handler has been supplied, use it and finish. */
@@ -226,7 +219,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                      * if we're attached to a window. When we're going away and no
                      * longer have a window, don't bother showing the user an error.
                      */
-                    if (isAttachToFrontMode() && mSurfaceView != null && mSurfaceView.getWindowToken() != null) {
+                    if (isAttachViewMode() && mSurfaceView != null && mSurfaceView.getWindowToken() != null) {
                         Resources r = mContext.getResources();
                         int messageId;
 
@@ -240,9 +233,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                                             "string", "android");
                         }
                         Toast.makeText(mContext, messageId, Toast.LENGTH_SHORT).show();
-                        if (mMediaPlayerListener != null) {
-                            mMediaPlayerListener.onCompletion();
-                        }
                     }
                     return true;
                 }
@@ -251,8 +241,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             new MediaPlayer.OnBufferingUpdateListener() {
                 public void onBufferingUpdate(MediaPlayer mp, int percent) {
                     mCurrentBufferPercentage = percent;
-                    if (isAttachToFrontMode() && mMediaController != null) {
-                        mMediaController.onBufferingUpdate(percent);
+                    if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                        mMediaPlayerView.getMediaController().onBufferingUpdate(percent);
                     }
                 }
             };
@@ -268,7 +258,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                 mIsDelayOpenMedia = false;
                 mLocalService.setPlayerDecryptor(mMediaBean.getPlayerDecryptor());
                 openMedia(false);
-                if (isAttachToFrontMode() && mSurfaceView != null) {
+                if (isAttachViewMode() && mSurfaceView != null) {
                     mSurfaceView.requestLayout();
                     mSurfaceView.invalidate();
                 }
@@ -295,7 +285,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     private void initMediaView() {
         mMediaWidth = 0;
         mMediaHeight = 0;
+        int fromState = mCurrentState;
         mCurrentState = STATE_IDLE;
+        if (mMediaPlayerListener != null) {
+            mMediaPlayerListener.onStateChange(fromState, STATE_IDLE);
+        }
         mTargetState = STATE_IDLE;
     }
 
@@ -305,11 +299,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
      * @param isPlayerReset 本此attach是否重置了MediaPlayer
      * @param isResumeState 本此attach是否是为了恢复状态
      */
-    private void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
-        if (mMediaPlayer != null && isAttachToFrontMode() && mMediaController != null &&
-                mMediaBean != null) {
-            mMediaController.setPlayingMedia(mMediaBean, "PineMediaView");
-            mMediaController.attachToParentView(isPlayerReset, isResumeState);
+    public void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
+        if (mMediaPlayer != null && isAttachViewMode() &&
+                mMediaPlayerView.getMediaController() != null && mMediaBean != null) {
+            mMediaPlayerView.getMediaController().setPlayingMedia(mMediaBean, "PineMediaView");
+            mMediaPlayerView.getMediaController().attachToParentView(isPlayerReset, isResumeState);
         }
     }
 
@@ -355,7 +349,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         }
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
             openMedia(resumeState);
-            if (isAttachToFrontMode() && mSurfaceView != null) {
+            if (isAttachViewMode() && mSurfaceView != null) {
                 mSurfaceView.requestLayout();
                 mSurfaceView.invalidate();
             }
@@ -379,7 +373,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         if (mMediaBean == null) {
             return;
         }
-        Uri mediaUri = mMediaBean.getMediaUriByDefinition(mMediaBean.getCurrentDefinition());
+        Uri mediaUri = mMediaBean.getMediaUri();
         if (mediaUri == null) {
             return;
         }
@@ -387,7 +381,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             return;
         }
 
-        LogUtil.d(TAG, "Open Media mUri:" + mediaUri);
+        LogUtil.d(TAG, "Open Media mUri:" + mediaUri + ", isResumeState:" + isResumeState);
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
         release(false);
@@ -430,11 +424,18 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             setDisplaySurface(mSurfaceView);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setScreenOnWhilePlaying(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(mSpeed));
+            }
             mMediaPlayer.prepareAsync();
 
             // we don't set the target state here either, but preserve the
             // target state that was there before.
+            int fromState = mCurrentState;
             mCurrentState = STATE_PREPARING;
+            if (mMediaPlayerListener != null) {
+                mMediaPlayerListener.onStateChange(fromState, STATE_PREPARING);
+            }
             attachMediaController(true, isResumeState);
         } catch (IOException ex) {
             LogUtil.w(TAG, "Unable to open content: " + mediaUri, ex);
@@ -503,10 +504,12 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         });
     }
 
+    @Override
     public float getSpeed() {
         return mSpeed;
     }
 
+    @Override
     public void setSpeed(float speed) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mSpeed = speed;
@@ -516,15 +519,20 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         }
     }
 
+    @Override
     public void start() {
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
             if (isInPlaybackState()) {
                 LogUtil.d(TAG, "Start media player");
                 mMediaPlayer.start();
-                if (isAttachToFrontMode() && mMediaController != null) {
-                    mMediaController.onMediaPlayerStart();
+                if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                    mMediaPlayerView.getMediaController().onMediaPlayerStart();
                 }
+                int fromState = mCurrentState;
                 mCurrentState = STATE_PLAYING;
+                if (mMediaPlayerListener != null) {
+                    mMediaPlayerListener.onStateChange(fromState, STATE_PLAYING);
+                }
             }
             mTargetState = STATE_PLAYING;
         } else {
@@ -532,58 +540,76 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         }
     }
 
+    @Override
     public void pause() {
         if (isInPlaybackState()) {
             if (mMediaPlayer.isPlaying()) {
                 LogUtil.d(TAG, "Pause media player");
                 mMediaPlayer.pause();
-                if (isAttachToFrontMode() && mMediaController != null) {
-                    mMediaController.onMediaPlayerPause();
+                if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                    mMediaPlayerView.getMediaController().onMediaPlayerPause();
                 }
+                int fromState = mCurrentState;
                 mCurrentState = STATE_PAUSED;
+                if (mMediaPlayerListener != null) {
+                    mMediaPlayerListener.onStateChange(fromState, STATE_PAUSED);
+                }
             }
         }
         mTargetState = STATE_PAUSED;
     }
 
+    @Override
     public void suspend() {
         release(false);
     }
 
+    @Override
     public void resume() {
-        if (!isAutocephalyPlayMode()) {
+        if (isInPlaybackState()) {
+            attachMediaController(false, true);
+        } else {
             openMedia(true);
         }
     }
 
+    @Override
     public void release() {
         release(true);
     }
 
     public PineMediaWidget.IPineMediaController getMediaController() {
-        return mMediaController;
+        return mMediaPlayerView.getMediaController();
     }
 
-    public void setMediaController(PineMediaWidget.IPineMediaController controller) {
-        if (isAttachToFrontMode() && mMediaController != null) {
-            mMediaController.hide();
-        }
-        mMediaController = controller;
-        if (isAutocephalyPlayMode()) {
-            attachMediaController(false, true);
-        }
+    @Override
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
+        setPlayingMedia(pineMediaPlayerBean, null, false);
     }
 
+    @Override
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers) {
+        setPlayingMedia(pineMediaPlayerBean, headers, false);
+    }
+
+    @Override
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isAutocephalyPlayMode) {
+        setPlayingMedia(pineMediaPlayerBean, null, false, isAutocephalyPlayMode);
+    }
+
+    @Override
     public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
                                            Map<String, String> headers) {
         setPlayingMedia(pineMediaPlayerBean, headers, true, mIsAutocephalyPlayMode);
     }
 
+    @Override
     public void savePlayerState() {
         mShouldPlayWhenPrepared = isPlaying();
         mSeekWhenPrepared = getCurrentPosition();
     }
 
+    @Override
     public int getDuration() {
         if (isInPlaybackState()) {
             return mMediaPlayer.getDuration();
@@ -591,6 +617,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         return -1;
     }
 
+    @Override
     public int getCurrentPosition() {
         if (isInPlaybackState()) {
             return mMediaPlayer.getCurrentPosition();
@@ -598,36 +625,15 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         return 0;
     }
 
-    public PineMediaPlayerView getMediaPlayerView() {
-        return mMediaPlayerView;
-    }
-
-    public void setMediaPlayerView(PineMediaPlayerView playerView) {
-        mMediaPlayerView = playerView;
-    }
-
-    public PineSurfaceView getSurfaceView() {
-        return mSurfaceView;
-    }
-
-    public PineMediaPlayerView.PineMediaViewLayout getMediaAdaptionLayout() {
-        return mSurfaceView == null ? null : mSurfaceView.getMediaAdaptionLayout();
-    }
-
-    public int getMediaViewWidth() {
-        return mMediaWidth;
-    }
-
-    public int getMediaViewHeight() {
-        return mMediaHeight;
-    }
-
+    @Override
     public PineMediaPlayerBean getMediaPlayerBean() {
         return mMediaBean;
     }
 
+    @Override
     public MediaPlayer.TrackInfo[] getTrackInfo() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mMediaPlayer.isPlaying()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mMediaPlayer != null &&
+                mMediaPlayer.isPlaying()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 LogUtil.d(TAG, "mediaPlayerParams getSelectedTrack MEDIA_TRACK_TYPE_AUDIO: " +
                         mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) +
@@ -649,8 +655,10 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         }
     }
 
+    @Override
     public void seekTo(int msc) {
         if (isInPlaybackState()) {
+            LogUtil.d(TAG, "seek to:" + msc);
             mMediaPlayer.seekTo(msc);
             mSeekWhenPrepared = 0;
         } else {
@@ -658,56 +666,22 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         }
     }
 
+    @Override
     public boolean isPlaying() {
         return isInPlaybackState() && mMediaPlayer.isPlaying();
     }
 
+    @Override
     public boolean isPause() {
         return isInPlaybackState() && mCurrentState == STATE_PAUSED;
     }
 
-    public void enableSurfaceView(boolean enableSurface) {
-        mEnableSurfaceView = enableSurface;
-    }
-
+    @Override
     public boolean isSurfaceViewEnable() {
-        return mEnableSurfaceView;
+        return mSurfaceView != null;
     }
 
-    public void toggleFullScreenMode(boolean isLocked) {
-        mIsFullScreenMode = !mIsFullScreenMode;
-        if (isAttachToFrontMode()) {
-            ViewGroup.LayoutParams layoutParams;
-            if (isFullScreenMode()) {
-                if (mMediaPlayerView.getParent() instanceof RelativeLayout) {
-                    layoutParams = new RelativeLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
-                } else if (mMediaPlayerView.getParent() instanceof LinearLayout) {
-                    layoutParams = new LinearLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
-                } else if (mMediaPlayerView.getParent() instanceof FrameLayout) {
-                    layoutParams = new FrameLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
-                } else {
-                    layoutParams = new ViewGroup.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
-                }
-            } else {
-                layoutParams = mMediaPlayerView.getHalfAnchorLayout();
-            }
-            mMediaPlayerView.setLayoutParams(layoutParams);
-            mMediaController.updateFullScreenMode();
-        }
-    }
-
-    public boolean isFullScreenMode() {
-        return mIsFullScreenMode;
-    }
-
+    @Override
     public int getBufferPercentage() {
         if (mMediaPlayer != null) {
             return mCurrentBufferPercentage;
@@ -715,18 +689,22 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         return 0;
     }
 
+    @Override
     public boolean canPause() {
         return mCanPause;
     }
 
+    @Override
     public boolean canSeekBackward() {
         return mCanSeekBack;
     }
 
+    @Override
     public boolean canSeekForward() {
         return mCanSeekForward;
     }
 
+    @Override
     public int getAudioSessionId() {
         if (mAudioSession == 0) {
             MediaPlayer foo = new MediaPlayer();
@@ -736,6 +714,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         return mAudioSession;
     }
 
+    @Override
     public boolean isInPlaybackState() {
         return (mMediaPlayer != null &&
                 mCurrentState != STATE_ERROR &&
@@ -743,10 +722,17 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
                 mCurrentState != STATE_PREPARING);
     }
 
-    public boolean isAttachToFrontMode() {
-        return mMediaPlayerView != null && (mMediaController != null || mSurfaceView != null);
+    @Override
+    public boolean isAttachViewMode() {
+        return mMediaPlayerView != null;
     }
 
+    @Override
+    public boolean isAttachViewShown() {
+        return isAttachViewMode() && mMediaPlayerView.isShown();
+    }
+
+    @Override
     public boolean isAutocephalyPlayMode() {
         return mIsAutocephalyPlayMode;
     }
@@ -756,16 +742,51 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
      *
      * @param isAutocephalyPlayMode 设置是否为独立播放模式
      */
+    @Override
     public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
         mIsAutocephalyPlayMode = isAutocephalyPlayMode;
     }
 
+    @Override
     public int getMediaPlayerState() {
         return mCurrentState;
     }
 
+    @Override
     public void setMediaPlayerListener(PineMediaWidget.PineMediaPlayerListener listener) {
         mMediaPlayerListener = listener;
+    }
+
+    @Override
+    public PineMediaPlayerView getMediaPlayerView() {
+        return mMediaPlayerView;
+    }
+
+    public void setMediaPlayerView(PineMediaPlayerView playerView) {
+        if (mMediaPlayerView != null && playerView != mMediaPlayerView) {
+            detachMediaPlayerView(mMediaPlayerView);
+        }
+        mMediaPlayerView = playerView;
+    }
+
+    @Override
+    public PineSurfaceView getSurfaceView() {
+        return mSurfaceView;
+    }
+
+    @Override
+    public PineMediaPlayerView.PineMediaViewLayout getMediaAdaptionLayout() {
+        return mSurfaceView == null ? null : mSurfaceView.getMediaAdaptionLayout();
+    }
+
+    @Override
+    public int getMediaViewWidth() {
+        return mMediaWidth;
+    }
+
+    @Override
+    public int getMediaViewHeight() {
+        return mMediaHeight;
     }
 
     @Override
@@ -785,19 +806,15 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     @Override
     public void onSurfaceCreated(SurfaceView surfaceView) {
         mSurfaceView = (PineSurfaceView) surfaceView;
-        if (mCurrentState != STATE_PLAYING) {
-            openMedia(true);
-        } else {
-            setDisplaySurface(mSurfaceView);
-        }
+        setDisplaySurface(mSurfaceView);
     }
 
     @Override
     public void onSurfaceDestroyed(SurfaceView surfaceView) {
         // after we return from this we can't use the surface any more
         mSurfaceView = null;
-        if (mMediaController != null) {
-            mMediaController.hide();
+        if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+            mMediaPlayerView.getMediaController().hide();
         }
         if (isAutocephalyPlayMode()) {
             setDisplaySurface(null);
@@ -808,7 +825,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
 
     public void setDisplaySurface(PineSurfaceView pineSurfaceView) {
         if (mMediaPlayer != null) {
-            if (isAttachToFrontMode() && pineSurfaceView != null) {
+            if (isAttachViewMode() && pineSurfaceView != null) {
                 mMediaPlayer.setDisplay(pineSurfaceView.getHolder());
             } else {
                 mMediaPlayer.setDisplay(null);
@@ -816,15 +833,15 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
         }
     }
 
-    public void onMediaPlayerViewDetached() {
-        mSurfaceView = null;
-        mMediaController = null;
-        mMediaPlayerView = null;
-        mIsFullScreenMode = false;
-        mMediaWidth = 0;
-        mMediaHeight = 0;
-        mSurfaceWidth = 0;
-        mSurfaceHeight = 0;
+    public void detachMediaPlayerView(PineMediaPlayerView view) {
+        if (view == mMediaPlayerView) {
+            mMediaPlayerView = null;
+            mSurfaceView = null;
+            mMediaWidth = 0;
+            mMediaHeight = 0;
+            mSurfaceWidth = 0;
+            mSurfaceHeight = 0;
+        }
     }
 
     protected void stopPlayback() {
@@ -833,7 +850,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
+            int fromState = mCurrentState;
             mCurrentState = STATE_IDLE;
+            if (mMediaPlayerListener != null) {
+                mMediaPlayerListener.onStateChange(fromState, STATE_IDLE);
+            }
             mTargetState = STATE_IDLE;
             AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
             am.abandonAudioFocus(null);
@@ -849,14 +870,18 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
             mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
+            int fromState = mCurrentState;
             mCurrentState = STATE_IDLE;
+            if (mMediaPlayerListener != null) {
+                mMediaPlayerListener.onStateChange(fromState, STATE_IDLE);
+            }
             if (clearTargetState) {
                 mTargetState = STATE_IDLE;
             }
             AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
             am.abandonAudioFocus(null);
-            if (isAttachToFrontMode() && mMediaController != null) {
-                mMediaController.onMediaPlayerRelease(clearTargetState);
+            if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                mMediaPlayerView.getMediaController().onMediaPlayerRelease(clearTargetState);
             }
         }
     }
@@ -878,8 +903,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaSurfa
     }
 
     public boolean onTrackballEvent(MotionEvent ev) {
-        if (isInPlaybackState() && isAttachToFrontMode() && mMediaController != null) {
-            mMediaController.toggleMediaControlsVisibility();
+        if (isInPlaybackState() && isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+            mMediaPlayerView.getMediaController().toggleMediaControlsVisibility();
         }
         return false;
     }

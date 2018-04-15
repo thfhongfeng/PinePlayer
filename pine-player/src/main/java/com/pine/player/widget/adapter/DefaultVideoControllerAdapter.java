@@ -104,7 +104,8 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected final PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected final PineBackgroundViewHolder onCreateBackgroundViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
         if (mDBackgroundViewHolder == null) {
             mDBackgroundViewHolder = new PineBackgroundViewHolder();
             if (mDBackgroundView == null) {
@@ -125,8 +126,9 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected final PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-        if (player.isFullScreenMode()) {
+    protected final PineControllerViewHolder onCreateInRootControllerViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+        if (isFullScreenMode) {
             if (mDFullControllerViewHolder == null) {
                 mDFullControllerViewHolder = new PineControllerViewHolder();
                 if (mDFullControllerView == null) {
@@ -185,7 +187,8 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected PineControllerViewHolder onCreateOutRootControllerViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
         return null;
     }
 
@@ -233,7 +236,8 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected final PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected final PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
         if (mDWaitingProgressViewHolder == null) {
             mDWaitingProgressViewHolder = new PineWaitingProgressViewHolder();
             if (mDWaitingProgressView == null) {
@@ -255,9 +259,10 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected final List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
+    protected final List<PineRightViewHolder> onCreateRightViewHolderList(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
         List<PineRightViewHolder> viewHolderList = new ArrayList<>();
-        if (player.isFullScreenMode()) {
+        if (isFullScreenMode) {
             if (hasMediaList() && mDEnableMediaList) {
                 PineRightViewHolder mediaListViewHolder = new PineRightViewHolder();
                 mediaListViewHolder.setContainer(mDVideoListContainerInPlayer);
@@ -279,9 +284,9 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     public PineMediaController.ControllersActionListener onCreateControllersActionListener() {
         return new PineMediaController.ControllersActionListener() {
             @Override
-            public boolean onGoBackBtnClick(View fullScreenBtn,
-                                            PineMediaWidget.IPineMediaPlayer player) {
-                if (player.isFullScreenMode() && mDEnableFullScreen) {
+            public boolean onGoBackBtnClick(View fullScreenBtn, PineMediaWidget.IPineMediaPlayer player,
+                                            boolean isFullScreenMode) {
+                if (isFullScreenMode && mDEnableFullScreen) {
                     mDFullControllerViewHolder.getFullScreenButton().performClick();
                 } else {
                     mDContext.finish();
@@ -328,7 +333,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     private void initDefinitionRecycleView() {
         mDDefinitionListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
                 .inflate(R.layout.pine_player_definition_recycler_view, null);
-        mDDefinitionListInPlayerRv = (RecyclerView)mDDefinitionListContainerInPlayer
+        mDDefinitionListInPlayerRv = (RecyclerView) mDDefinitionListContainerInPlayer
                 .findViewById(R.id.definition_recycler_view_in_player);
 
         // 播放器内置清晰度列表初始化

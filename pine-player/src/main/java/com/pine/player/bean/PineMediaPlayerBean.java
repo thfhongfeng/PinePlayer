@@ -167,6 +167,19 @@ public class PineMediaPlayerBean {
         this.mediaName = mediaName;
     }
 
+    public Uri getMediaUri() {
+        PineMediaUriSource pineMediaUriSource = getMediaUriSource();
+        if (pineMediaUriSource != null) {
+            return pineMediaUriSource.getMediaUri();
+        } else {
+            return null;
+        }
+    }
+
+    public PineMediaUriSource getMediaUriSource() {
+        return getMediaUriSourceByDefinition(getCurrentDefinition());
+    }
+
     public Uri getMediaUriByDefinition(int definition) {
         PineMediaUriSource pineMediaUriSource =
                 getMediaUriSourceByDefinition(definition);

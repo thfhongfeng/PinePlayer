@@ -69,6 +69,7 @@ public class PineSurfaceView extends SurfaceView {
     private void initMediaView() {
         mMediaWidth = 0;
         mMediaHeight = 0;
+        getHolder().removeCallback(mSHCallback);
         getHolder().addCallback(mSHCallback);
         getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         setFocusable(true);
@@ -77,9 +78,6 @@ public class PineSurfaceView extends SurfaceView {
 
     public void setMediaPlayerComponent(PineMediaPlayerComponent mediaPlayerComponent) {
         mMediaPlayerComponent = mediaPlayerComponent;
-        if (mMediaPlayerComponent != null) {
-            mMediaPlayerComponent.setDisplaySurface(this);
-        }
     }
 
     public PineMediaPlayerView.PineMediaViewLayout getMediaAdaptionLayout() {
@@ -88,6 +86,9 @@ public class PineSurfaceView extends SurfaceView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (mMediaPlayerComponent == null) {
+            return;
+        }
         mMediaWidth = mMediaPlayerComponent.getMediaViewWidth();
         mMediaHeight = mMediaPlayerComponent.getMediaViewHeight();
         int width = getDefaultSize(mMediaWidth, widthMeasureSpec);

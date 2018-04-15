@@ -51,16 +51,16 @@ public class MediaServicePlayerActivity extends AppCompatActivity {
         mController = new PineMediaController(this);
         if (PinePlayerApp.mMockCount++ % 2 == 0) {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.video_view);
-            mCurMediaView.init(PineMediaPlayerService.SERVICE_MEDIA_PLAYER_TAG);
             mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mMediaList);
+            mController.setMediaControllerAdapter(mMediaControllerAdapter);
+            mCurMediaView.init(PineMediaPlayerService.SERVICE_MEDIA_PLAYER_TAG, mController);
         } else {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.audio_view);
-            mCurMediaView.init(PineMediaPlayerService.SERVICE_MEDIA_PLAYER_TAG, false);
             mMediaControllerAdapter = new DefaultAudioControllerAdapter(this, mMediaList);
+            mController.setMediaControllerAdapter(mMediaControllerAdapter);
+            mCurMediaView.init(PineMediaPlayerService.SERVICE_MEDIA_PLAYER_TAG, mController, false);
         }
         mCurMediaView.setVisibility(View.VISIBLE);
-        mController.setMediaControllerAdapter(mMediaControllerAdapter);
-        mCurMediaView.setMediaController(mController);
         mPlayer = mCurMediaView.getMediaPlayer();
         mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
             @Override

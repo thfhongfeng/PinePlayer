@@ -41,13 +41,10 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
         }
         mMediaList = MockDataUtil.getMediaList(this, mBasePath);
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
-        mVideoView.init(TAG);
         mController = new PineMediaController(this);
-
         mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mMediaList);
-
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
-        mVideoView.setMediaController(mController);
+        mVideoView.init(TAG, mController);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
         mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {

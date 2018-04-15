@@ -50,16 +50,17 @@ public class AutocephalyPlayerActivity extends AppCompatActivity {
         mController = new PineMediaController(this);
         if (PinePlayerApp.mMockCount++ % 2 == 0) {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.video_view);
-            mCurMediaView.init(TAG);
             mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mMediaList);
+            mController.setMediaControllerAdapter(mMediaControllerAdapter);
+            mCurMediaView.init(TAG, mController);
+
         } else {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.audio_view);
-            mCurMediaView.init(TAG, false);
             mMediaControllerAdapter = new DefaultAudioControllerAdapter(this, mMediaList);
+            mController.setMediaControllerAdapter(mMediaControllerAdapter);
+            mCurMediaView.init(TAG, mController, false);
         }
         mCurMediaView.setVisibility(View.VISIBLE);
-        mController.setMediaControllerAdapter(mMediaControllerAdapter);
-        mCurMediaView.setMediaController(mController);
         mPlayer = mCurMediaView.getMediaPlayer();
         mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
             @Override

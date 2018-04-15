@@ -72,7 +72,8 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected final PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+    protected final PineBackgroundViewHolder onCreateBackgroundViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
         if (mDBackgroundViewHolder == null) {
             mDBackgroundViewHolder = new PineBackgroundViewHolder();
             if (mDBackgroundView == null) {
@@ -93,8 +94,9 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected final PineControllerViewHolder onCreateInRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-        if (player.isFullScreenMode()) {
+    protected final PineControllerViewHolder onCreateInRootControllerViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+        if (isFullScreenMode) {
             if (mDFullControllerViewHolder == null) {
                 mDFullControllerViewHolder = new PineControllerViewHolder();
                 if (mDFullControllerView == null) {
@@ -117,6 +119,24 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
             mDControllerViewHolder.setContainer(mDControllerView);
             return mDControllerViewHolder;
         }
+    }
+
+    @Override
+    protected PineControllerViewHolder onCreateOutRootControllerViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+        return null;
+    }
+
+    @Override
+    protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+        return null;
+    }
+
+    @Override
+    protected List<PineRightViewHolder> onCreateRightViewHolderList(
+            PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+        return null;
     }
 
     private final void initControllerViewHolder(
@@ -173,21 +193,6 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    public PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-        return null;
-    }
-
-    @Override
-    protected final PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
-        return null;
-    }
-
-    @Override
-    protected List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
-        return null;
-    }
-
-    @Override
     public PineMediaController.ControllersActionListener onCreateControllersActionListener() {
         return new PineMediaController.ControllersActionListener() {
             @Override
@@ -205,9 +210,9 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
             }
 
             @Override
-            public boolean onGoBackBtnClick(View fullScreenBtn,
-                                            PineMediaWidget.IPineMediaPlayer player) {
-                if (player.isFullScreenMode() && mDEnableFullScreen) {
+            public boolean onGoBackBtnClick(View fullScreenBtn, PineMediaWidget.IPineMediaPlayer player,
+                                            boolean isFullScreenMode) {
+                if (isFullScreenMode && mDEnableFullScreen) {
                     mDControllerViewHolder.getFullScreenButton().performClick();
                 } else {
                     mDContext.finish();

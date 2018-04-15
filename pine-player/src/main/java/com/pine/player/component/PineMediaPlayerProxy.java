@@ -15,16 +15,23 @@ import java.util.Map;
 
 public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     private PineMediaPlayerComponent mMediaPlayerComponent;
+    private String mMediaPlayerTag;
 
-    public PineMediaPlayerProxy(@NonNull PineMediaPlayerComponent pineMediaPlayerComponent) {
+    public PineMediaPlayerProxy(String tag, @NonNull PineMediaPlayerComponent pineMediaPlayerComponent) {
+        mMediaPlayerTag = tag;
         mMediaPlayerComponent = pineMediaPlayerComponent;
+    }
+
+    public String getMediaPlayerTag() {
+        return mMediaPlayerTag;
     }
 
     public PineMediaPlayerComponent getPineMediaPlayerComponent() {
         return mMediaPlayerComponent;
     }
 
-    public void setPineMediaPlayerComponent(PineMediaPlayerComponent mediaPlayerComponent) {
+    public void setPineMediaPlayerComponent(String tag, PineMediaPlayerComponent mediaPlayerComponent) {
+        mMediaPlayerTag = tag;
         mMediaPlayerComponent = mediaPlayerComponent;
     }
 
@@ -75,11 +82,6 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     @Override
     public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
         mMediaPlayerComponent.setAutocephalyPlayMode(isAutocephalyPlayMode);
-    }
-
-    @Override
-    public PineMediaWidget.IPineMediaController getMediaController() {
-        return mMediaPlayerComponent.getMediaController();
     }
 
     @Override
@@ -153,16 +155,6 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
-    public void toggleFullScreenMode(boolean isLocked) {
-        mMediaPlayerComponent.toggleFullScreenMode(isLocked);
-    }
-
-    @Override
-    public boolean isFullScreenMode() {
-        return mMediaPlayerComponent.isFullScreenMode();
-    }
-
-    @Override
     public int getBufferPercentage() {
         return mMediaPlayerComponent.getBufferPercentage();
     }
@@ -193,8 +185,13 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
-    public boolean isAttachToFrontMode() {
-        return mMediaPlayerComponent.isAttachToFrontMode();
+    public boolean isAttachViewMode() {
+        return mMediaPlayerComponent.isAttachViewMode();
+    }
+
+    @Override
+    public boolean isAttachViewShown() {
+        return mMediaPlayerComponent.isAttachViewShown();
     }
 
     @Override

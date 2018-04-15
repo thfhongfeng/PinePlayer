@@ -127,9 +127,7 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
         mMediaList = MockDataUtil.getMediaList(this, mBasePath);
         initRecycleView();
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
-        mVideoView.init(TAG);
         mController = new PineMediaController(this);
-
         mMediaControllerAdapter = new PineMediaController.AbstractMediaControllerAdapter() {
             @Override
             public boolean init(PineMediaWidget.IPineMediaPlayer player) {
@@ -137,9 +135,10 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
             }
 
             @Override
-            public List<PineRightViewHolder> onCreateRightViewHolderList(PineMediaWidget.IPineMediaPlayer player) {
+            public List<PineRightViewHolder> onCreateRightViewHolderList(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 List<PineRightViewHolder> viewHolderList = new ArrayList<PineRightViewHolder>();
-                if (player.isFullScreenMode()) {
+                if (isFullScreenMode) {
                     if (hasMediaList()) {
                         PineRightViewHolder mediaListViewHolder = new PineRightViewHolder();
                         mediaListViewHolder.setContainer(mVideoListContainerInPlayer);
@@ -156,8 +155,9 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
             }
 
             @Override
-            public PineControllerViewHolder onCreateInRootControllerViewHolder(final PineMediaWidget.IPineMediaPlayer player) {
-                if (player.isFullScreenMode()) {
+            public PineControllerViewHolder onCreateInRootControllerViewHolder(
+                    final PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+                if (isFullScreenMode) {
                     if (mFullControllerViewHolder == null) {
                         mFullControllerViewHolder = new PineControllerViewHolder();
                         if (mFullControllerView == null) {
@@ -190,8 +190,8 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
                                 } else {
                                     barragePlugin.openPlugin();
                                 }
-                                if (player.getMediaController() != null) {
-                                    player.getMediaController().show();
+                                if (mVideoView.getMediaController() != null) {
+                                    mVideoView.getMediaController().show();
                                 }
                             }
                         });
@@ -257,17 +257,20 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
             }
 
             @Override
-            protected PineControllerViewHolder onCreateOutRootControllerViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+            protected PineControllerViewHolder onCreateOutRootControllerViewHolder(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 return null;
             }
 
             @Override
-            protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+            protected PineWaitingProgressViewHolder onCreateWaitingProgressViewHolder(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 return null;
             }
 
             @Override
-            public PineBackgroundViewHolder onCreateBackgroundViewHolder(PineMediaWidget.IPineMediaPlayer player) {
+            public PineBackgroundViewHolder onCreateBackgroundViewHolder(
+                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
                 PineMediaPlayerBean playerBean = player.getMediaPlayerBean();
                 Uri imgUri = playerBean == null ? null : playerBean.getMediaImgUri();
                 ImageView mediaBackgroundView = new ImageView(CustomMediaListPlayerActivity.this);
@@ -302,8 +305,8 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
                 return new PineMediaController.ControllersActionListener() {
                     @Override
                     public boolean onGoBackBtnClick(View fullScreenBtn,
-                                                    PineMediaWidget.IPineMediaPlayer player) {
-                        if (player.isFullScreenMode()) {
+                                                    PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
+                        if (isFullScreenMode) {
                             mControllerViewHolder.getFullScreenButton().performClick();
                         } else {
                             finish();
@@ -313,9 +316,9 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
                 };
             }
         };
-
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
-        mVideoView.setMediaController(mController);
+
+        mVideoView.init(TAG, mController);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
         mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {

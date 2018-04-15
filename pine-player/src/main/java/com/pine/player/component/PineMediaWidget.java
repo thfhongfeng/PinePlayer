@@ -31,9 +31,9 @@ public class PineMediaWidget {
         /**
          * 设置播放器控件Anchor View
          *
-         * @param view
+         * @param playerView
          */
-        void setAnchorView(ViewGroup view);
+        void setMediaPlayerView(PineMediaPlayerView playerView);
 
         /**
          * 设置播放内容
@@ -249,13 +249,6 @@ public class PineMediaWidget {
         void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
 
         /**
-         * 获取播放器的IPineMediaController
-         *
-         * @return
-         */
-        IPineMediaController getMediaController();
-
-        /**
          * 设置多媒体播放参数
          *
          * @param pineMediaPlayerBean 多媒体播放参数对象
@@ -358,20 +351,6 @@ public class PineMediaWidget {
         boolean isSurfaceViewEnable();
 
         /**
-         * 全屏模式装换
-         *
-         * @param isLocked 当前是否锁定状态
-         */
-        void toggleFullScreenMode(boolean isLocked);
-
-        /**
-         * 当前是否全屏模式
-         *
-         * @return
-         */
-        boolean isFullScreenMode();
-
-        /**
          * 获取缓冲百分比
          *
          * @return
@@ -414,11 +393,18 @@ public class PineMediaWidget {
         boolean isInPlaybackState();
 
         /**
-         * 是否是前台View播放模式
+         * 是否是绑定View的播放模式
          *
          * @return
          */
-        boolean isAttachToFrontMode();
+        boolean isAttachViewMode();
+
+        /**
+         * 绑定View是否是显示状态
+         *
+         * @return
+         */
+        boolean isAttachViewShown();
 
 
         /**
@@ -490,14 +476,14 @@ public class PineMediaWidget {
      */
     public interface IPineMediaPlayerListener {
         /**
-         * 播放器播放准备就绪
+         * 播放器放改变播
+         *
+         * @param fromState （STATE_ERROR, STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
+         * STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
+         * @param toState （STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
+         * STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
          */
-        void onPrepared();
-
-        /**
-         * 播放器播放完成
-         */
-        void onCompletion();
+        void onStateChange(int fromState, int toState);
 
         /**
          * 播放器播放信息更新
@@ -531,12 +517,7 @@ public class PineMediaWidget {
     public static class PineMediaPlayerListener implements IPineMediaPlayerListener {
 
         @Override
-        public void onPrepared() {
-
-        }
-
-        @Override
-        public void onCompletion() {
+        public void onStateChange(int fromState, int toState) {
 
         }
 
