@@ -22,7 +22,7 @@ import com.pine.player.util.LogUtil;
  */
 
 public class BarrageCanvasView extends RelativeLayout {
-    private final static String TAG = "BarrageCanvasView";
+    private final static String TAG = LogUtil.makeLogTag(BarrageCanvasView.class);
 
     private Context mContext;
     private boolean mIsPrepare = false;
@@ -32,11 +32,6 @@ public class BarrageCanvasView extends RelativeLayout {
     private int mDisplayTotalHeight = -1;
     private float mDisplayStartHeightPercent = -1f;
     private float mDisplayEndHeightPercent = -1f;
-    private int mTextViewHeight = 0;
-    // 双链表
-    private PartialDisplayBarrageNode mDisplayableHeadNode;
-    private PartialDisplayBarrageNode mRecycleHeadNode;
-
     ViewTreeObserver.OnGlobalLayoutListener mOnGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
         @Override
         public void onGlobalLayout() {
@@ -48,6 +43,10 @@ public class BarrageCanvasView extends RelativeLayout {
             }
         }
     };
+    private int mTextViewHeight = 0;
+    // 双链表
+    private PartialDisplayBarrageNode mDisplayableHeadNode;
+    private PartialDisplayBarrageNode mRecycleHeadNode;
 
     public BarrageCanvasView(Context context, int displayStartPx, int displayTotalHeight) {
         super(context);
@@ -220,7 +219,6 @@ public class BarrageCanvasView extends RelativeLayout {
     private PartialDisplayBarrageNode getMatchedNode(int height) {
         PartialDisplayBarrageNode node = mDisplayableHeadNode;
         while (node != null && node.getUntilNextRemainderPix() < height) {
-            LogUtil.v(TAG, "getMatchedNode node: " + node);
             node = node.getNextNode();
         }
         if (node != null) {

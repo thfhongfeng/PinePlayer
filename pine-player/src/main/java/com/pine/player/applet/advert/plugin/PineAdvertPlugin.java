@@ -8,8 +8,8 @@ import android.view.View;
 
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.advert.bean.PineAdvertBean;
-import com.pine.player.util.LogUtil;
 import com.pine.player.component.PineMediaWidget;
+import com.pine.player.util.LogUtil;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.List;
  */
 
 public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlugin<T> {
-    private static final String TAG = "PineAdvertPlugin";
+    private static final String TAG = LogUtil.makeLogTag(PineAdvertPlugin.class);
 
     private static final int MSG_HEAD_ADVERT_FINISH = 1;
     private static final int MSG_COMPLETE_ADVERT_FINISH = 2;

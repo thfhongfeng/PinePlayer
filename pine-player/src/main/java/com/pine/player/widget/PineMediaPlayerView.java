@@ -28,7 +28,7 @@ import com.pine.player.util.LogUtil;
  */
 
 public class PineMediaPlayerView extends RelativeLayout {
-    private final static String TAG = "PineMediaPlayerView";
+    private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerView.class);
     private static final long BACK_PRESSED_EXIT_TIME = 2000;
     private Context mContext;
     private String mMediaPlayerTag;

@@ -19,7 +19,7 @@ import com.pine.player.util.LogUtil;
  */
 
 public class PineSurfaceView extends SurfaceView {
-    private final static String TAG = "PineSurfaceView";
+    private static final String TAG = LogUtil.makeLogTag(PineSurfaceView.class);
     private Context mContext;
     private PineMediaPlayerComponent mMediaPlayerComponent = null;
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {

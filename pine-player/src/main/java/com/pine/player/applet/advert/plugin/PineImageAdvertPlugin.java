@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.pine.player.R;
 import com.pine.player.applet.advert.bean.PineAdvertBean;
 import com.pine.player.component.PineMediaWidget;
+import com.pine.player.util.LogUtil;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
  */
 
 public class PineImageAdvertPlugin<T extends List> extends PineAdvertPlugin<T> {
+    private static final String TAG = LogUtil.makeLogTag(PineImageAdvertPlugin.class);
 
     private PinePluginViewHolder mFullPluginViewHolder, mPluginViewHolder, mCurViewHolder;
     private Handler mHandler = new Handler();

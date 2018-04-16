@@ -83,7 +83,7 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    for (int i = 0; i < 4000; i++) {
+                                    for (int i = 0; i < 600; i++) {
                                         barragePlugin.addData(MockDataUtil.getBarrageList(i * 1000 + 30000));
                                     }
                                 }

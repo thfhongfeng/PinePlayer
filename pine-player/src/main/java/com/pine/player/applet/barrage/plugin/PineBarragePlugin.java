@@ -320,7 +320,6 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
             int itemSize = Math.min(mMaxShownItemCount, positionBarrageList.size());
             for (int i = 0; i < itemSize; i++) {
                 pineBarrageBean = positionBarrageList.get(i);
-                LogUtil.v(TAG, "onTime prepare to add barrage text:" + pineBarrageBean.getTextBody());
                 if (mBarrageCanvasView.addBarrageItemView(pineBarrageBean, mPlayer.getSpeed())) {
                     LogUtil.v(TAG, "onTime barrage added text:" + pineBarrageBean.getTextBody());
                     pineBarrageBean.setShow(true);

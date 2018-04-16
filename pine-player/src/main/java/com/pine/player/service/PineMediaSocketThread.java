@@ -25,8 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class PineMediaSocketThread implements Runnable {
-
-    private final static String TAG = "PineMediaServerThread";
+    private static final String TAG = LogUtil.makeLogTag(PineMediaSocketThread.class);
 
     private static final int TIME_OUT = 0;
     private static final int BUFFER_SIZE = 1024 * 1024;

@@ -24,7 +24,7 @@ public class PineMediaSocketService extends Service {
     public static final int SERVICE_STATE_DISCONNECTED = 1;
     public static final int SERVICE_STATE_CONNECTING = 2;
     public static final int SERVICE_STATE_CONNECTED = 3;
-    private final static String TAG = "PineMediaSocketService";
+    private static final String TAG = LogUtil.makeLogTag(PineMediaSocketService.class);
     private static int mSocketPort;
     private static PineMediaSocketThread mPineMediaServerThread;
 
