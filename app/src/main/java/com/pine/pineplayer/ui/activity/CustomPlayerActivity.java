@@ -29,6 +29,7 @@ import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
+import com.pine.player.widget.view.PineProgressBar;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineRightViewHolder;
@@ -58,7 +59,7 @@ public class CustomPlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_custom_simple_player);
+        setContentView(R.layout.activity_custom_player);
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -136,6 +137,8 @@ public class CustomPlayerActivity extends AppCompatActivity {
                         }
                         mControllerViewHolder = new PineControllerViewHolder();
                         initControllerViewHolder(mControllerViewHolder, mControllerView);
+                        mControllerViewHolder.setCustomProgressBar(
+                                (PineProgressBar) findViewById(R.id.media_circle_progress));
                         mControllerViewHolder.setTopControllerView(mControllerView
                                 .findViewById(R.id.top_controller));
                         mControllerViewHolder.setCenterControllerView(mControllerView

@@ -1,4 +1,4 @@
-package com.pine.player.widget;
+package com.pine.player.widget.view;
 
 import android.content.Context;
 import android.graphics.Canvas;

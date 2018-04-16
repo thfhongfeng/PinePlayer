@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 圆弧进度条 -->
+    <declare-styleable name="PineProgressBar">
+        <attr name="radius" format="dimension"></attr>
+        <attr name="strokeWidth" format="dimension"></attr>
+        <attr name="backgroundColor" format="color"></attr>
+        <attr name="progressColor" format="color"></attr>
+        <attr name="secondaryColor" format="color"></attr>
+        <attr name="startAngle" format="integer"></attr>
+    </declare-styleable>
+</resources>

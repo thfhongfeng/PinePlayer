@@ -4,6 +4,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
+import com.pine.player.widget.view.PineProgressBar;
+
 import java.util.List;
 
 /**
@@ -39,8 +41,10 @@ public final class PineControllerViewHolder {
     private View lockControllerButton;
     // 播放按键
     private View pausePlayButton;
-    // 播放进度条
+    // 播放进度条（用于使用系统自带的ProgressBar）
     private ProgressBar playProgressBar;
+    // 播放进度条（用于自定义的进度条）
+    private PineProgressBar customProgressBar;
     // 快速前进，快速后退按键
     private View fastForwardButton, fastBackwardButton;
     // 播放下一个，播放前一个按键
@@ -156,6 +160,14 @@ public final class PineControllerViewHolder {
 
     public void setPlayProgressBar(ProgressBar playProgressBar) {
         this.playProgressBar = playProgressBar;
+    }
+
+    public PineProgressBar getCustomProgressBar() {
+        return customProgressBar;
+    }
+
+    public void setCustomProgressBar(PineProgressBar customProgressBar) {
+        this.customProgressBar = customProgressBar;
     }
 
     public View getFastForwardButton() {

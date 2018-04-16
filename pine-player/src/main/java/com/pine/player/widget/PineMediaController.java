@@ -27,6 +27,7 @@ import com.pine.player.component.PineMediaPlayerComponent;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.adapter.DefaultVideoControllerAdapter;
+import com.pine.player.widget.view.PineProgressBar;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
@@ -395,6 +396,40 @@ public class PineMediaController extends RelativeLayout
             // Ensure that progress is properly updated in the future,
             // the call to show() does not guarantee this because it is a
             // no-op if we are already showing.
+            mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
+        }
+    };
+    private final PineProgressBar.OnProgressBarChangeListener mCustomProgressListener =
+            new PineProgressBar.OnProgressBarChangeListener() {
+        @Override
+        public void onStartTrackingTouch(PineProgressBar bar) {
+            show(3600000);
+            mDragging = true;
+            mHandler.removeMessages(MSG_SHOW_PROGRESS);
+        }
+
+        @Override
+        public void onProgressChanged(PineProgressBar bar, int progress, boolean fromUser) {
+            if (!fromUser) {
+                return;
+            }
+
+            long duration = mPlayer.getDuration();
+            if (duration < 0) {
+                return;
+            }
+            long newPosition = (duration * progress) / 1000L;
+            mPlayer.seekTo((int) newPosition);
+            updateCurrentTimeText((int) newPosition);
+        }
+
+        @Override
+        public void onStopTrackingTouch(PineProgressBar bar) {
+            mDragging = false;
+            setProgress();
+            updatePausePlayButton();
+
+            show(PineConstants.DEFAULT_SHOW_TIMEOUT);
             mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
         }
     };
@@ -813,6 +848,14 @@ public class PineMediaController extends RelativeLayout
             }
             mControllerViewHolder.getPlayProgressBar().setMax(1000);
         }
+        if (mControllerViewHolder.getCustomProgressBar() != null) {
+            if (mControllerViewHolder.getCustomProgressBar() instanceof PineProgressBar) {
+                PineProgressBar progressBar = mControllerViewHolder.getCustomProgressBar();
+                progressBar.setOnProgressBarChangeListener(mCustomProgressListener);
+                mControllerViewHolder.getCustomProgressBar().setVisibility(View.VISIBLE);
+            }
+            mControllerViewHolder.getCustomProgressBar().setMax(1000);
+        }
         if (mControllerViewHolder.getFastForwardButton() != null) {
             mControllerViewHolder.getFastForwardButton().setOnClickListener(mFfwdListener);
             mControllerViewHolder.getFastForwardButton().setVisibility(
@@ -1176,6 +1219,16 @@ public class PineMediaController extends RelativeLayout
             int percent = mPlayer.getBufferPercentage();
             mControllerViewHolder.getPlayProgressBar().setSecondaryProgress(percent * (int) max / 100);
         }
+        if (mControllerViewHolder.getCustomProgressBar() != null) {
+            long max = mControllerViewHolder.getCustomProgressBar().getMax();
+            if (duration > 0) {
+                // use long to avoid overflow
+                long pos = max * position / duration;
+                mControllerViewHolder.getCustomProgressBar().setProgress((int) pos);
+            }
+            int percent = mPlayer.getBufferPercentage();
+            mControllerViewHolder.getCustomProgressBar().setSecondaryProgress(percent * (int) max);
+        }
         updateEndTimeText(duration);
         updateCurrentTimeText(position);
 
@@ -1225,6 +1278,9 @@ public class PineMediaController extends RelativeLayout
         if (mControllerViewHolder.getPlayProgressBar() != null) {
             mControllerViewHolder.getPlayProgressBar().setEnabled(enabledProgressBar);
         }
+        if (mControllerViewHolder.getCustomProgressBar() != null) {
+            mControllerViewHolder.getCustomProgressBar().setEnabled(enabledProgressBar);
+        }
         if (mControllerViewHolder.getFullScreenButton() != null) {
             mControllerViewHolder.getFullScreenButton().setEnabled(enabledToggleFullScreen);
         }
@@ -1271,8 +1327,13 @@ public class PineMediaController extends RelativeLayout
             // However, currently the flags SEEK_BACKWARD_AVAILABLE, SEEK_FORWARD_AVAILABLE,
             // and SEEK_AVAILABLE are all (un)set together; as such the aforementioned issue
             // shouldn't arise in existing applications.
-            if (mControllerViewHolder.getPlayProgressBar() != null && !mPlayer.canSeekBackward() && !mPlayer.canSeekForward()) {
-                mControllerViewHolder.getPlayProgressBar().setEnabled(false);
+            if (!mPlayer.canSeekBackward() && !mPlayer.canSeekForward()) {
+                if (mControllerViewHolder.getPlayProgressBar() != null) {
+                    mControllerViewHolder.getPlayProgressBar().setEnabled(false);
+                }
+                if (mControllerViewHolder.getCustomProgressBar() != null) {
+                    mControllerViewHolder.getCustomProgressBar().setEnabled(false);
+                }
             }
         } catch (IncompatibleClassChangeError ex) {
             // We were given an old version of the io, that doesn't have

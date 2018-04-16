@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center_horizontal">
 
     <com.pine.player.widget.PineMediaPlayerView
@@ -12,15 +13,17 @@
         android:background="#DDDDDD"
         android:gravity="center" />
 
-    <android.support.v4.widget.NestedScrollView
+    <com.pine.player.widget.view.PineRingProgressBar
+        android:id="@+id/media_circle_progress"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/video_view">
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/media_list_rv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dp"></android.support.v7.widget.RecyclerView>
-    </android.support.v4.widget.NestedScrollView>
+        android:layout_height="wrap_content"
+        android:layout_below="@id/video_view"
+        android:padding="20dp"
+        app:radius="80dp"
+        app:strokeWidth="5dp"
+        app:backgroundColor="#DDDDDD"
+        app:progressColor="#EE6723"
+        app:secondaryColor="#E5E5E5"
+        app:startAngle="-90"/>
 
 </RelativeLayout>

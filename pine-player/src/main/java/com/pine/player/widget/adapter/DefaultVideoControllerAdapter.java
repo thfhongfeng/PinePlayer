@@ -24,7 +24,7 @@ import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.widget.AdvanceDecoration;
+import com.pine.player.widget.view.AdvanceDecoration;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
