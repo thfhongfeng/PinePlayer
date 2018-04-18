@@ -29,6 +29,7 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -52,6 +53,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerComponent.class);
     // 是否使用5.0之后的新API，该API支持本地流播放
     private static final boolean USE_NEW_API = true;
+    private final Object LISTENER_SET_LOCK = new Object();
     private int mCurrentState = STATE_IDLE;
     private int mTargetState = STATE_IDLE;
     private boolean mIsAutocephalyPlayMode;
@@ -85,7 +87,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             };
     private int mSurfaceWidth;
     private int mSurfaceHeight;
-    private PineMediaWidget.PineMediaPlayerListener mMediaPlayerListener;
+    private HashSet<PineMediaWidget.IPineMediaPlayerListener> mMediaPlayerListenerSet =
+            new HashSet<>();
     private int mCurrentBufferPercentage;
     // 记录播放位置，在界面切换等情况下，自动恢复到之前的播放位置
     private int mSeekWhenPrepared;
@@ -102,8 +105,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
 
             // Get the capabilities of the player for this stream
             setMetaData(mp);
-            if (mMediaPlayerListener != null) {
-                mMediaPlayerListener.onStateChange(fromState, STATE_PREPARED);
+            if (mMediaPlayerListenerSet.size() > 0) {
+                synchronized (LISTENER_SET_LOCK) {
+                    for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                        if (listener != null) {
+                            listener.onStateChange(fromState, STATE_PREPARED);
+                        }
+                    }
+                }
             }
             if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                 mMediaPlayerView.getMediaController().onMediaPlayerPrepared();
@@ -167,8 +176,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                         if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                             mMediaPlayerView.getMediaController().onAbnormalComplete();
                         }
-                        if (mMediaPlayerListener != null) {
-                            mMediaPlayerListener.onAbnormalComplete();
+                        if (mMediaPlayerListenerSet.size() > 0) {
+                            synchronized (LISTENER_SET_LOCK) {
+                                for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                                    if (listener != null) {
+                                        listener.onAbnormalComplete();
+                                    }
+                                }
+                            }
                         }
                     } else {
                         int fromState = mCurrentState;
@@ -177,8 +192,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                         if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                             mMediaPlayerView.getMediaController().onMediaPlayerComplete();
                         }
-                        if (mMediaPlayerListener != null) {
-                            mMediaPlayerListener.onStateChange(fromState, STATE_PLAYBACK_COMPLETED);
+                        if (mMediaPlayerListenerSet.size() > 0) {
+                            synchronized (LISTENER_SET_LOCK) {
+                                for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                                    if (listener != null) {
+                                        listener.onStateChange(fromState, STATE_PLAYBACK_COMPLETED);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -191,8 +212,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                         mMediaPlayerView.getMediaController().onMediaPlayerInfo(what, extra);
                     }
-                    if (mMediaPlayerListener != null) {
-                        mMediaPlayerListener.onInfo(what, extra);
+                    if (mMediaPlayerListenerSet.size() > 0) {
+                        synchronized (LISTENER_SET_LOCK) {
+                            for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                                if (listener != null) {
+                                    listener.onInfo(what, extra);
+                                }
+                            }
+                        }
                     }
                     return true;
                 }
@@ -208,9 +235,17 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     }
                     release(true);
                     /* If an error handler has been supplied, use it and finish. */
-                    if (mMediaPlayerListener != null) {
-                        if (mMediaPlayerListener.onError(framework_err, impl_err)) {
-                            return true;
+                    if (mMediaPlayerListenerSet.size() > 0) {
+                        synchronized (LISTENER_SET_LOCK) {
+                            boolean result = true;
+                            for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                                if (listener != null) {
+                                    result = result && listener.onError(framework_err, impl_err);
+                                }
+                            }
+                            if (result) {
+                                return true;
+                            }
                         }
                     }
 
@@ -287,8 +322,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         mMediaHeight = 0;
         int fromState = mCurrentState;
         mCurrentState = STATE_IDLE;
-        if (mMediaPlayerListener != null) {
-            mMediaPlayerListener.onStateChange(fromState, STATE_IDLE);
+        if (mMediaPlayerListenerSet.size() > 0) {
+            synchronized (LISTENER_SET_LOCK) {
+                for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                    if (listener != null) {
+                        listener.onStateChange(fromState, STATE_IDLE);
+                    }
+                }
+            }
         }
         mTargetState = STATE_IDLE;
     }
@@ -433,8 +474,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             // target state that was there before.
             int fromState = mCurrentState;
             mCurrentState = STATE_PREPARING;
-            if (mMediaPlayerListener != null) {
-                mMediaPlayerListener.onStateChange(fromState, STATE_PREPARING);
+            if (mMediaPlayerListenerSet.size() > 0) {
+                synchronized (LISTENER_SET_LOCK) {
+                    for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                        if (listener != null) {
+                            listener.onStateChange(fromState, STATE_PREPARING);
+                        }
+                    }
+                }
             }
             attachMediaController(true, isResumeState);
         } catch (IOException ex) {
@@ -530,8 +577,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 }
                 int fromState = mCurrentState;
                 mCurrentState = STATE_PLAYING;
-                if (mMediaPlayerListener != null) {
-                    mMediaPlayerListener.onStateChange(fromState, STATE_PLAYING);
+                if (mMediaPlayerListenerSet.size() > 0) {
+                    synchronized (LISTENER_SET_LOCK) {
+                        for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                            if (listener != null) {
+                                listener.onStateChange(fromState, STATE_PLAYING);
+                            }
+                        }
+                    }
                 }
             }
             mTargetState = STATE_PLAYING;
@@ -551,8 +604,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 }
                 int fromState = mCurrentState;
                 mCurrentState = STATE_PAUSED;
-                if (mMediaPlayerListener != null) {
-                    mMediaPlayerListener.onStateChange(fromState, STATE_PAUSED);
+                if (mMediaPlayerListenerSet.size() > 0) {
+                    synchronized (LISTENER_SET_LOCK) {
+                        for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                            if (listener != null) {
+                                listener.onStateChange(fromState, STATE_PAUSED);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -753,8 +812,17 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public void setMediaPlayerListener(PineMediaWidget.PineMediaPlayerListener listener) {
-        mMediaPlayerListener = listener;
+    public void removeMediaPlayerListener(PineMediaWidget.IPineMediaPlayerListener listener) {
+        synchronized (LISTENER_SET_LOCK) {
+            mMediaPlayerListenerSet.remove(listener);
+        }
+    }
+
+    @Override
+    public void addMediaPlayerListener(PineMediaWidget.IPineMediaPlayerListener listener) {
+        synchronized (LISTENER_SET_LOCK) {
+            mMediaPlayerListenerSet.add(listener);
+        }
     }
 
     @Override
@@ -852,8 +920,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mMediaPlayer = null;
             int fromState = mCurrentState;
             mCurrentState = STATE_IDLE;
-            if (mMediaPlayerListener != null) {
-                mMediaPlayerListener.onStateChange(fromState, STATE_IDLE);
+            if (mMediaPlayerListenerSet.size() > 0) {
+                synchronized (LISTENER_SET_LOCK) {
+                    for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                        if (listener != null) {
+                            listener.onStateChange(fromState, STATE_IDLE);
+                        }
+                    }
+                }
             }
             mTargetState = STATE_IDLE;
             AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
@@ -872,8 +946,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mMediaPlayer = null;
             int fromState = mCurrentState;
             mCurrentState = STATE_IDLE;
-            if (mMediaPlayerListener != null) {
-                mMediaPlayerListener.onStateChange(fromState, STATE_IDLE);
+            if (mMediaPlayerListenerSet.size() > 0) {
+                synchronized (LISTENER_SET_LOCK) {
+                    for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                        if (listener != null) {
+                            listener.onStateChange(fromState, STATE_IDLE);
+                        }
+                    }
+                }
             }
             if (clearTargetState) {
                 mTargetState = STATE_IDLE;
@@ -894,6 +974,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void onDestroy() {
         LogUtil.d(TAG, "onDestroy");
         release();
+        mMediaPlayerListenerSet.clear();
         if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
             LogUtil.d(TAG, "Unbind local service");
             mContext.unbindService(mServiceConnection);

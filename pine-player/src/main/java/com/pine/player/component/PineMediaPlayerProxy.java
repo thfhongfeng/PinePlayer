@@ -205,8 +205,13 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
-    public void setMediaPlayerListener(PineMediaWidget.PineMediaPlayerListener listener) {
-        mMediaPlayerComponent.setMediaPlayerListener(listener);
+    public void removeMediaPlayerListener(PineMediaWidget.IPineMediaPlayerListener listener) {
+        mMediaPlayerComponent.removeMediaPlayerListener(listener);
+    }
+
+    @Override
+    public void addMediaPlayerListener(PineMediaWidget.IPineMediaPlayerListener listener) {
+        mMediaPlayerComponent.addMediaPlayerListener(listener);
     }
 
     @Override

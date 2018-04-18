@@ -293,7 +293,8 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
             public PineMediaController.ControllerMonitor onCreateControllerMonitor() {
                 return new PineMediaController.ControllerMonitor() {
                     @Override
-                    public boolean onFullScreenModeUpdate(boolean isFullScreenMode) {
+                    public boolean onFullScreenModeUpdate(PineMediaWidget.IPineMediaPlayer player,
+                                                          boolean isFullScreenMode) {
                         mVideoListInDetailAdapter.notifyDataSetChanged();
                         return false;
                     }
@@ -321,12 +322,6 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
         mVideoView.init(TAG, mController);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
-        mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
-            @Override
-            public boolean onError(int framework_err, int impl_err) {
-                return false;
-            }
-        });
         mCurrentVideoPosition = 0;
 
         videoSelected(mCurrentVideoPosition);

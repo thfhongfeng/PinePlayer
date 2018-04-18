@@ -47,12 +47,6 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
         mVideoView.init(TAG, mController);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
-        mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
-            @Override
-            public boolean onError(int framework_err, int impl_err) {
-                return false;
-            }
-        });
         mCurrentVideoPosition = 0;
         mMediaControllerAdapter.setCurrentMediaPosition(mCurrentVideoPosition);
         mPlayer.setPlayingMedia(mMediaList.get(mCurrentVideoPosition));

@@ -62,12 +62,6 @@ public class MediaServicePlayerActivity extends AppCompatActivity {
         }
         mCurMediaView.setVisibility(View.VISIBLE);
         mPlayer = mCurMediaView.getMediaPlayer();
-        mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
-            @Override
-            public boolean onError(int framework_err, int impl_err) {
-                return false;
-            }
-        });
         if (mPlayer.isInPlaybackState()) {
             PineMediaPlayerBean playerBean = mPlayer.getMediaPlayerBean();
             for (int i = 0; i < mMediaList.size(); i++) {

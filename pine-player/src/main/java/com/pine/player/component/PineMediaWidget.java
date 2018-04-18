@@ -422,11 +422,18 @@ public class PineMediaWidget {
         int getMediaPlayerState();
 
         /**
-         * 设置播放状态监听器
+         * 移除播放状态监听器
          *
          * @param listener
          */
-        void setMediaPlayerListener(PineMediaPlayerListener listener);
+        void removeMediaPlayerListener(IPineMediaPlayerListener listener);
+
+        /**
+         * 添加播放状态监听器
+         *
+         * @param listener
+         */
+        void addMediaPlayerListener(IPineMediaPlayerListener listener);
 
         /**
          * 获取播放器当前的播放MediaPlayerView

@@ -202,15 +202,6 @@ public class CustomPlayerActivity extends AppCompatActivity {
                 return viewHolder;
             }
 
-            public PineMediaController.ControllerMonitor onCreateControllerMonitor() {
-                return new PineMediaController.ControllerMonitor() {
-                    @Override
-                    public boolean onFullScreenModeUpdate(boolean isFullScreenMode) {
-                        return false;
-                    }
-                };
-            }
-
             @Override
             protected PineMediaController.ControllersActionListener onCreateControllersActionListener() {
                 return new PineMediaController.ControllersActionListener() {
@@ -231,12 +222,6 @@ public class CustomPlayerActivity extends AppCompatActivity {
         mVideoView.init(TAG, mController);
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
-        mPlayer.setMediaPlayerListener(new PineMediaWidget.PineMediaPlayerListener() {
-            @Override
-            public boolean onError(int framework_err, int impl_err) {
-                return false;
-            }
-        });
 
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "VideoDefinitionSelect",
                 MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);
