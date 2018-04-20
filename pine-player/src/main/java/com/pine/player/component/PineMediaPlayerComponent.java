@@ -894,6 +894,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void onSurfaceDestroyed(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView) {
         // after we return from this we can't use the surface any more
         mSurfaceView = null;
+        mSurfaceWidth = 0;
+        mSurfaceHeight = 0;
         if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
             mMediaPlayerView.getMediaController().hide();
         }
@@ -917,10 +919,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void detachMediaPlayerView(PineMediaPlayerView view) {
         if (view == mMediaPlayerView && mMediaPlayerView != null) {
             mMediaPlayerView.onMediaComponentDetach();
-            mMediaPlayerView = null;
-            mSurfaceView = null;
-            mSurfaceWidth = 0;
-            mSurfaceHeight = 0;
+            mMediaPlayerView = null;;
         }
     }
 
