@@ -338,7 +338,6 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mPlayer.resume();
     }
 
     @Override

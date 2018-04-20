@@ -21,27 +21,28 @@ import com.pine.player.util.LogUtil;
 public class PineSurfaceView extends SurfaceView {
     private static final String TAG = LogUtil.makeLogTag(PineSurfaceView.class);
     private Context mContext;
+    private PineMediaPlayerView mMediaPlayerView = null;
     private PineMediaPlayerComponent mMediaPlayerComponent = null;
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format,
                                    int w, int h) {
             LogUtil.d(TAG, "surfaceChanged");
             if (mMediaPlayerComponent != null) {
-                mMediaPlayerComponent.onSurfaceChanged(PineSurfaceView.this, format, w, h);
+                mMediaPlayerComponent.onSurfaceChanged(mMediaPlayerView, PineSurfaceView.this, format, w, h);
             }
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
             LogUtil.d(TAG, "surfaceCreated");
             if (mMediaPlayerComponent != null) {
-                mMediaPlayerComponent.onSurfaceCreated(PineSurfaceView.this);
+                mMediaPlayerComponent.onSurfaceCreated(mMediaPlayerView, PineSurfaceView.this);
             }
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
             LogUtil.d(TAG, "surfaceDestroyed");
             if (mMediaPlayerComponent != null) {
-                mMediaPlayerComponent.onSurfaceDestroyed(PineSurfaceView.this);
+                mMediaPlayerComponent.onSurfaceDestroyed(mMediaPlayerView, PineSurfaceView.this);
             }
         }
     };
@@ -76,7 +77,9 @@ public class PineSurfaceView extends SurfaceView {
         setFocusableInTouchMode(true);
     }
 
-    public void setMediaPlayerComponent(PineMediaPlayerComponent mediaPlayerComponent) {
+    public void setMediaPlayerComponent(PineMediaPlayerView playerView,
+                                        PineMediaPlayerComponent mediaPlayerComponent) {
+        mMediaPlayerView = playerView;
         mMediaPlayerComponent = mediaPlayerComponent;
     }
 
@@ -165,5 +168,11 @@ public class PineSurfaceView extends SurfaceView {
     public void draw(Canvas canvas) {
         LogUtil.d(TAG, "draw");
         super.draw(canvas);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        LogUtil.d(TAG, "Detach from window view:" + this.getId());
+        super.onDetachedFromWindow();
     }
 }

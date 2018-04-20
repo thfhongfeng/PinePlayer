@@ -2,6 +2,7 @@ package com.pine.player.widget.adapter;
 
 import android.animation.LayoutTransition;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -24,8 +25,8 @@ import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.widget.view.AdvanceDecoration;
 import com.pine.player.widget.PineMediaController;
+import com.pine.player.widget.view.AdvanceDecoration;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
 import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineRightViewHolder;
@@ -43,7 +44,7 @@ import java.util.List;
  **/
 
 public class DefaultVideoControllerAdapter extends PineMediaController.AbstractMediaControllerAdapter {
-    private Activity mDContext;
+    private Context mDContext;
     private PineBackgroundViewHolder mDBackgroundViewHolder;
     private PineControllerViewHolder mDFullControllerViewHolder, mDControllerViewHolder;
     private PineWaitingProgressViewHolder mDWaitingProgressViewHolder;
@@ -65,15 +66,15 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     private boolean mDEnableCurTime, mDEnableProgressBar, mDEnableTotalTime;
     private boolean mDEnableVolumeText, mDEnableFullScreen;
 
-    public DefaultVideoControllerAdapter(Activity context) {
+    public DefaultVideoControllerAdapter(Context context) {
         this(context, null, true, true, true, true, true, true, true, true);
     }
 
-    public DefaultVideoControllerAdapter(Activity context, List<PineMediaPlayerBean> mediaList) {
+    public DefaultVideoControllerAdapter(Context context, List<PineMediaPlayerBean> mediaList) {
         this(context, mediaList, true, true, true, true, true, true, true, true);
     }
 
-    public DefaultVideoControllerAdapter(Activity context, List<PineMediaPlayerBean> mediaList,
+    public DefaultVideoControllerAdapter(Context context, List<PineMediaPlayerBean> mediaList,
                                          boolean enableSpeed, boolean enableMediaList,
                                          boolean enableDefinition, boolean enableCurTime,
                                          boolean enableProgressBar, boolean enableTotalTime,
@@ -288,8 +289,8 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
                                             boolean isFullScreenMode) {
                 if (isFullScreenMode && mDEnableFullScreen) {
                     mDFullControllerViewHolder.getFullScreenButton().performClick();
-                } else {
-                    mDContext.finish();
+                } else if (mDContext instanceof Activity) {
+                    ((Activity) mDContext).finish();
                 }
                 return false;
             }
@@ -305,7 +306,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     private void initVideoRecycleView() {
-        mDVideoListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
+        mDVideoListContainerInPlayer = (ViewGroup) LayoutInflater.from(mDContext)
                 .inflate(R.layout.pine_player_media_list_recycler_view, null);
         mDVideoListInPlayerRv = (RecyclerView) mDVideoListContainerInPlayer
                 .findViewById(R.id.video_recycler_view_in_player);
@@ -331,7 +332,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     private void initDefinitionRecycleView() {
-        mDDefinitionListContainerInPlayer = (ViewGroup) mDContext.getLayoutInflater()
+        mDDefinitionListContainerInPlayer = (ViewGroup) LayoutInflater.from(mDContext)
                 .inflate(R.layout.pine_player_definition_recycler_view, null);
         mDDefinitionListInPlayerRv = (RecyclerView) mDDefinitionListContainerInPlayer
                 .findViewById(R.id.definition_recycler_view_in_player);

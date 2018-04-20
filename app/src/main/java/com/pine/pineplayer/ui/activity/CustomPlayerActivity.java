@@ -241,7 +241,6 @@ public class CustomPlayerActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mPlayer.resume();
     }
 
     @Override

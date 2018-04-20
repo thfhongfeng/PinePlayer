@@ -56,7 +56,6 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mPlayer.resume();
     }
 
     @Override

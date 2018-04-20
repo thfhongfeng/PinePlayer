@@ -47,8 +47,6 @@ public class DefaultPlayerActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mPlayer.resume();
-
     }
 
     @Override

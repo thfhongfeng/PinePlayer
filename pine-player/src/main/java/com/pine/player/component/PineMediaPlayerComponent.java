@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.IPineMediaSocketService;
+import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.service.PineMediaSocketService;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaPlayerView;
@@ -552,6 +553,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
+    public String getMediaPlayerTag() {
+        return null;
+    }
+
+    @Override
     public float getSpeed() {
         return mSpeed;
     }
@@ -830,11 +836,17 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         return mMediaPlayerView;
     }
 
-    public void setMediaPlayerView(PineMediaPlayerView playerView) {
+    public void setMediaPlayerView(PineMediaPlayerView playerView, boolean forResume) {
         if (mMediaPlayerView != null && playerView != mMediaPlayerView) {
             detachMediaPlayerView(mMediaPlayerView);
         }
         mMediaPlayerView = playerView;
+        if (forResume) {
+            setDisplaySurface(mSurfaceView);
+        }
+        if (mMediaPlayerView != null) {
+            mMediaPlayerView.onMediaComponentAttach();
+        }
     }
 
     @Override
@@ -858,7 +870,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public void onSurfaceChanged(SurfaceView surfaceView, int format, int w, int h) {
+    public void onSurfaceChanged(PineMediaPlayerView mMediaPlayerView,
+                                 SurfaceView surfaceView, int format, int w, int h) {
         mSurfaceWidth = w;
         mSurfaceHeight = h;
         boolean isValidState = (mTargetState == STATE_PLAYING);
@@ -872,13 +885,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public void onSurfaceCreated(SurfaceView surfaceView) {
+    public void onSurfaceCreated(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView) {
         mSurfaceView = (PineSurfaceView) surfaceView;
         setDisplaySurface(mSurfaceView);
     }
 
     @Override
-    public void onSurfaceDestroyed(SurfaceView surfaceView) {
+    public void onSurfaceDestroyed(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView) {
         // after we return from this we can't use the surface any more
         mSurfaceView = null;
         if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
@@ -902,11 +915,10 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     public void detachMediaPlayerView(PineMediaPlayerView view) {
-        if (view == mMediaPlayerView) {
+        if (view == mMediaPlayerView && mMediaPlayerView != null) {
+            mMediaPlayerView.onMediaComponentDetach();
             mMediaPlayerView = null;
             mSurfaceView = null;
-            mMediaWidth = 0;
-            mMediaHeight = 0;
             mSurfaceWidth = 0;
             mSurfaceHeight = 0;
         }
@@ -981,6 +993,9 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mLocalService = null;
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
+        detachMediaPlayerView(mMediaPlayerView);
+        mMediaWidth = 0;
+        mMediaHeight = 0;
     }
 
     public boolean onTrackballEvent(MotionEvent ev) {

@@ -194,6 +194,8 @@ public class PineMediaWidget {
      */
     public static interface IPineMediaPlayer {
 
+        String getMediaPlayerTag();
+
         /**
          * 获取播放倍速
          */
@@ -470,12 +472,12 @@ public class PineMediaWidget {
     }
 
     public interface IPineMediaSurfaceListener {
-        void onSurfaceChanged(SurfaceView surfaceView, int format,
-                              int w, int h);
+        void onSurfaceChanged(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView,
+                              int format,  int w, int h);
 
-        void onSurfaceCreated(SurfaceView surfaceView);
+        void onSurfaceCreated(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView);
 
-        void onSurfaceDestroyed(SurfaceView surfaceView);
+        void onSurfaceDestroyed(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView);
     }
 
     /**

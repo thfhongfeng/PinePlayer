@@ -8,5 +8,6 @@
         <attr name="progressColor" format="color"></attr>
         <attr name="secondaryColor" format="color"></attr>
         <attr name="startAngle" format="integer"></attr>
+        <attr name="fillDrawable" format="reference|color"></attr>
     </declare-styleable>
 </resources>

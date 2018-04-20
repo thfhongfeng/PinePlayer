@@ -22,10 +22,6 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
         mMediaPlayerComponent = pineMediaPlayerComponent;
     }
 
-    public String getMediaPlayerTag() {
-        return mMediaPlayerTag;
-    }
-
     public PineMediaPlayerComponent getPineMediaPlayerComponent() {
         return mMediaPlayerComponent;
     }
@@ -33,6 +29,11 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     public void setPineMediaPlayerComponent(String tag, PineMediaPlayerComponent mediaPlayerComponent) {
         mMediaPlayerTag = tag;
         mMediaPlayerComponent = mediaPlayerComponent;
+    }
+
+    @Override
+    public String getMediaPlayerTag() {
+        return mMediaPlayerTag;
     }
 
     @Override
