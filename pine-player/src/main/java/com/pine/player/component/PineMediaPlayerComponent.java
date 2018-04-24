@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -379,6 +380,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
                                 Map<String, String> headers, boolean resumeState, boolean isAutocephalyPlayMode) {
         mMediaBean = pineMediaPlayerBean;
+        ArrayList<Uri> mediaUris = null;
+        if (mMediaBean != null) {
+            mediaUris = mMediaBean.getMediaSectionUris();
+        }
+        mMediaSectionUrisCount = mediaUris != null ? mediaUris.size() : -1;
         mHeaders = headers;
         mIsAutocephalyPlayMode = isAutocephalyPlayMode;
         mIsLocalStreamMedia = pineMediaPlayerBean.isLocalStreamBean();
@@ -405,6 +411,9 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
         }
     }
+
+    // media的uri分段数(一个media可能有多个分段uri，则需要无缝衔接)
+    private int mMediaSectionUrisCount = -1;
 
     /**
      * 打开多媒体

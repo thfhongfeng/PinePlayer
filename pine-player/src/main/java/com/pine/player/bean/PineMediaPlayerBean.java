@@ -10,7 +10,6 @@ import com.pine.player.decrytor.IPineMediaDecryptor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by tanghongfeng on 2017/9/18.
@@ -69,41 +68,13 @@ public class PineMediaPlayerBean {
     }
 
     /**
-     * @param mediaCode        media标识编码 不可为null，用于区分不同的视频
-     * @param mediaName        media名称 不可为null
-     * @param mediaImgUri     media文件Uri 不可为null
-     * @param mediaType        media类型 默认为MEDIA_TYPE_VIDEO
-     * @param mediaImgUri      media图片Uri 可为null
-     * @param playerPluginMap media插件map集合 可为null
-     * @param playerDecryptor  media解密器 可为null
-     */
-    public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
-                               @NonNull Uri mediaUri,
-                               int mediaType, Uri mediaImgUri,
-                               HashMap<Integer, IPinePlayerPlugin> playerPluginMap,
-                               IPineMediaDecryptor playerDecryptor) {
-        this.mediaCode = mediaCode;
-        this.mediaName = mediaName;
-        this.mediaUriSourceList = new ArrayList<PineMediaUriSource>();
-        this.mediaUriSourceList.add(new PineMediaUriSource(mediaUri));
-        if (mediaType == MEDIA_TYPE_VIDEO || mediaType == MEDIA_TYPE_AUDIO) {
-            this.mediaType = mediaType;
-        } else {
-            this.mediaType = MEDIA_TYPE_VIDEO;
-        }
-        this.mediaImgUri = mediaImgUri;
-        this.playerPluginMap = playerPluginMap;
-        this.playerDecryptor = playerDecryptor;
-    }
-
-    /**
-     * @param mediaCode        media标识编码 不可为null，用于区分不同的视频
-     * @param mediaName        media名称 不可为null
-     * @param mediaUriSource   media文件UriSource 不可为null
-     * @param mediaType        media类型 默认为MEDIA_TYPE_VIDEO
-     * @param mediaImgUri      media图片Uri 可为null
+     * @param mediaCode       media标识编码 不可为null，用于区分不同的视频
+     * @param mediaName       media名称 不可为null
+     * @param mediaUriSource  media文件UriSource 不可为null
+     * @param mediaType       media类型 默认为MEDIA_TYPE_VIDEO
+     * @param mediaImgUri     media图片Uri 可为null
      * @param playerPluginMap media插件map集合  可为null
-     * @param playerDecryptor  media解密器 可为null
+     * @param playerDecryptor media解密器 可为null
      */
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull PineMediaUriSource mediaUriSource,
@@ -125,12 +96,40 @@ public class PineMediaPlayerBean {
     }
 
     /**
+     * @param mediaCode       media标识编码 不可为null，用于区分不同的视频
+     * @param mediaName       media名称 不可为null
+     * @param mediaImgUri     media文件Uri 不可为null
+     * @param mediaType       media类型 默认为MEDIA_TYPE_VIDEO
+     * @param mediaImgUri     media图片Uri 可为null
+     * @param playerPluginMap media插件map集合 可为null
+     * @param playerDecryptor media解密器 可为null
+     */
+    public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
+                               @NonNull Uri mediaUri,
+                               int mediaType, Uri mediaImgUri,
+                               HashMap<Integer, IPinePlayerPlugin> playerPluginMap,
+                               IPineMediaDecryptor playerDecryptor) {
+        this.mediaCode = mediaCode;
+        this.mediaName = mediaName;
+        this.mediaUriSourceList = new ArrayList<PineMediaUriSource>();
+        this.mediaUriSourceList.add(new PineMediaUriSource(mediaUri));
+        if (mediaType == MEDIA_TYPE_VIDEO || mediaType == MEDIA_TYPE_AUDIO) {
+            this.mediaType = mediaType;
+        } else {
+            this.mediaType = MEDIA_TYPE_VIDEO;
+        }
+        this.mediaImgUri = mediaImgUri;
+        this.playerPluginMap = playerPluginMap;
+        this.playerDecryptor = playerDecryptor;
+    }
+
+    /**
      * @param mediaCode          media标识编码 不可为null，用于区分不同的视频
      * @param mediaName          media名称 不可为null
      * @param mediaUriSourceList media各个清晰度对应的文件mediaUriSource列表 不可为null
      * @param mediaType          media类型 默认为MEDIA_TYPE_VIDEO
      * @param mediaImgUri        media图片Uri 可为null
-     * @param playerPluginMap  media插件map集合 可为null
+     * @param playerPluginMap    media插件map集合 可为null
      * @param playerDecryptor    media解密器 可为null
      */
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
@@ -167,6 +166,11 @@ public class PineMediaPlayerBean {
         this.mediaName = mediaName;
     }
 
+    /**
+     * 获取当前清晰度的uri（用于一个清晰度的media只有一个uri的情况）
+     *
+     * @return
+     */
     public Uri getMediaUri() {
         PineMediaUriSource pineMediaUriSource = getMediaUriSource();
         if (pineMediaUriSource != null) {
@@ -176,10 +180,11 @@ public class PineMediaPlayerBean {
         }
     }
 
-    public PineMediaUriSource getMediaUriSource() {
-        return getMediaUriSourceByDefinition(getCurrentDefinition());
-    }
-
+    /**
+     * 获取指定清晰度的uri（用于一个清晰度的media只有一个uri的情况）
+     *
+     * @return
+     */
     public Uri getMediaUriByDefinition(int definition) {
         PineMediaUriSource pineMediaUriSource =
                 getMediaUriSourceByDefinition(definition);
@@ -190,6 +195,48 @@ public class PineMediaPlayerBean {
         }
     }
 
+    /**
+     * 获取当前清晰度的uri分段列表（用于一个清晰度的media有多个分段的url的情况）
+     *
+     * @return
+     */
+    public ArrayList<Uri> getMediaSectionUris() {
+        PineMediaUriSource pineMediaUriSource = getMediaUriSource();
+        if (pineMediaUriSource != null) {
+            return pineMediaUriSource.getMediaSectionUriList();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定清晰度的uri分段列表（用于一个清晰度的media有多个分段的url的情况）
+     *
+     * @return
+     */
+    public ArrayList<Uri> getMediaSectionUrisByDefinition(int definition) {
+        PineMediaUriSource pineMediaUriSource = getMediaUriSourceByDefinition(definition);
+        if (pineMediaUriSource != null) {
+            return pineMediaUriSource.getMediaSectionUriList();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * 获取当前清晰度的PineMediaUriSource
+     *
+     * @return
+     */
+    public PineMediaUriSource getMediaUriSource() {
+        return getMediaUriSourceByDefinition(getCurrentDefinition());
+    }
+
+    /**
+     * 获取指定清晰度的PineMediaUriSource
+     *
+     * @return
+     */
     public PineMediaUriSource getMediaUriSourceByDefinition(int definition) {
         PineMediaUriSource pineMediaUriSource = null;
         for (int i = 0; i < mediaUriSourceList.size(); i++) {
@@ -199,24 +246,6 @@ public class PineMediaPlayerBean {
             }
         }
         return null;
-    }
-
-    public Uri getMediaUriByPosition(int index) {
-        PineMediaUriSource pineMediaUriSource =
-                getMediaUriSourceByPosition(index);
-        if (pineMediaUriSource != null) {
-            return pineMediaUriSource.getMediaUri();
-        } else {
-            return null;
-        }
-    }
-
-    public PineMediaUriSource getMediaUriSourceByPosition(int index) {
-        if (index >= mediaUriSourceList.size()) {
-            return null;
-        } else {
-            return mediaUriSourceList.get(index);
-        }
     }
 
     public ArrayList<PineMediaUriSource> getMediaUriSourceList() {
@@ -311,6 +340,6 @@ public class PineMediaPlayerBean {
                 ",mediaImgUri:" + mediaImgUri +
                 ",playerPluginMap:" + playerPluginMap +
                 ",playerDecryptor:" + playerDecryptor +
-                ",currentDefinition:" + currentDefinition;
+                ",currentDefinition:" + currentDefinition + "}";
     }
 }
