@@ -235,7 +235,7 @@ public class PineMediaPlayerView extends RelativeLayout {
             if (destroy) {
                 PineMediaPlayerService.destroyMediaPlayerByTag(mMediaPlayerTag);
             } else {
-                if (((Activity)mContext).isFinishing()) {
+                if (!(mContext instanceof Activity) || ((Activity) mContext).isFinishing()) {
                     mMediaPlayerProxy.release();
                 } else {
                     mMediaPlayerProxy.savePlayerState();
