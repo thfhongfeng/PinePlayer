@@ -24,6 +24,7 @@ import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaPlayerComponent;
+import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.adapter.DefaultVideoControllerAdapter;
@@ -65,9 +66,8 @@ public class PineMediaController extends RelativeLayout
     private AudioManager mAudioManager;
     private int mMaxVolumes;
 
-
     // 播放器
-    private PineMediaWidget.IPineMediaPlayer mPlayer;
+    private PineMediaPlayerProxy mPlayer;
     // 控制器适配器
     private AbstractMediaControllerAdapter mAdapter;
     // 播放实体
@@ -291,58 +291,6 @@ public class PineMediaController extends RelativeLayout
                     return true;
                 }
             };
-    // Controller控件本身
-    private View mRoot;
-    private GestureDetector mGestureDetector;
-    private HashMap<Integer, IPinePlayerPlugin> mPinePluginMap;
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            int pos;
-            switch (msg.what) {
-                // 控制器自动隐藏消息
-                case MSG_FADE_OUT:
-                    hide();
-                    break;
-                // 进度条更新消息
-                case MSG_SHOW_PROGRESS:
-                    pos = setProgress();
-                    if (!mDragging && (isProgressNeeded() || isShowing()) &&
-                            (mPlayer.isPlaying() || mPlayer.isPause())) {
-                        msg = obtainMessage(MSG_SHOW_PROGRESS);
-                        int sum = (int) mPlayer.getSpeed();
-                        sum = sum < 1 ? 1 : sum;
-                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
-                    }
-                    break;
-                // 背景延迟隐藏消失
-                case MSG_BACKGROUND_FADE_OUT:
-                    if (mBackgroundViewHolder.getContainer() != null) {
-                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
-                    }
-                    break;
-                // 加载等待界面延迟隐藏消失
-                case MSG_WAITING_FADE_OUT:
-                    if (mWaitingProgressViewHolder.getContainer() != null) {
-                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
-                    }
-                    setControllerEnabled(true);
-                    break;
-                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
-                case MSG_PLUGIN_REFRESH:
-                    Iterator iterator = mPinePluginMap.entrySet().iterator();
-                    while (iterator.hasNext()) {
-                        Map.Entry entry = (Map.Entry) iterator.next();
-                        ((IPinePlayerPlugin) entry.getValue()).onTime(mPlayer.getCurrentPosition());
-                    }
-                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
-                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
-                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
-                    }
-                    break;
-            }
-        }
-    };
     // There are two scenarios that can trigger the seekbar listener to trigger:
     //
     // The first is the user using the touchpad to adjust the posititon of the
@@ -519,6 +467,58 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
+    // Controller控件本身
+    private View mRoot;
+    private GestureDetector mGestureDetector;
+    private HashMap<Integer, IPinePlayerPlugin> mPinePluginMap;
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int pos;
+            switch (msg.what) {
+                // 控制器自动隐藏消息
+                case MSG_FADE_OUT:
+                    hide();
+                    break;
+                // 进度条更新消息
+                case MSG_SHOW_PROGRESS:
+                    pos = setProgress();
+                    if (!mDragging && (isProgressNeeded() || isShowing()) &&
+                            (mPlayer.isPlaying() || mPlayer.isPause())) {
+                        msg = obtainMessage(MSG_SHOW_PROGRESS);
+                        int sum = (int) mPlayer.getSpeed();
+                        sum = sum < 1 ? 1 : sum;
+                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
+                    }
+                    break;
+                // 背景延迟隐藏消失
+                case MSG_BACKGROUND_FADE_OUT:
+                    if (mBackgroundViewHolder.getContainer() != null) {
+                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    break;
+                // 加载等待界面延迟隐藏消失
+                case MSG_WAITING_FADE_OUT:
+                    if (mWaitingProgressViewHolder.getContainer() != null) {
+                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    setControllerEnabled(true);
+                    break;
+                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
+                case MSG_PLUGIN_REFRESH:
+                    Iterator iterator = mPinePluginMap.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry entry = (Map.Entry) iterator.next();
+                        ((IPinePlayerPlugin) entry.getValue()).onTime(mPlayer.getCurrentPosition());
+                    }
+                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
+                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
+                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
+                    }
+                    break;
+            }
+        }
+    };
     private boolean mPausedByBufferingUpdate;
     private boolean mDraggingX, mDraggingY, mStartDragging;
     private int mStartVolumeByDragging;
@@ -684,7 +684,7 @@ public class PineMediaController extends RelativeLayout
      **/
 
     @Override
-    public void setMediaPlayer(PineMediaWidget.IPineMediaPlayer player) {
+    public void setMediaPlayer(PineMediaPlayerProxy player) {
         mPlayer = player;
     }
 

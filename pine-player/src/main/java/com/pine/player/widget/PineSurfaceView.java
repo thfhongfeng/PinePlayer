@@ -6,7 +6,7 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.pine.player.component.PineMediaPlayerComponent;
+import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.util.LogUtil;
 
 /**
@@ -22,27 +22,27 @@ public class PineSurfaceView extends SurfaceView {
     private static final String TAG = LogUtil.makeLogTag(PineSurfaceView.class);
     private Context mContext;
     private PineMediaPlayerView mMediaPlayerView = null;
-    private PineMediaPlayerComponent mMediaPlayerComponent = null;
+    private PineMediaPlayerProxy mMediaPlayer = null;
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format,
                                    int w, int h) {
             LogUtil.d(TAG, "surfaceChanged");
-            if (mMediaPlayerComponent != null) {
-                mMediaPlayerComponent.onSurfaceChanged(mMediaPlayerView, PineSurfaceView.this, format, w, h);
+            if (mMediaPlayer != null) {
+                mMediaPlayer.onSurfaceChanged(mMediaPlayerView, PineSurfaceView.this, format, w, h);
             }
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
             LogUtil.d(TAG, "surfaceCreated");
-            if (mMediaPlayerComponent != null) {
-                mMediaPlayerComponent.onSurfaceCreated(mMediaPlayerView, PineSurfaceView.this);
+            if (mMediaPlayer != null) {
+                mMediaPlayer.onSurfaceCreated(mMediaPlayerView, PineSurfaceView.this);
             }
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
             LogUtil.d(TAG, "surfaceDestroyed");
-            if (mMediaPlayerComponent != null) {
-                mMediaPlayerComponent.onSurfaceDestroyed(mMediaPlayerView, PineSurfaceView.this);
+            if (mMediaPlayer != null) {
+                mMediaPlayer.onSurfaceDestroyed(mMediaPlayerView, PineSurfaceView.this);
             }
         }
     };
@@ -77,10 +77,10 @@ public class PineSurfaceView extends SurfaceView {
         setFocusableInTouchMode(true);
     }
 
-    public void setMediaPlayerComponent(PineMediaPlayerView playerView,
-                                        PineMediaPlayerComponent mediaPlayerComponent) {
+    public void setMediaPlayer(PineMediaPlayerView playerView,
+                               PineMediaPlayerProxy mediaPlayer) {
         mMediaPlayerView = playerView;
-        mMediaPlayerComponent = mediaPlayerComponent;
+        mMediaPlayer = mediaPlayer;
     }
 
     public PineMediaPlayerView.PineMediaViewLayout getMediaAdaptionLayout() {
@@ -89,11 +89,11 @@ public class PineSurfaceView extends SurfaceView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (mMediaPlayerComponent == null) {
+        if (mMediaPlayer == null) {
             return;
         }
-        mMediaWidth = mMediaPlayerComponent.getMediaViewWidth();
-        mMediaHeight = mMediaPlayerComponent.getMediaViewHeight();
+        mMediaWidth = mMediaPlayer.getMediaViewWidth();
+        mMediaHeight = mMediaPlayer.getMediaViewHeight();
         int width = getDefaultSize(mMediaWidth, widthMeasureSpec);
         int height = getDefaultSize(mMediaHeight, heightMeasureSpec);
         if (mMediaWidth > 0 && mMediaHeight > 0) {

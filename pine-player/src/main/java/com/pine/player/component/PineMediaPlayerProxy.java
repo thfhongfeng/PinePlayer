@@ -1,7 +1,8 @@
 package com.pine.player.component;
 
+import android.content.Context;
 import android.media.MediaPlayer;
-import android.support.annotation.NonNull;
+import android.view.SurfaceView;
 
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.widget.PineMediaPlayerView;
@@ -13,22 +14,18 @@ import java.util.Map;
  * Created by tanghongfeng on 2018/4/2.
  */
 
-public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
-    private PineMediaPlayerComponent mMediaPlayerComponent;
+public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
+        PineMediaWidget.IPineMediaPlayerComponent {
+    private PineMediaWidget.IPineMediaPlayerComponent mMediaPlayerComponent;
     private String mMediaPlayerTag;
 
-    public PineMediaPlayerProxy(String tag, @NonNull PineMediaPlayerComponent pineMediaPlayerComponent) {
+    public PineMediaPlayerProxy(Context context, String tag) {
         mMediaPlayerTag = tag;
-        mMediaPlayerComponent = pineMediaPlayerComponent;
+        mMediaPlayerComponent = new PineMediaPlayerComponent(context);
     }
 
-    public PineMediaPlayerComponent getPineMediaPlayerComponent() {
+    public PineMediaWidget.IPineMediaPlayerComponent getPineMediaPlayerComponent() {
         return mMediaPlayerComponent;
-    }
-
-    public void setPineMediaPlayerComponent(String tag, PineMediaPlayerComponent mediaPlayerComponent) {
-        mMediaPlayerTag = tag;
-        mMediaPlayerComponent = mediaPlayerComponent;
     }
 
     @Override
@@ -80,10 +77,6 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     public boolean isLocalStreamMode() {
         return mMediaPlayerComponent.isLocalStreamMode();
     }
-    @Override
-    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
-        mMediaPlayerComponent.setAutocephalyPlayMode(isAutocephalyPlayMode);
-    }
 
     @Override
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
@@ -101,8 +94,15 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers, boolean isAutocephalyPlayMode) {
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
+                                Map<String, String> headers, boolean isAutocephalyPlayMode) {
         mMediaPlayerComponent.setPlayingMedia(pineMediaPlayerBean, headers, false, isAutocephalyPlayMode);
+    }
+
+    @Override
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
+                                Map<String, String> headers, boolean resumeState, boolean isAutocephalyPlayMode) {
+        mMediaPlayerComponent.setPlayingMedia(pineMediaPlayerBean, headers, resumeState, isAutocephalyPlayMode);
     }
 
     @Override
@@ -113,6 +113,11 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     @Override
     public void savePlayerState() {
         mMediaPlayerComponent.savePlayerState();
+    }
+
+    @Override
+    public void clearPlayerState() {
+        mMediaPlayerComponent.clearPlayerState();
     }
 
     @Override
@@ -201,6 +206,11 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
+    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
+        mMediaPlayerComponent.setAutocephalyPlayMode(isAutocephalyPlayMode);
+    }
+
+    @Override
     public int getMediaPlayerState() {
         return mMediaPlayerComponent.getMediaPlayerState();
     }
@@ -216,8 +226,22 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     }
 
     @Override
+    public void setMediaPlayerView(PineMediaPlayerView playerView, boolean forResume) {
+        mMediaPlayerComponent.setMediaPlayerView(playerView, forResume);
+    }
+
+    @Override
     public PineMediaPlayerView getMediaPlayerView() {
         return mMediaPlayerComponent.getMediaPlayerView();
+    }
+
+    @Override
+    public void detachMediaPlayerView(PineMediaPlayerView view) {
+        mMediaPlayerComponent.detachMediaPlayerView(view);
+    }
+
+    public void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
+        mMediaPlayerComponent.attachMediaController(isPlayerReset, isResumeState);
     }
 
     @Override
@@ -238,5 +262,21 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer {
     @Override
     public int getMediaViewHeight() {
         return mMediaPlayerComponent.getMediaViewHeight();
+    }
+
+    @Override
+    public void onSurfaceChanged(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView,
+                                 int format, int w, int h) {
+        mMediaPlayerComponent.onSurfaceChanged(mediaPlayerView, surfaceView, format, w, h);
+    }
+
+    @Override
+    public void onSurfaceCreated(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView) {
+        mMediaPlayerComponent.onSurfaceCreated(mediaPlayerView, surfaceView);
+    }
+
+    @Override
+    public void onSurfaceDestroyed(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView) {
+        mMediaPlayerComponent.onSurfaceDestroyed(mediaPlayerView, surfaceView);
     }
 }

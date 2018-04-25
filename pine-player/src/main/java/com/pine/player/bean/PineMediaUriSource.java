@@ -23,8 +23,8 @@ public class PineMediaUriSource {
         this(mediaUri, -1, MEDIA_DEFINITION_SD);
     }
 
-    public PineMediaUriSource(@NonNull Uri mediaUri, long duration) {
-        this(mediaUri, duration, MEDIA_DEFINITION_SD);
+    public PineMediaUriSource(@NonNull Uri mediaUri, int mediaDefinition) {
+        this(mediaUri, -1, mediaDefinition);
     }
 
     public PineMediaUriSource(@NonNull Uri mediaUri, long duration, int mediaDefinition) {

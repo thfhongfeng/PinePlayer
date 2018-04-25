@@ -245,7 +245,6 @@ public class CustomPlayerActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        mPlayer.savePlayerState();
         super.onPause();
     }
 

@@ -16,9 +16,8 @@ import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
 public class PinePlayerApp extends Application {
     private final static String TAG = "PineDemoApp";
-
-    private static Application mInstance;
     public static int mMockCount = 0;
+    private static Application mInstance;
 
     public static Context getAppContext() {
         return mInstance.getApplicationContext();

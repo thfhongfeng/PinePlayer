@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.IPineMediaSocketService;
-import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.service.PineMediaSocketService;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaPlayerView;
@@ -38,8 +37,7 @@ import java.util.Map;
  * Created by tanghongfeng on 2017/8/14.
  */
 
-public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlayer,
-        PineMediaWidget.IPineMediaSurfaceListener {
+public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlayerComponent {
     // 播放器状态
     public static final int STATE_ERROR = -1;
     public static final int STATE_IDLE = 0;
@@ -313,6 +311,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
     };
+    // media的uri分段数(一个media可能有多个分段uri，则需要无缝衔接)
+    private int mMediaSectionUrisCount = -1;
 
     public PineMediaPlayerComponent(Context context) {
         mContext = context;
@@ -335,85 +335,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         }
         mTargetState = STATE_IDLE;
     }
-
-    /**
-     * 挂载控制器界面
-     *
-     * @param isPlayerReset 本此attach是否重置了MediaPlayer
-     * @param isResumeState 本此attach是否是为了恢复状态
-     */
-    public void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
-        if (mMediaPlayer != null && isAttachViewMode() &&
-                mMediaPlayerView.getMediaController() != null && mMediaBean != null) {
-            mMediaPlayerView.getMediaController().setPlayingMedia(mMediaBean, "PineMediaView");
-            mMediaPlayerView.getMediaController().attachToParentView(isPlayerReset, isResumeState);
-        }
-    }
-
-    /**
-     * 是否本地视频流服务方式播放
-     */
-    public boolean isLocalStreamMode() {
-        return false;
-    }
-
-    /**
-     * 设置多媒体播放参数
-     *
-     * @param pineMediaPlayerBean 多媒体播放参数对象
-     * @param headers             多媒体播放信息头
-     * @param resumeState         此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
-     */
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
-                                Map<String, String> headers, boolean resumeState) {
-        setPlayingMedia(pineMediaPlayerBean, headers, resumeState, mIsAutocephalyPlayMode);
-    }
-
-    /**
-     * 设置多媒体播放参数
-     *
-     * @param pineMediaPlayerBean   多媒体播放参数对象
-     * @param headers               多媒体播放信息头
-     * @param resumeState           此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
-     * @param isAutocephalyPlayMode 是否独立播放模式
-     */
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
-                                Map<String, String> headers, boolean resumeState, boolean isAutocephalyPlayMode) {
-        mMediaBean = pineMediaPlayerBean;
-        ArrayList<Uri> mediaUris = null;
-        if (mMediaBean != null) {
-            mediaUris = mMediaBean.getMediaSectionUris();
-        }
-        mMediaSectionUrisCount = mediaUris != null ? mediaUris.size() : -1;
-        mHeaders = headers;
-        mIsAutocephalyPlayMode = isAutocephalyPlayMode;
-        mIsLocalStreamMedia = pineMediaPlayerBean.isLocalStreamBean();
-        if (mLocalService != null) {
-            mLocalService.setPlayerDecryptor(pineMediaPlayerBean.getPlayerDecryptor());
-        }
-        if (!resumeState) {
-            mSeekWhenPrepared = 0;
-            mShouldPlayWhenPrepared = false;
-        }
-        if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
-            openMedia(resumeState);
-            if (isAttachViewMode() && mSurfaceView != null) {
-                mSurfaceView.requestLayout();
-                mSurfaceView.invalidate();
-            }
-        } else {
-            // 如果需要使用到本地播放流服务，若流服务还未启动，则延时到服务启动完成后在打开Media
-            mIsDelayOpenMedia = true;
-            mLocalServiceState = SERVICE_STATE_CONNECTING;
-            Intent intent = new Intent("media.socket.server");
-            intent.setPackage(mContext.getPackageName());
-            LogUtil.d(TAG, "Bind local service");
-            mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
-        }
-    }
-
-    // media的uri分段数(一个media可能有多个分段uri，则需要无缝衔接)
-    private int mMediaSectionUrisCount = -1;
 
     /**
      * 打开多媒体
@@ -562,8 +483,59 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public String getMediaPlayerTag() {
-        return null;
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
+                                Map<String, String> headers, boolean resumeState) {
+        setPlayingMedia(pineMediaPlayerBean, headers, resumeState, mIsAutocephalyPlayMode);
+    }
+
+    /**
+     * 设置多媒体播放参数
+     *
+     * @param pineMediaPlayerBean   多媒体播放参数对象
+     * @param headers               多媒体播放信息头
+     * @param resumeState           此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
+     * @param isAutocephalyPlayMode 是否独立播放模式
+     */
+    @Override
+    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
+                                Map<String, String> headers, boolean resumeState, boolean isAutocephalyPlayMode) {
+        mMediaBean = pineMediaPlayerBean;
+        ArrayList<Uri> mediaUris = null;
+        if (mMediaBean != null) {
+            mediaUris = mMediaBean.getMediaSectionUris();
+        }
+        mMediaSectionUrisCount = mediaUris != null ? mediaUris.size() : -1;
+        mHeaders = headers;
+        mIsAutocephalyPlayMode = isAutocephalyPlayMode;
+        mIsLocalStreamMedia = pineMediaPlayerBean.isLocalStreamBean();
+        if (mLocalService != null) {
+            mLocalService.setPlayerDecryptor(pineMediaPlayerBean.getPlayerDecryptor());
+        }
+        if (!resumeState) {
+            mSeekWhenPrepared = 0;
+            mShouldPlayWhenPrepared = false;
+        }
+        if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
+            openMedia(resumeState);
+            if (isAttachViewMode() && mSurfaceView != null) {
+                mSurfaceView.requestLayout();
+                mSurfaceView.invalidate();
+            }
+        } else {
+            // 如果需要使用到本地播放流服务，若流服务还未启动，则延时到服务启动完成后在打开Media
+            mIsDelayOpenMedia = true;
+            mLocalServiceState = SERVICE_STATE_CONNECTING;
+            Intent intent = new Intent("media.socket.server");
+            intent.setPackage(mContext.getPackageName());
+            LogUtil.d(TAG, "Bind local service");
+            mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
+        }
+    }
+
+    @Override
+    public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
+                                           Map<String, String> headers) {
+        setPlayingMedia(pineMediaPlayerBean, headers, true, mIsAutocephalyPlayMode);
     }
 
     @Override
@@ -642,6 +614,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void resume() {
         if (isInPlaybackState()) {
             attachMediaController(false, true);
+            if (mSeekWhenPrepared != 0) {
+                seekTo(mSeekWhenPrepared);
+            }
+            if (mShouldPlayWhenPrepared) {
+                mShouldPlayWhenPrepared = false;
+                start();
+            }
         } else {
             openMedia(true);
         }
@@ -652,35 +631,35 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         release(true);
     }
 
-    public PineMediaWidget.IPineMediaController getMediaController() {
-        return mMediaPlayerView.getMediaController();
-    }
 
     @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean) {
-        setPlayingMedia(pineMediaPlayerBean, null, false);
-    }
-
-    @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers) {
-        setPlayingMedia(pineMediaPlayerBean, headers, false);
-    }
-
-    @Override
-    public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isAutocephalyPlayMode) {
-        setPlayingMedia(pineMediaPlayerBean, null, false, isAutocephalyPlayMode);
-    }
-
-    @Override
-    public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
-                                           Map<String, String> headers) {
-        setPlayingMedia(pineMediaPlayerBean, headers, true, mIsAutocephalyPlayMode);
+    public void onDestroy() {
+        LogUtil.d(TAG, "onDestroy");
+        release();
+        mMediaPlayerListenerSet.clear();
+        if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
+            LogUtil.d(TAG, "Unbind local service");
+            mContext.unbindService(mServiceConnection);
+            mLocalService = null;
+            mLocalServiceState = SERVICE_STATE_DISCONNECTED;
+        }
+        detachMediaPlayerView(mMediaPlayerView);
+        mMediaWidth = 0;
+        mMediaHeight = 0;
     }
 
     @Override
     public void savePlayerState() {
-        mShouldPlayWhenPrepared = isPlaying();
-        mSeekWhenPrepared = getCurrentPosition();
+        if (isInPlaybackState()) {
+            mShouldPlayWhenPrepared = isPlaying();
+            mSeekWhenPrepared = getCurrentPosition();
+        }
+    }
+
+    @Override
+    public void clearPlayerState() {
+        mShouldPlayWhenPrepared = false;
+        mSeekWhenPrepared = 0;
     }
 
     @Override
@@ -796,6 +775,14 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 mCurrentState != STATE_PREPARING);
     }
 
+    /**
+     * 是否本地视频流服务方式播放
+     */
+    @Override
+    public boolean isLocalStreamMode() {
+        return false;
+    }
+
     @Override
     public boolean isAttachViewMode() {
         return mMediaPlayerView != null;
@@ -841,10 +828,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public PineMediaPlayerView getMediaPlayerView() {
-        return mMediaPlayerView;
-    }
-
     public void setMediaPlayerView(PineMediaPlayerView playerView, boolean forResume) {
         if (mMediaPlayerView != null && playerView != mMediaPlayerView) {
             detachMediaPlayerView(mMediaPlayerView);
@@ -855,6 +838,34 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         }
         if (mMediaPlayerView != null) {
             mMediaPlayerView.onMediaComponentAttach();
+        }
+    }
+
+    @Override
+    public PineMediaPlayerView getMediaPlayerView() {
+        return mMediaPlayerView;
+    }
+
+    @Override
+    public void detachMediaPlayerView(PineMediaPlayerView view) {
+        if (view == mMediaPlayerView && mMediaPlayerView != null) {
+            mMediaPlayerView.onMediaComponentDetach();
+            mMediaPlayerView = null;
+        }
+    }
+
+    /**
+     * 挂载控制器界面
+     *
+     * @param isPlayerReset 本此attach是否重置了MediaPlayer
+     * @param isResumeState 本此attach是否是为了恢复状态
+     */
+    @Override
+    public void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
+        if (mMediaPlayer != null && isAttachViewMode() &&
+                mMediaPlayerView.getMediaController() != null && mMediaBean != null) {
+            mMediaPlayerView.getMediaController().setPlayingMedia(mMediaBean, "PineMediaView");
+            mMediaPlayerView.getMediaController().attachToParentView(isPlayerReset, isResumeState);
         }
     }
 
@@ -879,7 +890,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public void onSurfaceChanged(PineMediaPlayerView mMediaPlayerView,
+    public void onSurfaceChanged(PineMediaPlayerView mediaPlayerView,
                                  SurfaceView surfaceView, int format, int w, int h) {
         mSurfaceWidth = w;
         mSurfaceHeight = h;
@@ -894,13 +905,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public void onSurfaceCreated(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView) {
+    public void onSurfaceCreated(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView) {
         mSurfaceView = (PineSurfaceView) surfaceView;
         setDisplaySurface(mSurfaceView);
     }
 
     @Override
-    public void onSurfaceDestroyed(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView) {
+    public void onSurfaceDestroyed(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView) {
         // after we return from this we can't use the surface any more
         mSurfaceView = null;
         mSurfaceWidth = 0;
@@ -908,11 +919,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
             mMediaPlayerView.getMediaController().hide();
         }
-        if (isAutocephalyPlayMode()) {
-            setDisplaySurface(null);
-        } else {
-            release();
-        }
+        setDisplaySurface(null);
     }
 
     public void setDisplaySurface(PineSurfaceView pineSurfaceView) {
@@ -922,13 +929,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             } else {
                 mMediaPlayer.setDisplay(null);
             }
-        }
-    }
-
-    public void detachMediaPlayerView(PineMediaPlayerView view) {
-        if (view == mMediaPlayerView && mMediaPlayerView != null) {
-            mMediaPlayerView.onMediaComponentDetach();
-            mMediaPlayerView = null;;
         }
     }
 
@@ -989,21 +989,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private boolean isNeedLocalService() {
         return (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || !USE_NEW_API)
                 && mIsLocalStreamMedia;
-    }
-
-    public void onDestroy() {
-        LogUtil.d(TAG, "onDestroy");
-        release();
-        mMediaPlayerListenerSet.clear();
-        if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
-            LogUtil.d(TAG, "Unbind local service");
-            mContext.unbindService(mServiceConnection);
-            mLocalService = null;
-            mLocalServiceState = SERVICE_STATE_DISCONNECTED;
-        }
-        detachMediaPlayerView(mMediaPlayerView);
-        mMediaWidth = 0;
-        mMediaHeight = 0;
     }
 
     public boolean onTrackballEvent(MotionEvent ev) {

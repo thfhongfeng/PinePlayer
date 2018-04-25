@@ -2,10 +2,8 @@ package com.pine.player.component;
 
 import android.media.MediaPlayer;
 import android.view.SurfaceView;
-import android.view.ViewGroup;
 
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.component.PineMediaPlayerComponent;
 import com.pine.player.widget.PineMediaPlayerView;
 import com.pine.player.widget.PineSurfaceView;
 
@@ -26,7 +24,7 @@ public class PineMediaWidget {
          *
          * @param player 播放器
          */
-        void setMediaPlayer(IPineMediaPlayer player);
+        void setMediaPlayer(PineMediaPlayerProxy player);
 
         /**
          * 设置播放器控件Anchor View
@@ -193,8 +191,236 @@ public class PineMediaWidget {
      * 播放器接口，主要提供给播放控制器使用
      */
     public static interface IPineMediaPlayer {
-
         String getMediaPlayerTag();
+
+        /**
+         * 获取播放倍速
+         */
+        float getSpeed();
+
+        /**
+         * 设置播放倍速
+         *
+         * @param speed
+         */
+        void setSpeed(float speed);
+
+        /**
+         * 开始播放
+         */
+        void start();
+
+        /**
+         * 暂停播放
+         */
+        void pause();
+
+        /**
+         * 挂起
+         */
+        void suspend();
+
+        /**
+         * 恢复播放
+         */
+        void resume();
+
+        /**
+         * 释放
+         */
+        void release();
+
+        /**
+         * 是否本地视频流服务方式播放
+         */
+        boolean isLocalStreamMode();
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean 多媒体播放参数对象
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean);
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean 多媒体播放参数对象
+         * @param headers             多媒体播放信息头
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers);
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean   多媒体播放参数对象
+         * @param isAutocephalyPlayMode 是否独立播放模式
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isAutocephalyPlayMode);
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean   多媒体播放参数对象
+         * @param headers               多媒体播放信息头
+         * @param isAutocephalyPlayMode 是否独立播放模式
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers,
+                             boolean isAutocephalyPlayMode);
+
+        /**
+         * 重新设置播放参数并恢复到之前的播放状态
+         *
+         * @param pineMediaPlayerBean 播放参数对象
+         * @param headers             播放头
+         */
+        void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
+                                        Map<String, String> headers);
+
+        /**
+         * 保存播放状态和进度
+         */
+        void savePlayerState();
+
+        /**
+         * 清除播放状态和进度
+         */
+        void clearPlayerState();
+
+        /**
+         * 获取播放总时长
+         *
+         * @return
+         */
+        int getDuration();
+
+        /**
+         * 获取当前播放位置
+         *
+         * @return
+         */
+        int getCurrentPosition();
+
+        /**
+         * 获取准备播放的media实体
+         *
+         * @return
+         */
+        PineMediaPlayerBean getMediaPlayerBean();
+
+        /**
+         * 获取Track信息
+         *
+         * @return
+         */
+        MediaPlayer.TrackInfo[] getTrackInfo();
+
+        /**
+         * 跳到指定的播放位置
+         *
+         * @param pos 指定的播放位置
+         */
+        void seekTo(int pos);
+
+        /**
+         * 当前是否处于播放状态
+         *
+         * @return
+         */
+        boolean isPlaying();
+
+        /**
+         * 当前是否处于播暂停状态
+         *
+         * @return
+         */
+        boolean isPause();
+
+
+        /**
+         * 获取缓冲百分比
+         *
+         * @return
+         */
+        int getBufferPercentage();
+
+        /**
+         * 播放器是否处于可播放状态
+         *
+         * @return
+         */
+        boolean isInPlaybackState();
+
+        /**
+         * 是否是独立播放模式
+         *
+         * @return
+         */
+        boolean isAutocephalyPlayMode();
+
+        /**
+         * 设置是否为独立播放模式（不与播放界面共生命周期）
+         *
+         * @param isAutocephalyPlayMode 设置是否为独立播放模式
+         */
+        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
+
+        /**
+         * 获取播放器具体状态
+         *
+         * @return
+         */
+        int getMediaPlayerState();
+
+        /**
+         * 移除播放状态监听器
+         *
+         * @param listener
+         */
+        void removeMediaPlayerListener(IPineMediaPlayerListener listener);
+
+        /**
+         * 添加播放状态监听器
+         *
+         * @param listener
+         */
+        void addMediaPlayerListener(IPineMediaPlayerListener listener);
+    }
+
+    /**
+     * 播放器组件接口，适配不同的播放器内核
+     */
+    public static interface IPineMediaPlayerComponent {
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean 多媒体播放参数对象
+         * @param headers             多媒体播放信息头
+         * @param resumeState         此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers,
+                             boolean resumeState);
+
+        /**
+         * 设置多媒体播放参数
+         *
+         * @param pineMediaPlayerBean   多媒体播放参数对象
+         * @param headers               多媒体播放信息头
+         * @param resumeState           此次播放是否恢复到之前的播放状态(用于被动中断后的恢复)
+         * @param isAutocephalyPlayMode 是否独立播放模式
+         */
+        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers,
+                             boolean resumeState, boolean isAutocephalyPlayMode);
+
+        /**
+         * 重新设置播放参数并恢复到之前的播放状态
+         *
+         * @param pineMediaPlayerBean 播放参数对象
+         * @param headers             播放头
+         */
+        void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
+                                        Map<String, String> headers);
 
         /**
          * 获取播放倍速
@@ -239,63 +465,14 @@ public class PineMediaWidget {
         void onDestroy();
 
         /**
-         * 是否本地视频流服务方式播放
-         */
-        boolean isLocalStreamMode();
-
-        /**
-         * 设置是否为独立播放模式（不与播放界面共生命周期）
-         *
-         * @param isAutocephalyPlayMode 设置是否为独立播放模式
-         */
-        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
-
-        /**
-         * 设置多媒体播放参数
-         *
-         * @param pineMediaPlayerBean 多媒体播放参数对象
-         */
-        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean);
-
-        /**
-         * 设置多媒体播放参数
-         *
-         * @param pineMediaPlayerBean 多媒体播放参数对象
-         * @param headers             多媒体播放信息头
-         */
-        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers);
-
-        /**
-         * 设置多媒体播放参数
-         *
-         * @param pineMediaPlayerBean 多媒体播放参数对象
-         * @param isAutocephalyPlayMode  是否独立播放模式
-         */
-        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, boolean isAutocephalyPlayMode);
-
-        /**
-         * 设置多媒体播放参数
-         *
-         * @param pineMediaPlayerBean 多媒体播放参数对象
-         * @param headers             多媒体播放信息头
-         * @param isAutocephalyPlayMode  是否独立播放模式
-         */
-        void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean, Map<String, String> headers,
-                             boolean isAutocephalyPlayMode);
-
-        /**
-         * 重新设置播放参数并恢复到之前的播放状态
-         *
-         * @param pineMediaPlayerBean 播放参数对象
-         * @param headers             播放头
-         */
-        void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
-                                        Map<String, String> headers);
-
-        /**
          * 保存播放状态和进度
          */
         void savePlayerState();
+
+        /**
+         * 清除播放状态和进度
+         */
+        void clearPlayerState();
 
         /**
          * 获取播放总时长
@@ -348,6 +525,7 @@ public class PineMediaWidget {
 
         /**
          * 当前player是否允许挂载SurfaceView
+         *
          * @return
          */
         boolean isSurfaceViewEnable();
@@ -395,6 +573,11 @@ public class PineMediaWidget {
         boolean isInPlaybackState();
 
         /**
+         * 是否本地视频流服务方式播放
+         */
+        boolean isLocalStreamMode();
+
+        /**
          * 是否是绑定View的播放模式
          *
          * @return
@@ -408,13 +591,19 @@ public class PineMediaWidget {
          */
         boolean isAttachViewShown();
 
-
         /**
          * 是否是独立播放模式
          *
          * @return
          */
         boolean isAutocephalyPlayMode();
+
+        /**
+         * 设置是否为独立播放模式（不与播放界面共生命周期）
+         *
+         * @param isAutocephalyPlayMode 设置是否为独立播放模式
+         */
+        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
 
         /**
          * 获取播放器具体状态
@@ -438,13 +627,37 @@ public class PineMediaWidget {
         void addMediaPlayerListener(IPineMediaPlayerListener listener);
 
         /**
+         * 设置播放器当前的播放MediaPlayerView
+         *
+         * @return
+         */
+        void setMediaPlayerView(PineMediaPlayerView playerView, boolean forResume);
+
+        /**
          * 获取播放器当前的播放MediaPlayerView
+         *
          * @return
          */
         PineMediaPlayerView getMediaPlayerView();
 
         /**
+         * 卸载播放器当前的播放MediaPlayerView
+         *
+         * @return
+         */
+        void detachMediaPlayerView(PineMediaPlayerView view);
+
+        /**
+         * 挂载控制器界面
+         *
+         * @param isPlayerReset 本此attach是否重置了MediaPlayer
+         * @param isResumeState 本此attach是否是为了恢复状态
+         */
+        void attachMediaController(boolean isPlayerReset, boolean isResumeState);
+
+        /**
          * 获取播放器当前的播放SurfaceView
+         *
          * @return
          */
         PineSurfaceView getSurfaceView();
@@ -469,15 +682,13 @@ public class PineMediaWidget {
          * @return
          */
         int getMediaViewHeight();
-    }
 
-    public interface IPineMediaSurfaceListener {
-        void onSurfaceChanged(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView,
-                              int format,  int w, int h);
+        void onSurfaceChanged(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView,
+                              int format, int w, int h);
 
-        void onSurfaceCreated(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView);
+        void onSurfaceCreated(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView);
 
-        void onSurfaceDestroyed(PineMediaPlayerView mMediaPlayerView, SurfaceView surfaceView);
+        void onSurfaceDestroyed(PineMediaPlayerView mediaPlayerView, SurfaceView surfaceView);
     }
 
     /**
@@ -488,9 +699,9 @@ public class PineMediaWidget {
          * 播放器放改变播
          *
          * @param fromState （STATE_ERROR, STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
-         * STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
-         * @param toState （STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
-         * STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
+         *                  STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
+         * @param toState   （STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
+         *                  STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
          */
         void onStateChange(int fromState, int toState);
 

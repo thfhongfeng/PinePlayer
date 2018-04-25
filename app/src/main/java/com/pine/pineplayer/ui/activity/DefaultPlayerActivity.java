@@ -51,7 +51,6 @@ public class DefaultPlayerActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        mPlayer.savePlayerState();
         super.onPause();
     }
 

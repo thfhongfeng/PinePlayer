@@ -6,7 +6,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import com.pine.player.component.PineMediaPlayerComponent;
 import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtil;
@@ -22,23 +21,24 @@ import java.util.Map;
 public class PineMediaPlayerService extends Service {
     public final static String SERVICE_MEDIA_PLAYER_TAG = "ServiceMediaPlayer";
     private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerService.class);
-    private static HashMap<String, PineMediaWidget.IPineMediaPlayer> mMediaPlayerProxyMap =
+    private static HashMap<String, PineMediaPlayerProxy> mMediaPlayerProxyMap =
             new HashMap<>();
 
     public synchronized static PineMediaWidget.IPineMediaPlayer getMediaPlayerByTag(String tag) {
         return mMediaPlayerProxyMap.get(tag);
     }
 
-    public synchronized static void setMediaPlayerByTag(String tag, PineMediaWidget.IPineMediaPlayer mediaPlayerProxy) {
+    public synchronized static void setMediaPlayerByTag(String tag,
+                                                        PineMediaPlayerProxy mediaPlayerProxy) {
         mMediaPlayerProxyMap.put(tag, mediaPlayerProxy);
     }
 
     public synchronized static void destroyAllMediaPlayer() {
         Iterator iterator = mMediaPlayerProxyMap.entrySet().iterator();
-        PineMediaWidget.IPineMediaPlayer pineMediaPlayer = null;
+        PineMediaPlayerProxy pineMediaPlayer = null;
         while (iterator.hasNext()) {
             Map.Entry entry = (Map.Entry) iterator.next();
-            pineMediaPlayer = (PineMediaWidget.IPineMediaPlayer) entry.getValue();
+            pineMediaPlayer = (PineMediaPlayerProxy) entry.getValue();
             if (pineMediaPlayer != null) {
                 pineMediaPlayer.onDestroy();
             }
@@ -47,7 +47,7 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void destroyMediaPlayerByTag(String tag) {
-        PineMediaWidget.IPineMediaPlayer pineMediaPlayer = mMediaPlayerProxyMap.remove(tag);
+        PineMediaPlayerProxy pineMediaPlayer = mMediaPlayerProxyMap.remove(tag);
         if (pineMediaPlayer != null) {
             pineMediaPlayer.onDestroy();
         }
@@ -58,8 +58,7 @@ public class PineMediaPlayerService extends Service {
         LogUtil.d(TAG, "onCreate");
         if (getMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG) == null) {
             setMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG, new PineMediaPlayerProxy(
-                    SERVICE_MEDIA_PLAYER_TAG,
-                    new PineMediaPlayerComponent(getApplicationContext())));
+                    getApplicationContext(), SERVICE_MEDIA_PLAYER_TAG));
         }
         super.onCreate();
     }

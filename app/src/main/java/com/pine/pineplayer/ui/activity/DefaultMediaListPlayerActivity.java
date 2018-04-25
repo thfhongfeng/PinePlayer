@@ -60,7 +60,6 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        mPlayer.savePlayerState();
         super.onPause();
     }
 

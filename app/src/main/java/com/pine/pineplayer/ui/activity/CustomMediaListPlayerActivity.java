@@ -342,7 +342,6 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-        mPlayer.savePlayerState();
         super.onPause();
     }
 
