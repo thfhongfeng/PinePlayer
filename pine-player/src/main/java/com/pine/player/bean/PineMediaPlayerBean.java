@@ -36,6 +36,10 @@ public class PineMediaPlayerBean {
     private HashMap<Integer, IPinePlayerPlugin> playerPluginMap;
     private IPineMediaDecryptor playerDecryptor;
     private int currentDefinition = PineMediaUriSource.MEDIA_DEFINITION_SD;
+    // 记录播放位置，在界面切换等情况下，自动恢复到之前的播放位置
+    private int seekWhenPrepared = 0;
+    // 记录播放状态，在界面切换等情况下，自动恢复到之前的播放状态
+    private boolean shouldPlayWhenPrepared = false;
 
     public PineMediaPlayerBean(@NonNull String mediaCode, @NonNull String mediaName,
                                @NonNull Uri mediaUri) {
@@ -311,6 +315,22 @@ public class PineMediaPlayerBean {
 
     public void setCurrentDefinition(int currentDefinition) {
         this.currentDefinition = currentDefinition;
+    }
+
+    public int getSeekWhenPrepared() {
+        return seekWhenPrepared;
+    }
+
+    public void setSeekWhenPrepared(int seekWhenPrepared) {
+        this.seekWhenPrepared = seekWhenPrepared;
+    }
+
+    public boolean isShouldPlayWhenPrepared() {
+        return shouldPlayWhenPrepared;
+    }
+
+    public void setShouldPlayWhenPrepared(boolean shouldPlayWhenPrepared) {
+        this.shouldPlayWhenPrepared = shouldPlayWhenPrepared;
     }
 
     public boolean isLocalMediaBean() {

@@ -70,7 +70,7 @@ public class PineMediaPlayerView extends RelativeLayout {
                     if (mIsViewShown) {
                         attachToMediaPlayerComponent();
                     } else {
-                        detachFromMediaPlayerComponent(false);
+                        detachFromMediaPlayerComponent(false, true);
                     }
                 }
             };
@@ -127,7 +127,7 @@ public class PineMediaPlayerView extends RelativeLayout {
             }
             getViewTreeObserver().addOnGlobalLayoutListener(mOnGlobalLayoutListener);
 
-            resetMediaController(controller);
+            resetMediaController(controller, true, false);
             mIsViewShown = isShown();
         }
     }
@@ -155,8 +155,12 @@ public class PineMediaPlayerView extends RelativeLayout {
         return mMediaController;
     }
 
-    public void resetMediaController(PineMediaWidget.IPineMediaController controller) {
+    public void resetMediaController(PineMediaWidget.IPineMediaController controller,
+                                     boolean isPlayerReset, boolean isResumeState) {
         if (checkIsInit()) {
+            if (mMediaController != null && mMediaController != controller) {
+                mMediaController.resetOutRootControllerIdleState();
+            }
             mMediaController = controller;
             if (controller != null) {
                 controller.setMediaPlayerView(this);
@@ -165,7 +169,7 @@ public class PineMediaPlayerView extends RelativeLayout {
             if (mMediaPlayerProxy.isAttachViewMode() && mMediaController != null) {
                 mMediaController.hide();
             }
-            mMediaPlayerProxy.attachMediaController(false, true);
+            mMediaPlayerProxy.attachMediaController(isPlayerReset, isResumeState);
         }
     }
 
@@ -216,29 +220,31 @@ public class PineMediaPlayerView extends RelativeLayout {
         }
         LogUtil.d(TAG, "attachToMediaPlayerComponent view:" + this);
         mMediaPlayerProxy.setMediaPlayerView(this, true);
-        getViewTreeObserver().removeOnPreDrawListener(mOnPreDrawListener);
-        getViewTreeObserver().addOnPreDrawListener(mOnPreDrawListener);
-        resetMediaController(mMediaController);
-        mMediaPlayerProxy.resume();
     }
 
     public void onMediaComponentAttach() {
+        getViewTreeObserver().removeOnPreDrawListener(mOnPreDrawListener);
+        getViewTreeObserver().addOnPreDrawListener(mOnPreDrawListener);
+        resetMediaController(mMediaController, false, true);
+        mMediaPlayerProxy.resume();
         mIsBoundToPlayer = true;
     }
 
-    public void detachFromMediaPlayerComponent(boolean destroy) {
+    public void detachFromMediaPlayerComponent(boolean viewDestroy, boolean saveState) {
         if (mMediaPlayerProxy == null || !mIsBoundToPlayer) {
             return;
         }
         LogUtil.d(TAG, "detachFromMediaPlayerComponent view:" + this);
         if (!mMediaPlayerProxy.isAutocephalyPlayMode()) {
-            if (destroy) {
+            if (viewDestroy) {
                 PineMediaPlayerService.destroyMediaPlayerByTag(mMediaPlayerTag);
             } else {
                 if (!(mContext instanceof Activity) || ((Activity) mContext).isFinishing()) {
                     mMediaPlayerProxy.release();
                 } else {
-                    mMediaPlayerProxy.savePlayerState();
+                    if (saveState) {
+                        mMediaPlayerProxy.savePlayerState();
+                    }
                     mMediaPlayerProxy.pause();
                 }
             }
@@ -247,6 +253,10 @@ public class PineMediaPlayerView extends RelativeLayout {
     }
 
     public void onMediaComponentDetach() {
+        if (mMediaController != null) {
+            mMediaController.resetOutRootControllerIdleState();
+            mMediaController.hide();
+        }
         mIsBoundToPlayer = false;
     }
 
@@ -259,7 +269,7 @@ public class PineMediaPlayerView extends RelativeLayout {
         if (isFocus) {
             attachToMediaPlayerComponent();
         } else {
-            detachFromMediaPlayerComponent(false);
+            detachFromMediaPlayerComponent(false, true);
         }
     }
 
@@ -272,7 +282,7 @@ public class PineMediaPlayerView extends RelativeLayout {
     @Override
     protected void onDetachedFromWindow() {
         LogUtil.d(TAG, "Detach from window view:" + this);
-        detachFromMediaPlayerComponent(true);
+        detachFromMediaPlayerComponent(true, false);
         mIsFullScreenMode = false;
         mIsBoundToPlayer = false;
         mMediaPlayerProxy = null;

@@ -98,6 +98,15 @@ public class MainActivity extends AppCompatActivity {
                                 startActivity(intent);
                             }
                         });
+                        findViewById(R.id.multi_controller_tv).setVisibility(View.VISIBLE);
+                        findViewById(R.id.multi_controller_tv).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent = new Intent(MainActivity.this, MultiControllerSwitchActivity.class);
+                                intent.putExtra("path", mBasePath);
+                                startActivity(intent);
+                            }
+                        });
                         findViewById(R.id.autocephaly_tv).setVisibility(View.VISIBLE);
                         findViewById(R.id.autocephaly_tv).setOnClickListener(new View.OnClickListener() {
                             @Override

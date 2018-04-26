@@ -78,6 +78,11 @@ public class PineMediaWidget {
         void hide();
 
         /**
+         * 恢复非内置控制器到IDlE状态
+         */
+        void resetOutRootControllerIdleState();
+
+        /**
          * 播放器播放回调
          */
         void onMediaPlayerStart();

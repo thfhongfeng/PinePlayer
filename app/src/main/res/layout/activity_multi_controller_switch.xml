@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <com.pine.player.widget.PineMediaPlayerView
+        android:id="@+id/audio_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"></com.pine.player.widget.PineMediaPlayerView>
+    <include android:id="@+id/item_controller1_rl" layout="@layout/item_controller_layout"></include>
+    <include android:id="@+id/item_controller2_rl" layout="@layout/item_controller_layout"></include>
+    <include android:id="@+id/item_controller3_rl" layout="@layout/item_controller_layout"></include>
+</LinearLayout>
