@@ -285,12 +285,12 @@ public class PineMediaWidget {
         /**
          * 保存播放状态和进度
          */
-        void savePlayerState();
+        void savePlayMediaState();
 
         /**
          * 清除播放状态和进度
          */
-        void clearPlayerState();
+        void clearPlayMediaState();
 
         /**
          * 获取播放总时长
@@ -364,11 +364,21 @@ public class PineMediaWidget {
         boolean isAutocephalyPlayMode();
 
         /**
-         * 设置是否为独立播放模式（不与播放界面共生命周期）
+         * 设置是否为独立播放模式（是否与播放界面共生命周期）
          *
          * @param isAutocephalyPlayMode 设置是否为独立播放模式
          */
         void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
+
+        /**
+         * 设置是否为独立播放模式（是否与播放界面共生命周期）
+         *
+         * @param isAutocephalyPlayMode 设置是否为独立播放模式
+         * @param destroyWhenDetach   在非独立模式下，当Context销毁时，播放器是销毁(destroy)还是释放(release)
+         * true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
+         * false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
+         */
+        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean destroyWhenDetach);
 
         /**
          * 获取播放器具体状态
@@ -472,12 +482,12 @@ public class PineMediaWidget {
         /**
          * 保存播放状态和进度
          */
-        void savePlayerState();
+        void savePlayMediaState();
 
         /**
          * 清除播放状态和进度
          */
-        void clearPlayerState();
+        void clearPlayMediaState();
 
         /**
          * 获取播放总时长
@@ -604,11 +614,21 @@ public class PineMediaWidget {
         boolean isAutocephalyPlayMode();
 
         /**
-         * 设置是否为独立播放模式（不与播放界面共生命周期）
+         * 非独立播放模式下，当Context销毁时，是否销毁播放器
+         *
+         * @return
+         */
+        boolean isDestroyPlayerWhenDetach();
+
+        /**
+         * 设置是否为独立播放模式（是否与播放界面共生命周期）
          *
          * @param isAutocephalyPlayMode 设置是否为独立播放模式
+         * @param destroyWhenDetach   在非独立模式下，当Context销毁时，播放器是销毁(destroy)还是释放(release)
+         * true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
+         * false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
          */
-        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
+        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean destroyWhenDetach);
 
         /**
          * 获取播放器具体状态

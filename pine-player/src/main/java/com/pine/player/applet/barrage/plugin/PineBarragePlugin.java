@@ -315,7 +315,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 positionBarrageList.addAll(mDelayShowBarrageList);
                 mDelayShowBarrageList.clear();
             }
-            LogUtil.d(TAG, "onTime start add barrage text positionBarrageList size:" + positionBarrageList.size());
+            LogUtil.v(TAG, "onTime start add barrage text positionBarrageList size:" + positionBarrageList.size());
             PineBarrageBean pineBarrageBean = null;
             int itemSize = Math.min(mMaxShownItemCount, positionBarrageList.size());
             for (int i = 0; i < itemSize; i++) {
@@ -329,7 +329,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                     mDelayShowBarrageList.add(pineBarrageBean);
                 }
             }
-            LogUtil.d(TAG, "onTime end add barrage text positionBarrageList size:" + positionBarrageList.size());
+            LogUtil.v(TAG, "onTime end add barrage text positionBarrageList size:" + positionBarrageList.size());
         }
     }
 

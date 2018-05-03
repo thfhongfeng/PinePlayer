@@ -23,6 +23,10 @@ public class PineMediaPlayerService extends Service {
     private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerService.class);
     private static HashMap<String, PineMediaPlayerProxy> mMediaPlayerProxyMap =
             new HashMap<>();
+    private static HashMap<String, Boolean> mMediaShouldPlayWhenPreparedMap =
+            new HashMap<>();
+    private static HashMap<String, Integer> mMediaSeekWhenPreparedMap =
+            new HashMap<>();
 
     public synchronized static PineMediaWidget.IPineMediaPlayer getMediaPlayerByTag(String tag) {
         return mMediaPlayerProxyMap.get(tag);
@@ -51,6 +55,34 @@ public class PineMediaPlayerService extends Service {
         if (pineMediaPlayer != null) {
             pineMediaPlayer.onDestroy();
         }
+    }
+
+    public synchronized static void clearAllPlayMediaState(String mediaCode) {
+        mMediaShouldPlayWhenPreparedMap.clear();
+        mMediaSeekWhenPreparedMap.clear();
+    }
+
+    public synchronized static void clearPlayMediaState(String mediaCode) {
+        mMediaShouldPlayWhenPreparedMap.remove(mediaCode);
+        mMediaSeekWhenPreparedMap.remove(mediaCode);
+    }
+
+    public synchronized static boolean isShouldPlayWhenPrepared(String mediaCode) {
+        return mMediaShouldPlayWhenPreparedMap.containsKey(mediaCode) ?
+                mMediaShouldPlayWhenPreparedMap.get(mediaCode) : false;
+    }
+
+    public synchronized static int getSeekWhenPrepared(String mediaCode) {
+        return mMediaSeekWhenPreparedMap.containsKey(mediaCode) ?
+                mMediaSeekWhenPreparedMap.get(mediaCode) : 0;
+    }
+
+    public synchronized static void setShouldPlayWhenPrepared(String mediaCode, boolean isPlaying) {
+        mMediaShouldPlayWhenPreparedMap.put(mediaCode, isPlaying);
+    }
+
+    public synchronized static void setSeekWhenPrepared(String mediaCode, int currentPosition) {
+        mMediaSeekWhenPreparedMap.put(mediaCode, currentPosition);
     }
 
     @Override

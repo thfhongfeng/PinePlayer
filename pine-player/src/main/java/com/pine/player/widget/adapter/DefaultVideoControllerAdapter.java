@@ -453,7 +453,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
                 @Override
                 public void onClick(View view) {
                     pineMediaPlayerBean.setCurrentDefinitionByPosition(position);
-                    mDPlayer.savePlayerState();
+                    mDPlayer.savePlayMediaState();
                     videoDefinitionSelected(pineMediaPlayerBean);
                 }
             });

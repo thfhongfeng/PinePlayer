@@ -111,13 +111,13 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
     }
 
     @Override
-    public void savePlayerState() {
-        mMediaPlayerComponent.savePlayerState();
+    public void savePlayMediaState() {
+        mMediaPlayerComponent.savePlayMediaState();
     }
 
     @Override
-    public void clearPlayerState() {
-        mMediaPlayerComponent.clearPlayerState();
+    public void clearPlayMediaState() {
+        mMediaPlayerComponent.clearPlayMediaState();
     }
 
     @Override
@@ -207,7 +207,17 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
 
     @Override
     public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
-        mMediaPlayerComponent.setAutocephalyPlayMode(isAutocephalyPlayMode);
+        mMediaPlayerComponent.setAutocephalyPlayMode(isAutocephalyPlayMode, false);
+    }
+
+    @Override
+    public boolean isDestroyPlayerWhenDetach() {
+        return mMediaPlayerComponent.isDestroyPlayerWhenDetach();
+    }
+
+    @Override
+    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean destroyWhenDetach) {
+        mMediaPlayerComponent.setAutocephalyPlayMode(isAutocephalyPlayMode, destroyWhenDetach);
     }
 
     @Override

@@ -11,13 +11,17 @@ import android.media.MediaDataSource;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.IPineMediaSocketService;
+import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.service.PineMediaSocketService;
 import com.pine.player.util.LogUtil;
 import com.pine.player.widget.PineMediaPlayerView;
@@ -54,9 +58,18 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     // 是否使用5.0之后的新API，该API支持本地流播放
     private static final boolean USE_NEW_API = true;
     private final Object LISTENER_SET_LOCK = new Object();
+    private final int MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT = 1;
+    private final int MAX_RETRY_FOR_BUFFERING_START_TIMEOUT = 3;
     private int mCurrentState = STATE_IDLE;
     private int mTargetState = STATE_IDLE;
+    // 是否独立模式（独立模式下播放器不跟随Context的生命周期变化）
     private boolean mIsAutocephalyPlayMode;
+    /**
+     * 在非独立模式下，当Context销毁时，播放器是销毁(destroy)还是释放(release)
+     * true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
+     * false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
+     */
+    private boolean mDestroyedWhenDetach;
     private Context mContext;
     // 准备播放的多媒体对象
     private PineMediaPlayerBean mMediaBean;
@@ -107,7 +120,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mMediaWidth = mp.getVideoWidth();
             mMediaHeight = mp.getVideoHeight();
 
-            int seekToPosition = mMediaBean.getSeekWhenPrepared();  // mSeekWhenPrepared may be changed after seekTo() call
+            int seekToPosition = PineMediaPlayerService
+                    .getSeekWhenPrepared(mMediaBean.getMediaCode());  // mSeekWhenPrepared may be changed after seekTo() call
             if (seekToPosition != 0) {
                 seekTo(seekToPosition);
             }
@@ -127,7 +141,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     // We didn't actually change the size (it was already at the size
                     // we need), so we won't get a "surface changed" callback, so
                     // start the media here instead of in the callback.
-                    if (mTargetState == STATE_PLAYING || mMediaBean.isShouldPlayWhenPrepared()) {
+                    if (mTargetState == STATE_PLAYING ||
+                            PineMediaPlayerService.isShouldPlayWhenPrepared(mMediaBean.getMediaCode())) {
                         start();
                         if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                             mMediaPlayerView.getMediaController().show();
@@ -143,7 +158,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             } else {
                 // We don't know the media size yet, but should start anyway.
                 // The media size might be reported to us later.
-                if (mTargetState == STATE_PLAYING || mMediaBean.isShouldPlayWhenPrepared()) {
+                if (mTargetState == STATE_PLAYING ||
+                        PineMediaPlayerService.isShouldPlayWhenPrepared(mMediaBean.getMediaCode())) {
                     start();
                 }
             }
@@ -165,8 +181,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     if (currentPos != duration && bufferPercentage > 0 && bufferPercentage < 100) {
                         mCurrentState = STATE_ERROR;
                         mTargetState = STATE_PLAYING;
-                        mMediaBean.setSeekWhenPrepared(currentPos);
-                        mMediaBean.setShouldPlayWhenPrepared(true);
+                        PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), currentPos);
+                        PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), true);
                         if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                             mMediaPlayerView.getMediaController().onAbnormalComplete();
                         }
@@ -196,26 +212,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                             }
                         }
                     }
-                }
-            };
-    private MediaPlayer.OnInfoListener mInfoListener =
-            new MediaPlayer.OnInfoListener() {
-                @Override
-                public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                    LogUtil.d(TAG, "onInfo what: " + what + ", extra:" + extra);
-                    if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
-                        mMediaPlayerView.getMediaController().onMediaPlayerInfo(what, extra);
-                    }
-                    if (mMediaPlayerListenerSet.size() > 0) {
-                        synchronized (LISTENER_SET_LOCK) {
-                            for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
-                                if (listener != null) {
-                                    listener.onInfo(what, extra);
-                                }
-                            }
-                        }
-                    }
-                    return true;
                 }
             };
     private MediaPlayer.OnErrorListener mErrorListener =
@@ -275,6 +271,53 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     }
                 }
             };
+    private int mRetryForBufferingStartTimeout = 0;
+    private MediaPlayer.OnInfoListener mInfoListener =
+            new MediaPlayer.OnInfoListener() {
+                @Override
+                public boolean onInfo(MediaPlayer mp, int what, int extra) {
+                    LogUtil.d(TAG, "onInfo what: " + what + ", extra:" + extra);
+                    if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                        mMediaPlayerView.getMediaController().onMediaPlayerInfo(what, extra);
+                    }
+                    if (mMediaPlayerListenerSet.size() > 0) {
+                        synchronized (LISTENER_SET_LOCK) {
+                            for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                                if (listener != null) {
+                                    listener.onInfo(what, extra);
+                                }
+                            }
+                        }
+                    }
+                    if (what == 703) {
+                        savePlayMediaState();
+                    } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_END) {
+                        mHandler.removeMessages(MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT);
+                    } else if (what == MediaPlayer.MEDIA_INFO_BUFFERING_START) {
+                        mHandler.removeMessages(MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT);
+                        mHandler.sendEmptyMessageDelayed(MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT, 2000);
+                    }
+                    return true;
+                }
+            };
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT:
+                    release();
+                    if (mRetryForBufferingStartTimeout < MAX_RETRY_FOR_BUFFERING_START_TIMEOUT) {
+                        mRetryForBufferingStartTimeout++;
+                        LogUtil.d(TAG, "Resume player when network bandwidth block, " +
+                                "retry count:" + mRetryForBufferingStartTimeout);
+                        if (mMediaBean != null) {
+                            openMedia(true);
+                        }
+                    }
+                    break;
+            }
+        }
+    };
     // 本地播放流服务（用于低于M版本的本地流播放方案）
     protected ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -495,12 +538,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
                                 Map<String, String> headers, boolean resumeState, boolean isAutocephalyPlayMode) {
         mMediaBean = pineMediaPlayerBean;
+        mRetryForBufferingStartTimeout = 0;
         ArrayList<Uri> mediaUris = null;
         if (mMediaBean != null) {
             mediaUris = mMediaBean.getMediaSectionUris();
         }
         if (!resumeState) {
-            clearPlayerState();
+            clearPlayMediaState();
         }
         mMediaSectionUrisCount = mediaUris != null ? mediaUris.size() : -1;
         mHeaders = headers;
@@ -542,8 +586,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mSpeed = speed;
             if (mMediaBean != null) {
-                mMediaBean.setSeekWhenPrepared(getCurrentPosition());
-                mMediaBean.setShouldPlayWhenPrepared(isPlaying());
+                PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), getCurrentPosition());
+                PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), isPlaying());
             }
             openMedia(true);
         }
@@ -555,7 +599,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             if (isInPlaybackState()) {
                 LogUtil.d(TAG, "Start media player");
                 mMediaPlayer.start();
-                mMediaBean.setShouldPlayWhenPrepared(false);
+                PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), false);
                 if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
                     mMediaPlayerView.getMediaController().onMediaPlayerStart();
                 }
@@ -611,10 +655,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void resume() {
         if (isInPlaybackState()) {
             attachMediaController(false, true);
-            if (mMediaBean.getSeekWhenPrepared() != 0) {
-                seekTo(mMediaBean.getSeekWhenPrepared());
+            if (PineMediaPlayerService
+                    .getSeekWhenPrepared(mMediaBean.getMediaCode()) != 0) {
+                seekTo(PineMediaPlayerService
+                        .getSeekWhenPrepared(mMediaBean.getMediaCode()));
             }
-            if (mMediaBean.isShouldPlayWhenPrepared()) {
+            if (PineMediaPlayerService
+                    .isShouldPlayWhenPrepared(mMediaBean.getMediaCode())) {
                 start();
             }
         } else {
@@ -631,6 +678,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     @Override
     public void onDestroy() {
         LogUtil.d(TAG, "onDestroy");
+        mHandler.removeCallbacksAndMessages(null);
+        mRetryForBufferingStartTimeout = 0;
         release();
         mMediaPlayerListenerSet.clear();
         if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
@@ -643,23 +692,22 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         mMediaWidth = 0;
         mMediaHeight = 0;
         if (mMediaBean != null) {
-            clearPlayerState();
+            mMediaBean = null;
         }
     }
 
     @Override
-    public void savePlayerState() {
+    public void savePlayMediaState() {
         if (isInPlaybackState()) {
-            mMediaBean.setSeekWhenPrepared(getCurrentPosition());
-            mMediaBean.setShouldPlayWhenPrepared(isPlaying());
+            PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), getCurrentPosition());
+            PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), isPlaying());
         }
     }
 
     @Override
-    public void clearPlayerState() {
+    public void clearPlayMediaState() {
         if (mMediaBean != null) {
-            mMediaBean.setSeekWhenPrepared(0);
-            mMediaBean.setShouldPlayWhenPrepared(false);
+            PineMediaPlayerService.clearPlayMediaState(mMediaBean.getMediaCode());
         }
     }
 
@@ -714,9 +762,9 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         if (isInPlaybackState()) {
             LogUtil.d(TAG, "seek to:" + msc);
             mMediaPlayer.seekTo(msc);
-            mMediaBean.setSeekWhenPrepared(0);
+            PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), 0);
         } else {
-            mMediaBean.setSeekWhenPrepared(msc);
+            PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), msc);
         }
     }
 
@@ -799,14 +847,23 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         return mIsAutocephalyPlayMode;
     }
 
+    @Override
+    public boolean isDestroyPlayerWhenDetach() {
+        return mDestroyedWhenDetach;
+    }
+
     /**
-     * 设置是否为独立播放模式（不与播放界面共生命周期）
+     * 设置是否为独立播放模式（是否与播放界面共生命周期）
      *
      * @param isAutocephalyPlayMode 设置是否为独立播放模式
+     * @param destroyWhenDetach     在非独立模式下，当Context销毁时，播放器是销毁(destroy)还是释放(release)
+     *                              true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
+     *                              false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
      */
     @Override
-    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode) {
+    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean destroyWhenDetach) {
         mIsAutocephalyPlayMode = isAutocephalyPlayMode;
+        mDestroyedWhenDetach = destroyWhenDetach;
     }
 
     @Override
@@ -898,8 +955,10 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         boolean isValidState = (mTargetState == STATE_PLAYING);
         boolean hasValidSize = (mMediaWidth == w && mMediaHeight == h);
         if (mMediaPlayer != null && isValidState && hasValidSize) {
-            if (mMediaBean.getSeekWhenPrepared() != 0) {
-                seekTo(mMediaBean.getSeekWhenPrepared());
+            if (PineMediaPlayerService
+                    .getSeekWhenPrepared(mMediaBean.getMediaCode()) != 0) {
+                seekTo(PineMediaPlayerService
+                        .getSeekWhenPrepared(mMediaBean.getMediaCode()));
             }
             start();
         }
@@ -961,6 +1020,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     */
     public void release(boolean clearTargetState) {
         LogUtil.d(TAG, "release clearTargetState:" + clearTargetState);
+        mHandler.removeMessages(MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT);
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();
             mMediaPlayer.release();

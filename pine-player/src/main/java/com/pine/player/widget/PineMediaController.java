@@ -291,58 +291,6 @@ public class PineMediaController extends RelativeLayout
                     return true;
                 }
             };
-    // Controller控件本身
-    private View mRoot;
-    private GestureDetector mGestureDetector;
-    private HashMap<Integer, IPinePlayerPlugin> mPinePluginMap;
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            int pos;
-            switch (msg.what) {
-                // 控制器自动隐藏消息
-                case MSG_FADE_OUT:
-                    hide();
-                    break;
-                // 进度条更新消息
-                case MSG_SHOW_PROGRESS:
-                    pos = setProgress();
-                    if (!mDragging && (isProgressNeeded() || isShowing()) &&
-                            (mPlayer.isPlaying() || mPlayer.isPause())) {
-                        msg = obtainMessage(MSG_SHOW_PROGRESS);
-                        int sum = (int) mPlayer.getSpeed();
-                        sum = sum < 1 ? 1 : sum;
-                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
-                    }
-                    break;
-                // 背景延迟隐藏消失
-                case MSG_BACKGROUND_FADE_OUT:
-                    if (mBackgroundViewHolder.getContainer() != null) {
-                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
-                    }
-                    break;
-                // 加载等待界面延迟隐藏消失
-                case MSG_WAITING_FADE_OUT:
-                    if (mWaitingProgressViewHolder.getContainer() != null) {
-                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
-                    }
-                    setControllerEnabled(true);
-                    break;
-                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
-                case MSG_PLUGIN_REFRESH:
-                    Iterator iterator = mPinePluginMap.entrySet().iterator();
-                    while (iterator.hasNext()) {
-                        Map.Entry entry = (Map.Entry) iterator.next();
-                        ((IPinePlayerPlugin) entry.getValue()).onTime(mPlayer.getCurrentPosition());
-                    }
-                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
-                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
-                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
-                    }
-                    break;
-            }
-        }
-    };
     // There are two scenarios that can trigger the seekbar listener to trigger:
     //
     // The first is the user using the touchpad to adjust the posititon of the
@@ -516,6 +464,58 @@ public class PineMediaController extends RelativeLayout
                     show();
                 }
                 judgeAndChangeRequestedOrientation();
+            }
+        }
+    };
+    // Controller控件本身
+    private View mRoot;
+    private GestureDetector mGestureDetector;
+    private HashMap<Integer, IPinePlayerPlugin> mPinePluginMap;
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int pos;
+            switch (msg.what) {
+                // 控制器自动隐藏消息
+                case MSG_FADE_OUT:
+                    hide();
+                    break;
+                // 进度条更新消息
+                case MSG_SHOW_PROGRESS:
+                    pos = setProgress();
+                    if (!mDragging && (isProgressNeeded() || isShowing()) &&
+                            (mPlayer.isPlaying() || mPlayer.isPause())) {
+                        msg = obtainMessage(MSG_SHOW_PROGRESS);
+                        int sum = (int) mPlayer.getSpeed();
+                        sum = sum < 1 ? 1 : sum;
+                        sendMessageDelayed(msg, (1000 - (pos % 1000)) / sum);
+                    }
+                    break;
+                // 背景延迟隐藏消失
+                case MSG_BACKGROUND_FADE_OUT:
+                    if (mBackgroundViewHolder.getContainer() != null) {
+                        mBackgroundViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    break;
+                // 加载等待界面延迟隐藏消失
+                case MSG_WAITING_FADE_OUT:
+                    if (mWaitingProgressViewHolder.getContainer() != null) {
+                        mWaitingProgressViewHolder.getContainer().setVisibility(GONE);
+                    }
+                    setControllerEnabled(true);
+                    break;
+                // 每PLUGIN_REFRESH_TIME_DELAY毫秒刷新一次插件View
+                case MSG_PLUGIN_REFRESH:
+                    Iterator iterator = mPinePluginMap.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry entry = (Map.Entry) iterator.next();
+                        ((IPinePlayerPlugin) entry.getValue()).onTime(mPlayer.getCurrentPosition());
+                    }
+                    if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
+                        msg = obtainMessage(MSG_PLUGIN_REFRESH);
+                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
+                    }
+                    break;
             }
         }
     };
@@ -1164,10 +1164,11 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void onBufferingUpdate(int percent) {
+        if (!mPlayer.isInPlaybackState()) {
+            return;
+        }
         float position = (float) mPlayer.getCurrentPosition();
         float duration = (float) mPlayer.getDuration();
-        LogUtil.v(TAG, "onBufferingUpdate percent: " + percent + ", duration:" + duration
-                + ", position:" + position);
         if (mPlayer.getMediaPlayerState() == PineMediaPlayerComponent.STATE_PLAYBACK_COMPLETED
                 || position >= duration) {
             return;
@@ -1176,6 +1177,8 @@ public class PineMediaController extends RelativeLayout
             float per = position * 100 / duration;
             if (per > (float) percent) {
                 if (mPlayer.isPlaying()) {
+                    LogUtil.d(TAG, "onBufferingUpdate pause player: " +
+                            percent + ", duration:" + duration + ", position:" + position);
                     mPlayer.pause();
                     mPausedByBufferingUpdate = true;
                     if (mWaitingProgressViewHolder.getContainer() != null) {
@@ -1185,6 +1188,8 @@ public class PineMediaController extends RelativeLayout
                 }
             } else {
                 if (mPlayer.isPause() && mPausedByBufferingUpdate) {
+                    LogUtil.d(TAG, "onBufferingUpdate start player: " +
+                            percent + ", duration:" + duration + ", position:" + position);
                     mPlayer.start();
                     mPausedByBufferingUpdate = false;
 //                    hide();

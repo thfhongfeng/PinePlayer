@@ -348,7 +348,7 @@ public class CustomPlayerActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     pineMediaPlayerBean.setCurrentDefinitionByPosition(position);
-                    mPlayer.savePlayerState();
+                    mPlayer.savePlayMediaState();
                     videoDefinitionSelected(pineMediaPlayerBean);
                 }
             });
