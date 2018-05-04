@@ -104,6 +104,16 @@ public class PineMediaPlayerView extends RelativeLayout {
         init(mediaPlayerTag, controller, enableSurface, true);
     }
 
+    /**
+     * 播放器控件初始化
+     * @param mediaPlayerTag   播放器唯一标识，如果mediaPlayerTag标识的播放器已经初始化，
+     *                         则将控件绑定到该播放器上，否则初始化一个新的mediaPlayerTag标识的播放器，
+     *                         并绑定控件到播放器上。
+     * @param controller   IPineMediaController 实例，即播放器控制器
+     * @param enableSurface   是否需要SurfaceView来呈现播放画面（默认为true），对于音频则可以设置为false
+     * @param saveMediaStateWhenHide   当控件View隐藏时（比如控件所在Activity被pause，或者失去焦点）是否自动保存当前播放状态，
+     *                                 用于再次显示之后的恢复到之前的播放状态（默认为true）。
+     */
     public void init(String mediaPlayerTag, PineMediaWidget.IPineMediaController controller,
                      boolean enableSurface, boolean saveMediaStateWhenHide) {
         if (!mIsInit) {

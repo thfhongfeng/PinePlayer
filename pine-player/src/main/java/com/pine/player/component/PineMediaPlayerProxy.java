@@ -24,10 +24,6 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
         mMediaPlayerComponent = new PineMediaPlayerComponent(context);
     }
 
-    public PineMediaWidget.IPineMediaPlayerComponent getPineMediaPlayerComponent() {
-        return mMediaPlayerComponent;
-    }
-
     @Override
     public String getMediaPlayerTag() {
         return mMediaPlayerTag;
@@ -250,6 +246,7 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
         mMediaPlayerComponent.detachMediaPlayerView(view);
     }
 
+    @Override
     public void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
         mMediaPlayerComponent.attachMediaController(isPlayerReset, isResumeState);
     }
