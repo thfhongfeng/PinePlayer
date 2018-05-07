@@ -108,7 +108,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private boolean mCanSeekForward;
     MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         public void onPrepared(MediaPlayer mp) {
-            LogUtil.d(TAG, "onPrepared");
+            LogUtil.d(TAG, "onPrepared Media mUri: " + mMediaBean.getMediaUri());
             int fromState = mCurrentState;
             mCurrentState = STATE_PREPARED;
 

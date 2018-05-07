@@ -193,6 +193,8 @@ public class PineMediaController extends RelativeLayout
                         && oldLayoutParams.bottomMargin == bottomMargin) {
                     mIsNeedResizeRightContainerView = false;
                 } else {
+                    LogUtil.d(TAG, "RightViewContainer OnPreDrawListener topMargin: " + topMargin
+                            + ", bottomMargin: " + bottomMargin + ", view:" + mRightViewContainer);
                     RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                     layoutParams.topMargin = topMargin;
@@ -224,6 +226,8 @@ public class PineMediaController extends RelativeLayout
                                 oldLayoutParams.bottomMargin == bottomMargin) {
                             mIsNeedResizeControllerPluginView = false;
                         } else {
+                            LogUtil.d(TAG, "ControllerPlugin OnPreDrawListener topMargin: " + topMargin
+                                    + ", bottomMargin: " + bottomMargin + ", view:" + mControllerPluginViewContainer);
                             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                             layoutParams.topMargin = topMargin;
@@ -276,6 +280,8 @@ public class PineMediaController extends RelativeLayout
                                 oldLayoutParams.height == playerLayoutParams.height) {
                             mIsNeedResizeSurfacePluginView = false;
                         } else {
+                            LogUtil.d(TAG, "SurfacePlugin OnPreDrawListener topMargin: " + topMargin
+                                    + ", bottomMargin: " + bottomMargin + ", view:" + mSurfacePluginViewContainer);
                             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                                     playerLayoutParams.width, playerLayoutParams.height);
                             if (topMargin != -1) {

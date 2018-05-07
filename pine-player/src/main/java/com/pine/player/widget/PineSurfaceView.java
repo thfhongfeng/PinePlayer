@@ -173,6 +173,7 @@ public class PineSurfaceView extends SurfaceView {
     @Override
     protected void onDetachedFromWindow() {
         LogUtil.d(TAG, "Detach from window view:" + this.getId());
+        mMediaPlayerView = null;
         super.onDetachedFromWindow();
     }
 }

@@ -261,6 +261,10 @@ public class PineMediaPlayerView extends RelativeLayout {
         }
         LogUtil.d(TAG, "detachFromMediaPlayerComponent viewDestroy: " + viewDestroy +
                 ", saveState:" + mSaveMediaStateWhenHide + ", view:" + this);
+        if (mMediaController != null) {
+            mMediaController.resetOutRootControllerIdleState();
+            mMediaController.hide();
+        }
         if (!mMediaPlayerProxy.isAutocephalyPlayMode()) {
             if (mSaveMediaStateWhenHide) {
                 mMediaPlayerProxy.savePlayMediaState();
@@ -284,10 +288,6 @@ public class PineMediaPlayerView extends RelativeLayout {
 
     public void onMediaComponentDetach() {
         LogUtil.d(TAG, "onMediaComponentDetach view:" + this);
-        if (mMediaController != null) {
-            mMediaController.resetOutRootControllerIdleState();
-            mMediaController.hide();
-        }
         mIsBoundToPlayer = false;
     }
 
@@ -310,6 +310,9 @@ public class PineMediaPlayerView extends RelativeLayout {
     @Override
     protected void onAttachedToWindow() {
         LogUtil.d(TAG, "Attached to window view:" + this);
+        if (mIsInit) {
+            attachToMediaPlayerComponent();
+        }
         super.onAttachedToWindow();
     }
 
@@ -320,9 +323,6 @@ public class PineMediaPlayerView extends RelativeLayout {
             detachFromMediaPlayerComponent(true);
             mIsFullScreenMode = false;
             mIsBoundToPlayer = false;
-            mMediaPlayerProxy = null;
-            mPineSurfaceView = null;
-            mMediaController = null;
             getViewTreeObserver().removeOnPreDrawListener(mOnPreDrawListener);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 getViewTreeObserver().removeOnGlobalLayoutListener(mOnGlobalLayoutListener);
