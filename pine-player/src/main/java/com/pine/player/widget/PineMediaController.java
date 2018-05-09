@@ -2126,7 +2126,7 @@ public class PineMediaController extends RelativeLayout
 
         /**
          * 背景布局，会被添加到PineMediaPlayerView布局中，
-         * 覆盖在MediaView上。用于播放切换过程中的背景布置，或者播放音频时的背景图
+         * 位于PineMediaController View最底层。用于播放切换过程中的背景布置，或者播放音频时的背景图
          *
          * @param player
          * @param isFullScreenMode
@@ -2137,7 +2137,7 @@ public class PineMediaController extends RelativeLayout
 
         /**
          * Controller内置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
-         * 覆盖在SubtitleView上，请使用透明背景
+         * 覆盖在BackgroundView上，请使用透明背景
          * 需要在该方法中绑定布局的相应控件到ViewHolder中，对应的控件功能才能被激活
          *
          * @param player

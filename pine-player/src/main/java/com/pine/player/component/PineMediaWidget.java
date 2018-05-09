@@ -374,11 +374,12 @@ public class PineMediaWidget {
          * 设置是否为独立播放模式（是否与播放界面共生命周期）
          *
          * @param isAutocephalyPlayMode 设置是否为独立播放模式
-         * @param destroyWhenDetach   在非独立模式下，当Context销毁时，播放器是销毁(destroy)还是释放(release)
-         * true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
-         * false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
+         * @param shouldDestroyWhenDetach   在非独立模式下，当控件View从上下文环境中（Context）移除时，
+         *                            播放器是销毁(destroy)还是释放(release)
+         * true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
+         * false: release模式下，从Context中移除后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
          */
-        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean destroyWhenDetach);
+        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean shouldDestroyWhenDetach);
 
         /**
          * 获取播放器具体状态
@@ -614,21 +615,22 @@ public class PineMediaWidget {
         boolean isAutocephalyPlayMode();
 
         /**
-         * 非独立播放模式下，当Context销毁时，是否销毁播放器
+         * 非独立播放模式下，当View从Context中移除时，是否销毁播放器
          *
          * @return
          */
-        boolean isDestroyPlayerWhenDetach();
+        boolean shouldDestroyPlayerWhenDetach();
 
         /**
          * 设置是否为独立播放模式（是否与播放界面共生命周期）
          *
          * @param isAutocephalyPlayMode 设置是否为独立播放模式
-         * @param destroyWhenDetach   在非独立模式下，当Context销毁时，播放器是销毁(destroy)还是释放(release)
-         * true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
-         * false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
+         * @param shouldDestroyWhenDetach   在非独立模式下，当控件View从上下文环境中（Context）移除时，
+         *                            播放器是销毁(destroy)还是释放(release)
+         * true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
+         * false: release模式下，从Context中移除后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
          */
-        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean destroyWhenDetach);
+        void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean shouldDestroyWhenDetach);
 
         /**
          * 获取播放器具体状态

@@ -69,7 +69,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
      * true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
      * false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
      */
-    private boolean mDestroyedWhenDetach;
+    private boolean mShouldDestroyWhenDetach;
     private Context mContext;
     // 准备播放的多媒体对象
     private PineMediaPlayerBean mMediaBean;
@@ -848,22 +848,23 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public boolean isDestroyPlayerWhenDetach() {
-        return mDestroyedWhenDetach;
+    public boolean shouldDestroyPlayerWhenDetach() {
+        return mShouldDestroyWhenDetach;
     }
 
     /**
      * 设置是否为独立播放模式（是否与播放界面共生命周期）
      *
      * @param isAutocephalyPlayMode 设置是否为独立播放模式
-     * @param destroyWhenDetach     在非独立模式下，当Context销毁时，播放器是销毁(destroy)还是释放(release)
-     *                              true: destroy模式下，Context销毁后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
-     *                              false: release模式下，Context销毁后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
+     * @param shouldDestroyWhenDetach   在非独立模式下，当控件View从上下文环境中（Context）移除时，
+     *                            播放器是销毁(destroy)还是释放(release)
+     * true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象释放，无法使用resume来恢复播放状态
+     * false: release模式下，从Context中移除后，非独立播放器对象不会释放，可以使用resume来恢复播放状态
      */
     @Override
-    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean destroyWhenDetach) {
+    public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean shouldDestroyWhenDetach) {
         mIsAutocephalyPlayMode = isAutocephalyPlayMode;
-        mDestroyedWhenDetach = destroyWhenDetach;
+        mShouldDestroyWhenDetach = shouldDestroyWhenDetach;
     }
 
     @Override

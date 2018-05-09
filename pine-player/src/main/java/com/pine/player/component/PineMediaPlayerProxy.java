@@ -207,8 +207,8 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
     }
 
     @Override
-    public boolean isDestroyPlayerWhenDetach() {
-        return mMediaPlayerComponent.isDestroyPlayerWhenDetach();
+    public boolean shouldDestroyPlayerWhenDetach() {
+        return mMediaPlayerComponent.shouldDestroyPlayerWhenDetach();
     }
 
     @Override

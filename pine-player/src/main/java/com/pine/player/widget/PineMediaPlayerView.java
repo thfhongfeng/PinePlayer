@@ -35,7 +35,7 @@ public class PineMediaPlayerView extends RelativeLayout {
     private Context mContext;
     private String mMediaPlayerTag;
     private boolean mIsInit;
-    private boolean mSaveMediaStateWhenHide;
+    private boolean mSaveMediaStateWhenHide = true;
     private boolean mIsBoundToPlayer;
     private boolean mIsFullScreenMode;
     private PineSurfaceView mPineSurfaceView;
@@ -92,16 +92,16 @@ public class PineMediaPlayerView extends RelativeLayout {
     }
 
     public void init(String mediaPlayerTag) {
-        init(mediaPlayerTag, null, true, true);
+        init(mediaPlayerTag, null, true, mSaveMediaStateWhenHide);
     }
 
     public void init(String mediaPlayerTag, PineMediaWidget.IPineMediaController controller) {
-        init(mediaPlayerTag, controller, true, true);
+        init(mediaPlayerTag, controller, true, mSaveMediaStateWhenHide);
     }
 
     public void init(String mediaPlayerTag, PineMediaWidget.IPineMediaController controller,
                      boolean enableSurface) {
-        init(mediaPlayerTag, controller, enableSurface, true);
+        init(mediaPlayerTag, controller, enableSurface, mSaveMediaStateWhenHide);
     }
 
     /**
@@ -270,7 +270,7 @@ public class PineMediaPlayerView extends RelativeLayout {
                 mMediaPlayerProxy.savePlayMediaState();
             }
             if (viewDestroy) {
-                if (mMediaPlayerProxy.isDestroyPlayerWhenDetach()) {
+                if (mMediaPlayerProxy.shouldDestroyPlayerWhenDetach()) {
                     PineMediaPlayerService.destroyMediaPlayerByTag(mMediaPlayerTag);
                 } else {
                     mMediaPlayerProxy.release();
