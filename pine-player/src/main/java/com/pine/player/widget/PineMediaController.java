@@ -2137,6 +2137,7 @@ public class PineMediaController extends RelativeLayout
 
         /**
          * Controller内置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
+         * 与onCreateOutRootControllerViewHolder互斥，优先使用OutRoot布局。
          * 覆盖在BackgroundView上，请使用透明背景
          * 需要在该方法中绑定布局的相应控件到ViewHolder中，对应的控件功能才能被激活
          *
@@ -2148,8 +2149,8 @@ public class PineMediaController extends RelativeLayout
                 PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode);
 
         /**
-         * Controller外置控件布局的view holder，会被添加到PineMediaPlayerView布局中，
-         * 不会被添加到播放器布局中（由用户自己任意布局）
+         * Controller外置控件布局的view holder，不会被添加到PineMediaPlayerView布局中，
+         * 与onCreateInRootControllerViewHolder互斥，优先使用OutRoot布局。
          * 需要在该方法中绑定布局的相应控件到ViewHolder中，对应的控件功能才能被激活
          *
          * @param player
