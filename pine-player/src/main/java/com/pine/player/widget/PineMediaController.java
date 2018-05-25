@@ -995,7 +995,9 @@ public class PineMediaController extends RelativeLayout
                 mControllerViewHolder.getPausePlayButton().requestFocus();
             }
             disableUnsupportedButtons();
-            mControllerViewHolder.getContainer().setVisibility(VISIBLE);
+            if (mControllerContainerInRoot) {
+                mControllerViewHolder.getContainer().setVisibility(VISIBLE);
+            }
             updateControllerVisibility(true);
             updateVolumesText(getCurVolumes(), mMaxVolumes);
             updatePausePlayButton();
