@@ -168,14 +168,11 @@ public class PineMediaWidget {
          * @param enabledLock
          * @param enabledFastForward
          * @param enabledFastBackward
-         * @param enabledNext
-         * @param enabledPrev
          */
         void setControllerEnabled(boolean enabledSpeed, boolean enabledRightView,
                                   boolean enabledPlayerPause, boolean enabledProgressBar,
                                   boolean enabledToggleFullScreen, boolean enabledLock,
-                                  boolean enabledFastForward, boolean enabledFastBackward,
-                                  boolean enabledNext, boolean enabledPrev);
+                                  boolean enabledFastForward, boolean enabledFastBackward);
 
         /**
          * 控制器是否显示

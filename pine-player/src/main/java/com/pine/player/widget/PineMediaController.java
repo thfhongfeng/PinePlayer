@@ -1048,7 +1048,7 @@ public class PineMediaController extends RelativeLayout
     public void resetOutRootControllerIdleState() {
         if (!mControllerContainerInRoot && mControllerViewHolder != null) {
             mHandler.removeMessages(MSG_SHOW_PROGRESS);
-            setControllerEnabled(false, true, true, false, false, false, false, false, false, false);
+            setControllerEnabled(false, true, true, false, false, false, false, false);
             releasePlugin();
             if (mControllerViewHolder.getPausePlayButton() != null) {
                 mControllerViewHolder.getPausePlayButton().setSelected(false);
@@ -1237,7 +1237,7 @@ public class PineMediaController extends RelativeLayout
             mPluginViewContainer.setVisibility(GONE);
         }
         if (mControllerViewHolder != null) {
-            setControllerEnabled(false, false, false, false, true, false, false, false, false, false);
+            setControllerEnabled(false, false, false, false, true, false, false, false);
             show(0);
         }
         if (needActivePlugin()) {
@@ -1344,16 +1344,14 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void setControllerEnabled(boolean enabled) {
-        setControllerEnabled(enabled, true, enabled, enabled, enabled, enabled, enabled, enabled,
-                enabled, enabled);
+        setControllerEnabled(enabled, true, enabled, enabled, enabled, enabled, enabled, enabled);
     }
 
     @Override
     public void setControllerEnabled(boolean enabledSpeed, boolean enabledRightView,
                                      boolean enabledPlayerPause, boolean enabledProgressBar,
                                      boolean enabledToggleFullScreen, boolean enabledLock,
-                                     boolean enabledFastForward, boolean enabledFastBackward,
-                                     boolean enabledNext, boolean enabledPrev) {
+                                     boolean enabledFastForward, boolean enabledFastBackward) {
         if (mMediaPlayerView == null) {
             return;
         }
@@ -1364,9 +1362,7 @@ public class PineMediaController extends RelativeLayout
                 + ", enabledToggleFullScreen: " + enabledToggleFullScreen
                 + ", enabledLock: " + enabledLock
                 + ", enabledFastForward: " + enabledFastForward
-                + ", enabledFastBackward: " + enabledFastBackward
-                + ", enabledNext: " + enabledNext
-                + ", enabledPrev: " + enabledPrev);
+                + ", enabledFastBackward: " + enabledFastBackward);
 //        if (mPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 //            MediaPlayer.TrackInfo[] trackInfoArr = mPlayer.getTrackInfo();
 //        }
@@ -1400,16 +1396,9 @@ public class PineMediaController extends RelativeLayout
         if (mControllerViewHolder.getFastBackwardButton() != null) {
             mControllerViewHolder.getFastBackwardButton().setEnabled(enabledFastBackward);
         }
-        if (mControllerViewHolder.getNextButton() != null) {
-            mControllerViewHolder.getNextButton().setEnabled(enabledNext);
-        }
-        if (mControllerViewHolder.getPrevButton() != null) {
-            mControllerViewHolder.getPrevButton().setEnabled(enabledPrev);
-        }
         disableUnsupportedButtons();
         setEnabled(enabledPlayerPause || enabledProgressBar || enabledToggleFullScreen ||
-                enabledLock || enabledFastForward || enabledFastBackward ||
-                enabledNext || enabledPrev);
+                enabledLock || enabledFastForward || enabledFastBackward);
     }
 
     /**
