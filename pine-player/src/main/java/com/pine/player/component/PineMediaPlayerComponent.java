@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.widget.Toast;
@@ -383,7 +384,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             return;
         }
         Uri mediaUri = mMediaBean.getMediaUri();
-        if (mediaUri == null) {
+        if (mediaUri == null || TextUtils.isEmpty(mediaUri.toString())) {
             return;
         }
         if (isNeedLocalService() && mLocalServiceState != SERVICE_STATE_CONNECTED) {

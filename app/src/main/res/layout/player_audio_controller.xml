@@ -67,7 +67,8 @@
         android:minHeight="20dp"
         android:progressDrawable="@drawable/seek_bar_progress"
         android:thumb="@drawable/pine_player_seek_bar_thumb"
-        android:thumbOffset="0dp" />
+        android:thumbOffset="0dp"
+        android:splitTrack="false"/>
 
     <TextView
         android:id="@+id/cur_time_text"

@@ -49,7 +49,8 @@
         android:paddingStart="0dp"
         android:progressDrawable="@drawable/seek_bar_item_player_progress"
         android:thumb="@null"
-        android:thumbOffset="0dp" />
+        android:thumbOffset="0dp"
+        android:splitTrack="false"/>
 
     <TextView
         android:id="@+id/vb_audio_remind_time"

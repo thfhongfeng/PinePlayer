@@ -125,7 +125,8 @@
             android:minHeight="20dp"
             android:progressDrawable="@drawable/seek_bar_progress"
             android:thumb="@drawable/seek_bar_thumb"
-            android:thumbOffset="0dp" />
+            android:thumbOffset="0dp"
+            android:splitTrack="false"/>
 
         <TextView
             android:id="@+id/end_time_text"
