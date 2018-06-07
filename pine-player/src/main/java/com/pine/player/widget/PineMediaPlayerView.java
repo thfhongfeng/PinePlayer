@@ -239,7 +239,7 @@ public class PineMediaPlayerView extends RelativeLayout {
     }
 
     public void attachToMediaPlayerComponent() {
-        if (mMediaPlayerProxy == null || mIsBoundToPlayer) {
+        if (mMediaPlayerProxy == null || mIsBoundToPlayer || !isShown()) {
             return;
         }
         LogUtil.d(TAG, "attachToMediaPlayerComponent view:" + this);

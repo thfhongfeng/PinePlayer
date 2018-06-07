@@ -130,7 +130,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 synchronized (LISTENER_SET_LOCK) {
                     for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                         if (listener != null) {
-                            listener.onStateChange(fromState, STATE_PREPARED);
+                            listener.onStateChange(mMediaBean, fromState, STATE_PREPARED);
                         }
                     }
                 }
@@ -191,7 +191,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                             synchronized (LISTENER_SET_LOCK) {
                                 for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                                     if (listener != null) {
-                                        listener.onAbnormalComplete();
+                                        listener.onAbnormalComplete(mMediaBean);
                                     }
                                 }
                             }
@@ -207,7 +207,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                             synchronized (LISTENER_SET_LOCK) {
                                 for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                                     if (listener != null) {
-                                        listener.onStateChange(fromState, STATE_PLAYBACK_COMPLETED);
+                                        listener.onStateChange(mMediaBean, fromState, STATE_PLAYBACK_COMPLETED);
                                     }
                                 }
                             }
@@ -215,6 +215,34 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     }
                 }
             };
+    private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
+            new MediaPlayer.OnBufferingUpdateListener() {
+                public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                    mCurrentBufferPercentage = percent;
+                    if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                        mMediaPlayerView.getMediaController().onBufferingUpdate(percent);
+                    }
+                }
+            };
+    private int mRetryForBufferingStartTimeout = 0;
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT:
+                    release();
+                    if (mRetryForBufferingStartTimeout < MAX_RETRY_FOR_BUFFERING_START_TIMEOUT) {
+                        mRetryForBufferingStartTimeout++;
+                        LogUtil.d(TAG, "Resume player when network bandwidth block, " +
+                                "retry count:" + mRetryForBufferingStartTimeout);
+                        if (mMediaBean != null) {
+                            openMedia(true);
+                        }
+                    }
+                    break;
+            }
+        }
+    };
     private MediaPlayer.OnErrorListener mErrorListener =
             new MediaPlayer.OnErrorListener() {
                 public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
@@ -231,7 +259,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                             boolean result = true;
                             for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                                 if (listener != null) {
-                                    result = result && listener.onError(framework_err, impl_err);
+                                    result = result && listener.onError(mMediaBean, framework_err, impl_err);
                                 }
                             }
                             if (result) {
@@ -263,16 +291,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     return true;
                 }
             };
-    private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
-            new MediaPlayer.OnBufferingUpdateListener() {
-                public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                    mCurrentBufferPercentage = percent;
-                    if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
-                        mMediaPlayerView.getMediaController().onBufferingUpdate(percent);
-                    }
-                }
-            };
-    private int mRetryForBufferingStartTimeout = 0;
     private MediaPlayer.OnInfoListener mInfoListener =
             new MediaPlayer.OnInfoListener() {
                 @Override
@@ -285,7 +303,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                         synchronized (LISTENER_SET_LOCK) {
                             for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                                 if (listener != null) {
-                                    listener.onInfo(what, extra);
+                                    listener.onInfo(mMediaBean, what, extra);
                                 }
                             }
                         }
@@ -301,24 +319,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     return true;
                 }
             };
-    private Handler mHandler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT:
-                    release();
-                    if (mRetryForBufferingStartTimeout < MAX_RETRY_FOR_BUFFERING_START_TIMEOUT) {
-                        mRetryForBufferingStartTimeout++;
-                        LogUtil.d(TAG, "Resume player when network bandwidth block, " +
-                                "retry count:" + mRetryForBufferingStartTimeout);
-                        if (mMediaBean != null) {
-                            openMedia(true);
-                        }
-                    }
-                    break;
-            }
-        }
-    };
     // 本地播放流服务（用于低于M版本的本地流播放方案）
     protected ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -367,7 +367,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             synchronized (LISTENER_SET_LOCK) {
                 for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                     if (listener != null) {
-                        listener.onStateChange(fromState, STATE_IDLE);
+                        listener.onStateChange(mMediaBean, fromState, STATE_IDLE);
                     }
                 }
             }
@@ -449,7 +449,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 synchronized (LISTENER_SET_LOCK) {
                     for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                         if (listener != null) {
-                            listener.onStateChange(fromState, STATE_PREPARING);
+                            listener.onStateChange(mMediaBean, fromState, STATE_PREPARING);
                         }
                     }
                 }
@@ -610,7 +610,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     synchronized (LISTENER_SET_LOCK) {
                         for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                             if (listener != null) {
-                                listener.onStateChange(fromState, STATE_PLAYING);
+                                listener.onStateChange(mMediaBean, fromState, STATE_PLAYING);
                             }
                         }
                     }
@@ -637,7 +637,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     synchronized (LISTENER_SET_LOCK) {
                         for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                             if (listener != null) {
-                                listener.onStateChange(fromState, STATE_PAUSED);
+                                listener.onStateChange(mMediaBean, fromState, STATE_PAUSED);
                             }
                         }
                     }
@@ -856,11 +856,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     /**
      * 设置是否为独立播放模式（是否与播放界面共生命周期）
      *
-     * @param isAutocephalyPlayMode 设置是否为独立播放模式
-     * @param shouldDestroyWhenDetach   在非独立模式下，当控件View从上下文环境中（Context）移除时，
-     *                            播放器是销毁(destroy)还是释放(release)
-     * true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象销毁，无法使用resume来恢复播放状态
-     * false: release模式下，从Context中移除后，非独立播放器所有状态清除，对象不会销毁，可以使用resume来恢复播放状态
+     * @param isAutocephalyPlayMode   设置是否为独立播放模式
+     * @param shouldDestroyWhenDetach 在非独立模式下，当控件View从上下文环境中（Context）移除时，
+     *                                播放器是销毁(destroy)还是释放(release)
+     *                                true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象销毁，无法使用resume来恢复播放状态
+     *                                false: release模式下，从Context中移除后，非独立播放器所有状态清除，对象不会销毁，可以使用resume来恢复播放状态
      */
     @Override
     public void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean shouldDestroyWhenDetach) {
@@ -1009,7 +1009,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 synchronized (LISTENER_SET_LOCK) {
                     for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                         if (listener != null) {
-                            listener.onStateChange(fromState, STATE_IDLE);
+                            listener.onStateChange(mMediaBean, fromState, STATE_IDLE);
                         }
                     }
                 }
@@ -1041,7 +1041,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 synchronized (LISTENER_SET_LOCK) {
                     for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                         if (listener != null) {
-                            listener.onStateChange(fromState, STATE_IDLE);
+                            listener.onStateChange(mMediaBean, fromState, STATE_IDLE);
                         }
                     }
                 }

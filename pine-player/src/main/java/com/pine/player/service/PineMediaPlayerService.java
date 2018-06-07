@@ -63,6 +63,7 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void clearPlayMediaState(String mediaCode) {
+        LogUtil.d(TAG, "setShouldPlayWhenPrepared mediaCode:" + mediaCode);
         mMediaShouldPlayWhenPreparedMap.remove(mediaCode);
         mMediaSeekWhenPreparedMap.remove(mediaCode);
     }
@@ -78,10 +79,12 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void setShouldPlayWhenPrepared(String mediaCode, boolean isPlaying) {
+        LogUtil.d(TAG, "setShouldPlayWhenPrepared mediaCode:" + mediaCode + ", isPlaying:" + isPlaying);
         mMediaShouldPlayWhenPreparedMap.put(mediaCode, isPlaying);
     }
 
     public synchronized static void setSeekWhenPrepared(String mediaCode, int currentPosition) {
+        LogUtil.d(TAG, "setSeekWhenPrepared mediaCode:" + mediaCode + ", currentPosition:" + currentPosition);
         mMediaSeekWhenPreparedMap.put(mediaCode, currentPosition);
     }
 

@@ -363,18 +363,18 @@ public class PineMediaWidget {
         /**
          * 设置是否为独立播放模式（是否与播放界面共生命周期）
          *
-         * @param isAutocephalyPlayMode 设置是否为独立播放模式
+         * @param isAutocephalyPlayMode 设置是否为独立播放模式, 默认为false
          */
         void setAutocephalyPlayMode(boolean isAutocephalyPlayMode);
 
         /**
          * 设置是否为独立播放模式（是否与播放界面共生命周期）
          *
-         * @param isAutocephalyPlayMode 设置是否为独立播放模式
-         * @param shouldDestroyWhenDetach   在非独立模式下，当控件View从上下文环境中（Context）移除时，
-         *                            播放器是销毁(destroy)还是释放(release)
-         * true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象销毁，无法使用resume来恢复播放状态
-         * false: release模式下，从Context中移除后，非独立播放器所有状态清除，对象不会销毁，可以使用resume来恢复播放状态
+         * @param isAutocephalyPlayMode   设置是否为独立播放模式, 默认为false
+         * @param shouldDestroyWhenDetach 在非独立模式下，当控件View从上下文环境中（Context）移除时，
+         *                                播放器是销毁(destroy)还是释放(release), 默认为false
+         *                                true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象销毁，无法使用resume来恢复播放状态
+         *                                false: release模式下，从Context中移除后，非独立播放器所有状态清除，对象不会销毁，可以使用resume来恢复播放状态
          */
         void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean shouldDestroyWhenDetach);
 
@@ -621,11 +621,11 @@ public class PineMediaWidget {
         /**
          * 设置是否为独立播放模式（是否与播放界面共生命周期）
          *
-         * @param isAutocephalyPlayMode 设置是否为独立播放模式
-         * @param shouldDestroyWhenDetach   在非独立模式下，当控件View从上下文环境中（Context）移除时，
-         *                            播放器是销毁(destroy)还是释放(release)
-         * true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象销毁，无法使用resume来恢复播放状态
-         * false: release模式下，从Context中移除后，非独立播放器所有状态清除，对象不会销毁，可以使用resume来恢复播放状态
+         * @param isAutocephalyPlayMode   设置是否为独立播放模式
+         * @param shouldDestroyWhenDetach 在非独立模式下，当控件View从上下文环境中（Context）移除时，
+         *                                播放器是销毁(destroy)还是释放(release)
+         *                                true: destroy模式下，从Context中移除后，非独立播放器所有状态清除，对象销毁，无法使用resume来恢复播放状态
+         *                                false: release模式下，从Context中移除后，非独立播放器所有状态清除，对象不会销毁，可以使用resume来恢复播放状态
          */
         void setAutocephalyPlayMode(boolean isAutocephalyPlayMode, boolean shouldDestroyWhenDetach);
 
@@ -722,37 +722,41 @@ public class PineMediaWidget {
         /**
          * 播放器放改变播
          *
-         * @param fromState （STATE_ERROR, STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
-         *                  STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
-         * @param toState   （STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
-         *                  STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
+         * @param playerBean
+         * @param fromState  （STATE_ERROR, STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
+         *                   STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
+         * @param toState    （STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
+         *                   STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
          */
-        void onStateChange(int fromState, int toState);
+        void onStateChange(PineMediaPlayerBean playerBean, int fromState, int toState);
 
         /**
          * 播放器播放信息更新
          *
+         * @param playerBean
          * @param what
          * @param extra
          * @return
          */
-        boolean onInfo(int what, int extra);
+        boolean onInfo(PineMediaPlayerBean playerBean, int what, int extra);
 
         /**
          * 播放器发生错误
          *
+         * @param playerBean
          * @param framework_err
          * @param impl_err
          * @return
          */
-        boolean onError(int framework_err, int impl_err);
+        boolean onError(PineMediaPlayerBean playerBean, int framework_err, int impl_err);
 
         /**
          * 播放器非正常播放结束（比如播放缓存或者暂停时session失效等问题）
          *
+         * @param playerBean
          * @return
          */
-        boolean onAbnormalComplete();
+        boolean onAbnormalComplete(PineMediaPlayerBean playerBean);
     }
 
     /**
@@ -761,22 +765,22 @@ public class PineMediaWidget {
     public static class PineMediaPlayerListener implements IPineMediaPlayerListener {
 
         @Override
-        public void onStateChange(int fromState, int toState) {
+        public void onStateChange(PineMediaPlayerBean playerBean, int fromState, int toState) {
 
         }
 
         @Override
-        public boolean onInfo(int what, int extra) {
+        public boolean onInfo(PineMediaPlayerBean playerBean, int what, int extra) {
             return false;
         }
 
         @Override
-        public boolean onError(int framework_err, int impl_err) {
+        public boolean onError(PineMediaPlayerBean playerBean, int framework_err, int impl_err) {
             return false;
         }
 
         @Override
-        public boolean onAbnormalComplete() {
+        public boolean onAbnormalComplete(PineMediaPlayerBean playerBean) {
             return false;
         }
     }
