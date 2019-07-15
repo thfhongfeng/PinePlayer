@@ -1,1 +1,1 @@
-include ':app', ':pine-player'
+include ':app', ':pine_player'
