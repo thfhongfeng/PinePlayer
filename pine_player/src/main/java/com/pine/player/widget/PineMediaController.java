@@ -232,7 +232,7 @@ public class PineMediaController extends RelativeLayout
                                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                             layoutParams.topMargin = topMargin;
                             layoutParams.bottomMargin = bottomMargin;
-                            layoutParams.addRule(CENTER_IN_PARENT);
+                            layoutParams.addRule(CENTER_HORIZONTAL);
                             mControllerPluginViewContainer.setLayoutParams(layoutParams);
                         }
                     }
