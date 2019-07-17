@@ -290,7 +290,7 @@ public class PineMediaController extends RelativeLayout
                             if (bottomMargin != -1) {
                                 layoutParams.bottomMargin = bottomMargin;
                             }
-                            layoutParams.addRule(CENTER_IN_PARENT);
+                            layoutParams.addRule(CENTER_HORIZONTAL);
                             mSurfacePluginViewContainer.setLayoutParams(layoutParams);
                         }
                     }
