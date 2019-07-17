@@ -2,7 +2,7 @@
     <string name="app_name">PinePlayer</string>
     <string name="pine_player">PinePlayer</string>
 
-    <string name="media_speed_1x">1.0X</string>
+    <string name="media_speed">倍速</string>
     <string-array name="media_definition_text_arr">
         <item>标清</item>
         <item>高清</item>

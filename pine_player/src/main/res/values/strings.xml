@@ -17,7 +17,7 @@
         <item>20</item>
         <item>30</item>
     </integer-array>
-    <string name="pine_media_speed_1x">1.0X</string>
+    <string name="pine_media_speed">1.0X</string>
     <string-array name="pine_media_definition_text_arr">
         <item>标清</item>
         <item>高清</item>

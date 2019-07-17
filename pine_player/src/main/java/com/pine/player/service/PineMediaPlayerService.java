@@ -34,10 +34,12 @@ public class PineMediaPlayerService extends Service {
 
     public synchronized static void setMediaPlayerByTag(String tag,
                                                         PineMediaPlayerProxy mediaPlayerProxy) {
+        LogUtil.d(TAG, "setMediaPlayerByTag tag:" + tag + ",mediaPlayerProxy:" + mediaPlayerProxy);
         mMediaPlayerProxyMap.put(tag, mediaPlayerProxy);
     }
 
     public synchronized static void destroyAllMediaPlayer() {
+        LogUtil.d(TAG, "destroyAllMediaPlayer");
         Iterator iterator = mMediaPlayerProxyMap.entrySet().iterator();
         PineMediaPlayerProxy pineMediaPlayer = null;
         while (iterator.hasNext()) {
@@ -51,19 +53,21 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void destroyMediaPlayerByTag(String tag) {
+        LogUtil.d(TAG, "destroyMediaPlayerByTag tag:" + tag);
         PineMediaPlayerProxy pineMediaPlayer = mMediaPlayerProxyMap.remove(tag);
         if (pineMediaPlayer != null) {
             pineMediaPlayer.onDestroy();
         }
     }
 
-    public synchronized static void clearAllPlayMediaState(String mediaCode) {
+    public synchronized static void clearAllPlayMediaState() {
+        LogUtil.d(TAG, "clearAllPlayMediaState");
         mMediaShouldPlayWhenPreparedMap.clear();
         mMediaSeekWhenPreparedMap.clear();
     }
 
     public synchronized static void clearPlayMediaState(String mediaCode) {
-        LogUtil.d(TAG, "setShouldPlayWhenPrepared mediaCode:" + mediaCode);
+        LogUtil.d(TAG, "clearPlayMediaState mediaCode:" + mediaCode);
         mMediaShouldPlayWhenPreparedMap.remove(mediaCode);
         mMediaSeekWhenPreparedMap.remove(mediaCode);
     }
@@ -79,12 +83,12 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void setShouldPlayWhenPrepared(String mediaCode, boolean isPlaying) {
-        LogUtil.d(TAG, "setShouldPlayWhenPrepared mediaCode:" + mediaCode + ", isPlaying:" + isPlaying);
+        LogUtil.d(TAG, "setShouldPlayWhenPrepared mediaCode:" + mediaCode + ",isPlaying:" + isPlaying);
         mMediaShouldPlayWhenPreparedMap.put(mediaCode, isPlaying);
     }
 
     public synchronized static void setSeekWhenPrepared(String mediaCode, int currentPosition) {
-        LogUtil.d(TAG, "setSeekWhenPrepared mediaCode:" + mediaCode + ", currentPosition:" + currentPosition);
+        LogUtil.d(TAG, "setSeekWhenPrepared mediaCode:" + mediaCode + ",currentPosition:" + currentPosition);
         mMediaSeekWhenPreparedMap.put(mediaCode, currentPosition);
     }
 

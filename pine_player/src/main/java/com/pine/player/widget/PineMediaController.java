@@ -133,7 +133,6 @@ public class PineMediaController extends RelativeLayout
                     speed = 1.0f;
                 }
                 mPlayer.setSpeed(speed);
-                updateSpeedButton();
             }
         }
     };
@@ -164,6 +163,7 @@ public class PineMediaController extends RelativeLayout
     private final View.OnClickListener mFullScreenListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            mPlayer.savePlayMediaState();
             if (mControllersActionListener == null
                     || !mControllersActionListener.onFullScreenBtnClick(v, mPlayer)) {
                 mMediaPlayerView.toggleFullScreenMode(mIsControllerLocked);
@@ -1045,6 +1045,24 @@ public class PineMediaController extends RelativeLayout
     }
 
     @Override
+    public void hideRightView() {
+        if (mRightViewHolderList != null) {
+            for (int i = 0; i < mRightViewHolderList.size(); i++) {
+                mRightViewHolderList.get(0).getContainer().setVisibility(GONE);
+            }
+        }
+        List<View> rightControllerBtnList = mControllerViewHolder.getRightViewControlBtnList();
+        if (rightControllerBtnList != null) {
+            for (int i = 0; i < rightControllerBtnList.size(); i++) {
+                rightControllerBtnList.get(i).setSelected(false);
+            }
+        }
+        if (mRightViewContainer != null) {
+            mRightViewContainer.setVisibility(GONE);
+        }
+    }
+
+    @Override
     public void resetOutRootControllerIdleState() {
         if (!mControllerContainerInRoot && mControllerViewHolder != null) {
             mHandler.removeMessages(MSG_SHOW_PROGRESS);
@@ -1269,6 +1287,11 @@ public class PineMediaController extends RelativeLayout
     public void onMediaPlayerRelease(boolean clearTargetState) {
         releasePlugin();
         updatePausePlayButton();
+    }
+
+    @Override
+    public void onMediaPlayerSpeedChange() {
+        updateSpeedButton();
     }
 
     @Override

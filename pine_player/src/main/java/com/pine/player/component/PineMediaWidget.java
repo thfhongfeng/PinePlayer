@@ -78,6 +78,11 @@ public class PineMediaWidget {
         void hide();
 
         /**
+         * 隐藏右侧View容器
+         */
+        void hideRightView();
+
+        /**
          * 恢复非内置控制器到IDlE状态
          */
         void resetOutRootControllerIdleState();
@@ -134,6 +139,11 @@ public class PineMediaWidget {
          * 播放器释放回调
          */
         void onMediaPlayerRelease(boolean clearTargetState);
+
+        /**
+         * 播放器播放速度改编回调
+         */
+        void onMediaPlayerSpeedChange();
 
         /**
          * 更新音量显示

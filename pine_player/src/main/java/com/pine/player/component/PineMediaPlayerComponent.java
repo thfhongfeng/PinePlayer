@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.MediaDataSource;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -586,11 +587,24 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void setSpeed(float speed) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mSpeed = speed;
-            if (mMediaBean != null) {
-                PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), getCurrentPosition());
-                PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), isPlaying());
+            try {
+                if (mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(mSpeed));
+                } else {
+                    mMediaPlayer.setPlaybackParams(mMediaPlayer.getPlaybackParams().setSpeed(mSpeed));
+                    mMediaPlayer.pause();
+                }
+            } catch (IllegalStateException e) {
+                // 播放本地视频时，setPlaybackParams第一次会报IllegalStateException异常。。。，只能重启播放
+                if (mMediaBean != null) {
+                    PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), getCurrentPosition());
+                    PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), isPlaying());
+                }
+                openMedia(true);
             }
-            openMedia(true);
+            if (isAttachViewMode() && mMediaPlayerView.getMediaController() != null) {
+                mMediaPlayerView.getMediaController().onMediaPlayerSpeedChange();
+            }
         }
     }
 

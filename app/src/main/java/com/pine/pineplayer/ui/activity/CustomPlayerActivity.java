@@ -21,8 +21,10 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.pine.pineplayer.R;
+import com.pine.pineplayer.applet.PlayerSpeedPlugin;
 import com.pine.pineplayer.ui.view.AdvanceDecoration;
 import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.component.PineMediaWidget;
@@ -36,6 +38,7 @@ import com.pine.player.widget.viewholder.PineRightViewHolder;
 import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class CustomPlayerActivity extends AppCompatActivity {
@@ -55,6 +58,8 @@ public class CustomPlayerActivity extends AppCompatActivity {
     private String[] mDefinitionNameArr;
     private TextView mDefinitionBtn;
     private DefinitionListAdapter mDefinitionListInPlayerAdapter;
+
+    private IPinePlayerPlugin mSpeedPlugin = new PlayerSpeedPlugin();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,6 +220,63 @@ public class CustomPlayerActivity extends AppCompatActivity {
                         }
                         return false;
                     }
+
+                    @Override
+                    public boolean onRightViewControlBtnClick(View viewBtn, List<View> rightViewControlBtnList,
+                                                              List<PineRightViewHolder> rightViewHolderList,
+                                                              PineMediaWidget.IPineMediaPlayer player) {
+                        if (mSpeedPlugin != null && mSpeedPlugin.isOpen()) {
+                            mSpeedPlugin.closePlugin();
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onSpeedBtnClick(View speedBtn,
+                                                   PineMediaWidget.IPineMediaPlayer player) {
+                        if (mSpeedPlugin == null) {
+                            return true;
+                        }
+                        if (mSpeedPlugin.isOpen()) {
+                            mSpeedPlugin.closePlugin();
+                        } else {
+                            mSpeedPlugin.openPlugin();
+                        }
+                        if (mVideoView.getMediaController() != null) {
+                            mVideoView.getMediaController().show();
+                            mVideoView.getMediaController().hideRightView();
+                        }
+                        return true;
+                    }
+                };
+            }
+
+            @Override
+            public PineMediaController.ControllerMonitor onCreateControllerMonitor() {
+                return new PineMediaController.ControllerMonitor() {
+
+                    public boolean onControllerVisibilityUpdate(
+                            boolean needShow, PineMediaWidget.IPineMediaController controller,
+                            PineMediaWidget.IPineMediaPlayer player, PineControllerViewHolder viewHolder) {
+                        if (mSpeedPlugin != null) {
+                            if (!needShow && mSpeedPlugin.isOpen()) {
+                                mSpeedPlugin.closePlugin();
+                            }
+                        }
+                        return false;
+                    }
+
+                    public boolean onSpeedUpdate(PineMediaWidget.IPineMediaPlayer player, View speedBtn) {
+                        if (speedBtn != null) {
+                            ((TextView) speedBtn).setText(player.getSpeed() == 1 ? getString(R.string.media_speed) : player.getSpeed() + "×");
+                        }
+                        if (mSpeedPlugin != null) {
+                            if (mSpeedPlugin.isOpen()) {
+                                mSpeedPlugin.closePlugin();
+                            }
+                        }
+                        return true;
+                    }
                 };
             }
         };
@@ -223,8 +285,10 @@ public class CustomPlayerActivity extends AppCompatActivity {
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
 
+        HashMap<Integer, IPinePlayerPlugin> playerPlugins = new HashMap<Integer, IPinePlayerPlugin>();
+        playerPlugins.put(1, mSpeedPlugin);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "VideoDefinitionSelect",
-                MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);
+                MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, playerPlugins, null);
         mDefinitionListInPlayerAdapter.setData(pineMediaBean);
         mDefinitionListInPlayerAdapter.notifyDataSetChanged();
         mPlayer.setPlayingMedia(pineMediaBean);
