@@ -49,7 +49,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mAudioPlayerView.resetMediaController(mMediaController1,
-                        false, true);
+                        true, true);
                 mMediaPlayer.setPlayingMedia(playerBean1);
                 mMediaPlayer.start();
             }
@@ -61,7 +61,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
                     public boolean onPlayPauseBtnClick(View playPauseBtn, PineMediaWidget.IPineMediaPlayer player) {
                         if (player.getMediaPlayerBean() != playerBean1) {
                             mAudioPlayerView.resetMediaController(mMediaController1,
-                                    false, true);
+                                    true, true);
                             mMediaPlayer.setPlayingMedia(playerBean1);
                         }
                         return false;
@@ -77,7 +77,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mAudioPlayerView.resetMediaController(mMediaController2,
-                        false, true);
+                        true, true);
                 mMediaPlayer.setPlayingMedia(playerBean2);
                 mMediaPlayer.start();
             }
@@ -89,7 +89,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
                     public boolean onPlayPauseBtnClick(View playPauseBtn, PineMediaWidget.IPineMediaPlayer player) {
                         if (player.getMediaPlayerBean() != playerBean2) {
                             mAudioPlayerView.resetMediaController(mMediaController2,
-                                    false, true);
+                                    true, true);
                             mMediaPlayer.setPlayingMedia(playerBean2);
                         }
                         return false;
@@ -105,7 +105,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mAudioPlayerView.resetMediaController(mMediaController3,
-                        false, true);
+                        true, true);
                 mMediaPlayer.setPlayingMedia(playerBean3);
                 mMediaPlayer.start();
             }
@@ -117,7 +117,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
                     public boolean onPlayPauseBtnClick(View playPauseBtn, PineMediaWidget.IPineMediaPlayer player) {
                         if (player.getMediaPlayerBean() != playerBean3) {
                             mAudioPlayerView.resetMediaController(mMediaController3,
-                                    false, true);
+                                    true, true);
                             mMediaPlayer.setPlayingMedia(playerBean3);
                         }
                         return false;

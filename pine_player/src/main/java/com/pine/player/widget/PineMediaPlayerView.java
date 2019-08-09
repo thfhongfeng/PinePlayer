@@ -186,6 +186,9 @@ public class PineMediaPlayerView extends RelativeLayout {
                 mMediaController.resetOutRootControllerIdleState();
             }
             mMediaController = controller;
+            if (isPlayerReset) {
+                mMediaPlayerProxy.setIgnoreTemporaryControllerState(true);
+            }
             if (controller != null) {
                 controller.setMediaPlayerView(this);
                 controller.setMediaPlayer(mMediaPlayerProxy);
@@ -419,7 +422,7 @@ public class PineMediaPlayerView extends RelativeLayout {
                 }
                 return true;
             } else {
-                mMediaController.toggleMediaControlsVisibility();
+                mMediaController.toggleMediaControllerVisibility();
             }
         }
         return super.onKeyDown(keyCode, event);
@@ -431,7 +434,7 @@ public class PineMediaPlayerView extends RelativeLayout {
             case MotionEvent.ACTION_DOWN:
                 if (mMediaController != null) {
                     if (mMediaPlayerProxy.isPlaying() || mMediaPlayerProxy.isPause()) {
-                        mMediaController.toggleMediaControlsVisibility();
+                        mMediaController.toggleMediaControllerVisibility();
                     } else {
                         mMediaController.show(0);
                     }

@@ -92,7 +92,8 @@ public class ItemAudioControllerAdapter extends PineMediaController.AbstractMedi
         viewHolder.setPausePlayButton(root.findViewById(R.id.vb_play_pause_iv));
         SeekBar seekBar = (SeekBar) root.findViewById(R.id.vb_audio_progress);
         viewHolder.setPlayProgressBar(seekBar);
-        viewHolder.setCurrentTimeText(root.findViewById(R.id.vb_audio_remind_time));
+        viewHolder.setEndTimeText(root.findViewById(R.id.vb_audio_end_time));
+        viewHolder.setCurrentTimeText(root.findViewById(R.id.vb_audio_cur_time));
     }
 
     @Override
@@ -126,7 +127,19 @@ public class ItemAudioControllerAdapter extends PineMediaController.AbstractMedi
             public boolean onCurrentTimeUpdate(PineMediaWidget.IPineMediaPlayer player,
                                                View currentTimeText, int currentTime) {
                 if (currentTimeText instanceof TextView) {
-                    ((TextView) currentTimeText).setText(stringForTime(player.getDuration() - currentTime));
+                    ((TextView) currentTimeText).setText(stringForTime(currentTime));
+                }
+                View remindTv = mRoot.findViewById(R.id.vb_audio_remind_time);
+                if (remindTv instanceof TextView) {
+                    ((TextView) remindTv).setText(stringForTime(player.getDuration() - currentTime));
+                }
+                return true;
+            }
+
+            public boolean onEndTimeUpdate(PineMediaWidget.IPineMediaPlayer player,
+                                           View endTimeText, int endTime) {
+                if (endTimeText instanceof TextView) {
+                    ((TextView) endTimeText).setText(stringForTime(player.getDuration()));
                 }
                 return true;
             }

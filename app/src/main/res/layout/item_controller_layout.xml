@@ -19,9 +19,9 @@
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:maxLines="2"
-            android:paddingBottom="25dp"
             android:paddingLeft="20dp"
             android:paddingTop="25dp"
+            android:paddingBottom="25dp"
             android:text=""
             android:textColor="#000000"
             android:textSize="14sp" />
@@ -30,10 +30,10 @@
             android:id="@+id/vb_play_pause_iv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingBottom="27dp"
             android:paddingLeft="20dp"
-            android:paddingRight="20dp"
             android:paddingTop="27dp"
+            android:paddingRight="20dp"
+            android:paddingBottom="27dp"
             android:src="@drawable/play_pause_btn" />
     </LinearLayout>
 
@@ -45,21 +45,55 @@
         android:layout_margin="0dp"
         android:gravity="center"
         android:padding="0dp"
-        android:paddingEnd="0dp"
         android:paddingStart="0dp"
+        android:paddingEnd="0dp"
         android:progressDrawable="@drawable/seek_bar_item_player_progress"
+        android:splitTrack="false"
         android:thumb="@null"
-        android:thumbOffset="0dp"
-        android:splitTrack="false"/>
+        android:thumbOffset="0dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/vb_audio_progress"
+        android:layout_alignParentRight="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingRight="16dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/vb_audio_cur_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="--"
+            android:textColor="#999999"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="/"
+            android:textColor="#999999"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/vb_audio_end_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="--"
+            android:textColor="#999999"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/vb_audio_remind_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/vb_audio_progress"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
+        android:paddingLeft="16dp"
         android:paddingBottom="8dp"
-        android:paddingRight="16dp"
         android:textColor="#999999"
-        android:textSize="12sp"/>
+        android:textSize="12sp" />
 </RelativeLayout>

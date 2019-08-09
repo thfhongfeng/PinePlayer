@@ -58,7 +58,7 @@ public class PineMediaWidget {
         /**
          * 切换控制器显示状态
          */
-        void toggleMediaControlsVisibility();
+        void toggleMediaControllerVisibility();
 
         /**
          * 显示控制器
@@ -125,8 +125,8 @@ public class PineMediaWidget {
         /**
          * 播放器发生错误回调
          *
-         * @param framework_err
-         * @param impl_err
+         * @param framework_err 参考MediaPlayer.OnErrorListener what参数
+         * @param impl_err      参考MediaPlayer.OnErrorListener extra参数
          */
         void onMediaPlayerError(int framework_err, int impl_err);
 
@@ -644,7 +644,21 @@ public class PineMediaWidget {
          *
          * @return
          */
+
         int getMediaPlayerState();
+
+        /**
+         * 设置在player状态发生改变时是否暂时忽略其所引起的controller状态的变化，在重置或者更换新的media bean后准备播放，这个值会被重置为false
+         *
+         * @param ignoreControllerStateTemporary 这个参数用来在player状态发生改变时暂时忽略其所引起的controller状态的变化，直到重新播放media bean。
+         *                                       （正常情况下，在切换controller的过程后，旧的media bean还未完全释放时，会将状态更新到新的controller中）
+         *                                       适用场景：切换controller的同时可能会需要重置或者更换新的media bean，而新的controller不应该去表现旧的media bean的状态。
+         *                                       这个时候可以通过设置mIgnoreControllerStateTemporary为true来避免这个问题。
+         *                                       你不需要手动重置mIgnoreControllerStateTemporary为false，因为在重置或者更换新的media bean后准备播放，这个值会被重置为false。
+         */
+        void setIgnoreTemporaryControllerState(boolean ignoreControllerStateTemporary);
+
+        boolean ignoreTemporaryControllerState();
 
         /**
          * 移除播放状态监听器
@@ -754,8 +768,8 @@ public class PineMediaWidget {
          * 播放器发生错误
          *
          * @param playerBean
-         * @param framework_err
-         * @param impl_err
+         * @param framework_err 参考MediaPlayer.OnErrorListener what参数
+         * @param impl_err      参考MediaPlayer.OnErrorListener extra参数
          * @return
          */
         boolean onError(PineMediaPlayerBean playerBean, int framework_err, int impl_err);
