@@ -1,16 +1,29 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
-    defaultConfig {
-        applicationId "com.pine.pineplayer"
-        minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    compileSdkVersion build_versions.compileSdkVersion
+    buildToolsVersion build_versions.buildToolsVersion
+
+    signingConfigs {
+        release {
+            storeFile file(build_versions.storeFile)
+            storePassword build_versions.storePassword
+            keyAlias build_versions.keyAlias
+            keyPassword build_versions.keyPassword
+        }
     }
+
+    defaultConfig {
+        minSdkVersion build_versions.minSdkVersion
+        targetSdkVersion build_versions.targetSdkVersion
+
+        applicationId build_versions.applicationId
+        versionCode build_versions.versionCode
+        versionName build_versions.versionName
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
     buildTypes {
         release {
             minifyEnabled false

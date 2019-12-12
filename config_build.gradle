@@ -8,6 +8,10 @@ build_versions.minSdkVersion = 21
 build_versions.targetSdkVersion = 28
 build_versions.targetSdkVersion = 28
 
+build_versions.applicationId = "com.pine.pineplayer"
+build_versions.versionCode = 1
+build_versions.versionName = "1.0.0"
+
 build_versions.apkHeadName = "pine_player"
 
 build_versions.storeFile = "../pinePlayer.jks"

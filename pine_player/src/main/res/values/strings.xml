@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">PinePlayer</string>
-
     <string name="pine_media_view_layout_incorrect">PineMediaView必须外包一层RelativeLayout，否则将导致显示异常</string>
     <string name="pine_media_back_pressed_toast">再按一次退出播放</string>
     <string name="init_method_need_call_toast">请在使用PineMediaPlayerView之前先调用init方法</string>
