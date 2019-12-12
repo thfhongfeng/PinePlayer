@@ -19,15 +19,15 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:padding="10dp"
-            android:textSize="14sp"
+            android:text="清晰度"
             android:textColor="#FFFFFF"
-            android:text="清晰度"/>
+            android:textSize="14sp" />
 
-        <android.support.v7.widget.RecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/definition_recycler_view_in_player"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
     </LinearLayout>
 
 

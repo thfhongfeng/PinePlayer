@@ -3,8 +3,9 @@ package com.pine.player.applet.advert.plugin;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.view.View;
+
+import androidx.annotation.NonNull;
 
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.advert.bean.PineAdvertBean;

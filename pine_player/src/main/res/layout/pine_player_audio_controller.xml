@@ -68,7 +68,7 @@
         android:progressDrawable="@drawable/pine_player_seek_bar_progress"
         android:thumb="@drawable/pine_player_seek_bar_thumb"
         android:thumbOffset="0dp"
-        android:splitTrack="false"/>
+        android:splitTrack="false" />
 
     <TextView
         android:id="@+id/cur_time_text"
@@ -78,6 +78,7 @@
         android:gravity="center"
         android:textColor="@color/pine_controller_text"
         android:textSize="12sp" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -85,7 +86,8 @@
         android:gravity="center"
         android:textColor="@color/pine_controller_text"
         android:textSize="12sp"
-        android:text="/"/>
+        android:text="/" />
+
     <TextView
         android:id="@+id/end_time_text"
         android:layout_width="wrap_content"

@@ -223,7 +223,7 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
 
     @Override
     public boolean ignoreTemporaryControllerState() {
-       return mMediaPlayerComponent.ignoreTemporaryControllerState();
+        return mMediaPlayerComponent.ignoreTemporaryControllerState();
     }
 
     @Override

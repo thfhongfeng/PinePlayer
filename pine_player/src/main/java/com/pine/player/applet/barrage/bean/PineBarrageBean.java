@@ -1,8 +1,9 @@
 package com.pine.player.applet.barrage.bean;
 
 import android.animation.ObjectAnimator;
-import android.support.annotation.NonNull;
 import android.view.View;
+
+import androidx.annotation.NonNull;
 
 /**
  * Created by tanghongfeng on 2017/9/20.

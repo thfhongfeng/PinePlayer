@@ -8,6 +8,7 @@
     android:paddingLeft="15dp"
     android:paddingTop="8dp"
     android:paddingBottom="8dp">
+
     <TextView
         android:id="@+id/rv_video_item_text"
         android:layout_width="wrap_content"
@@ -15,5 +16,5 @@
         android:textColor="@color/pine_player_media_item_color"
         android:textSize="18sp"
         android:maxLines="1"
-        android:ellipsize="end"/>
+        android:ellipsize="end" />
 </LinearLayout>

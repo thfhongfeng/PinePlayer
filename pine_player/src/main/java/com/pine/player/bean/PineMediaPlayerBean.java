@@ -2,8 +2,9 @@ package com.pine.player.bean;
 
 import android.content.ContentResolver;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
 
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.decrytor.IPineMediaDecryptor;

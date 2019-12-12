@@ -31,5 +31,5 @@
         android:textColor="#FFFFFF"
         android:padding="10dp"
         android:text="跳过"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 </RelativeLayout>

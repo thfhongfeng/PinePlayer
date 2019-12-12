@@ -1,9 +1,10 @@
 package com.pine.player.widget.view;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
+
+import androidx.annotation.Nullable;
 
 /**
  * Created by tanghongfeng on 2018/4/16.

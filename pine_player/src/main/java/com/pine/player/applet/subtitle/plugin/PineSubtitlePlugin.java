@@ -4,8 +4,9 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
 import android.view.View;
+
+import androidx.annotation.NonNull;
 
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;

@@ -126,7 +126,7 @@
             android:progressDrawable="@drawable/pine_player_seek_bar_progress"
             android:thumb="@drawable/pine_player_seek_bar_thumb"
             android:thumbOffset="0dp"
-            android:splitTrack="false"/>
+            android:splitTrack="false" />
 
         <TextView
             android:id="@+id/end_time_text"

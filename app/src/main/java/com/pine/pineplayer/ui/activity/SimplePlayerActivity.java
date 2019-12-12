@@ -2,9 +2,10 @@ package com.pine.pineplayer.ui.activity;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.WindowManager;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.pine.pineplayer.R;
 import com.pine.player.bean.PineMediaPlayerBean;

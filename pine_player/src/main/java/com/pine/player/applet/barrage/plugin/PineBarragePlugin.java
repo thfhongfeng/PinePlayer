@@ -9,8 +9,8 @@ import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.barrage.BarrageCanvasView;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
-import com.pine.player.util.LogUtil;
 import com.pine.player.component.PineMediaWidget;
+import com.pine.player.util.LogUtil;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;

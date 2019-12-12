@@ -23,10 +23,10 @@ public class LogUtil {
     public static String makeLogTag(Class clz) {
         String str = clz.getSimpleName();
         if (str.length() > MAX_LOG_TAG_LENGTH) {
-        return str.substring(0, MAX_LOG_TAG_LENGTH - 1);
-    }
+            return str.substring(0, MAX_LOG_TAG_LENGTH - 1);
+        }
         return str;
-}
+    }
 
     public static void v(String tag, String msg) {
         if (DEBUG && (LOG_LEVEL <= Log.VERBOSE)) {

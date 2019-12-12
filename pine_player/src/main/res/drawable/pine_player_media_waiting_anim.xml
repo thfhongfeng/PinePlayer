@@ -4,9 +4,9 @@
     android:pivotY="50%"
     android:fromDegrees="360"
     android:toDegrees="0"
-    android:interpolator="@android:anim/accelerate_decelerate_interpolator" >
+    android:interpolator="@android:anim/accelerate_decelerate_interpolator">
     <bitmap
         android:antialias="true"
         android:filter="true"
-        android:src="@drawable/pine_player_media_loading"/>
+        android:src="@drawable/pine_player_media_loading" />
 </rotate>

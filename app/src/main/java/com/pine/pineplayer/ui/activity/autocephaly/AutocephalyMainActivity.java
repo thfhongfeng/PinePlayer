@@ -2,9 +2,10 @@ package com.pine.pineplayer.ui.activity.autocephaly;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.pine.pineplayer.R;
 import com.pine.player.component.PineMediaWidget;
