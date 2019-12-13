@@ -17,7 +17,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -331,7 +330,7 @@ public class CustomPlayerActivity extends AppCompatActivity {
         // 创建线性布局管理器
         LinearLayoutManager definitionListLlm = new LinearLayoutManager(CustomPlayerActivity.this);
         // 设置垂直方向
-        definitionListLlm.setOrientation(OrientationHelper.VERTICAL);
+        definitionListLlm.setOrientation(RecyclerView.VERTICAL);
         // 给RecyclerView设置布局管理器
         mDefinitionListInPlayerRv.setLayoutManager(definitionListLlm);
         // 给RecyclerView添加装饰（比如divider）

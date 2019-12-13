@@ -19,7 +19,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.pine.player.R;
@@ -245,7 +244,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
             if (mDWaitingProgressView == null) {
                 mDWaitingProgressView = new LinearLayout(mDContext);
                 mDWaitingProgressView.setGravity(Gravity.CENTER);
-                mDWaitingProgressView.setBackgroundColor(Color.argb(192, 256, 256, 256));
+                mDWaitingProgressView.setBackgroundColor(Color.argb(192, 255, 255, 255));
                 ProgressBar progressBar = new ProgressBar(mDContext);
                 ViewGroup.LayoutParams progressBarParams = new ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -318,7 +317,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
         // 创建线性布局管理器
         LinearLayoutManager MediaListLlm = new LinearLayoutManager(mDContext);
         // 设置垂直方向
-        MediaListLlm.setOrientation(OrientationHelper.VERTICAL);
+        MediaListLlm.setOrientation(RecyclerView.VERTICAL);
         // 给RecyclerView设置布局管理器
         mDVideoListInPlayerRv.setLayoutManager(MediaListLlm);
         // 给RecyclerView添加装饰（比如divider）
@@ -344,7 +343,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
         // 创建线性布局管理器
         LinearLayoutManager definitionListLlm = new LinearLayoutManager(mDContext);
         // 设置垂直方向
-        definitionListLlm.setOrientation(OrientationHelper.VERTICAL);
+        definitionListLlm.setOrientation(RecyclerView.VERTICAL);
         // 给RecyclerView设置布局管理器
         mDDefinitionListInPlayerRv.setLayoutManager(definitionListLlm);
         // 给RecyclerView添加装饰（比如divider）

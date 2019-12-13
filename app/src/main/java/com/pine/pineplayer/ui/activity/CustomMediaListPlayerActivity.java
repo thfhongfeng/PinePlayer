@@ -20,7 +20,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -369,7 +368,7 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
         // 创建线性布局管理器
         LinearLayoutManager definitionListLlm = new LinearLayoutManager(CustomMediaListPlayerActivity.this);
         // 设置垂直方向
-        definitionListLlm.setOrientation(OrientationHelper.VERTICAL);
+        definitionListLlm.setOrientation(RecyclerView.VERTICAL);
         // 给RecyclerView设置布局管理器
         mDefinitionListInPlayerRv.setLayoutManager(definitionListLlm);
         // 给RecyclerView添加装饰（比如divider）
@@ -386,7 +385,7 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
         // 创建线性布局管理器
         LinearLayoutManager MediaListLlm = new LinearLayoutManager(CustomMediaListPlayerActivity.this);
         // 设置垂直方向
-        MediaListLlm.setOrientation(OrientationHelper.VERTICAL);
+        MediaListLlm.setOrientation(RecyclerView.VERTICAL);
         // 给RecyclerView设置布局管理器
         mVideoListInPlayerRv.setLayoutManager(MediaListLlm);
         // 给RecyclerView添加装饰（比如divider）
@@ -401,19 +400,13 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
         mVideoListInPlayerAdapter.notifyDataSetChanged();
 
         mVideoListInDetailRv.setHasFixedSize(true);
-        LinearLayoutManager llm = new LinearLayoutManager(this) {
-            @Override
-            public boolean canScrollVertically() {
-                return false;
-            }
-        };
+        LinearLayoutManager llm = new LinearLayoutManager(this);
         mVideoListInDetailRv.setLayoutManager(llm);
         mVideoListInDetailAdapter = new VideoListAdapter(mVideoListInDetailRv,
                 VideoListAdapter.LIST_IN_DETAIL);
         mVideoListInDetailRv.setAdapter(mVideoListInDetailAdapter);
         mVideoListInDetailAdapter.setData(mMediaList);
         mVideoListInDetailAdapter.notifyDataSetChanged();
-        mVideoListInDetailRv.setFocusable(false);
     }
 
     private void videoSelected(int position) {
