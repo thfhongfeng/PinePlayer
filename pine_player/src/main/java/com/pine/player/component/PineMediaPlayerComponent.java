@@ -24,7 +24,7 @@ import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.IPineMediaSocketService;
 import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.service.PineMediaSocketService;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaPlayerView;
 import com.pine.player.widget.PineSurfaceView;
 
@@ -55,7 +55,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public static final int SERVICE_STATE_DISCONNECTED = 1;
     public static final int SERVICE_STATE_CONNECTING = 2;
     public static final int SERVICE_STATE_CONNECTED = 3;
-    private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerComponent.class);
+    private final static String TAG = LogUtils.makeLogTag(PineMediaPlayerComponent.class);
     // 是否使用5.0之后的新API，该API支持本地流播放
     private static final boolean USE_NEW_API = true;
     private final Object LISTENER_SET_LOCK = new Object();
@@ -110,7 +110,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         public void onPrepared(MediaPlayer mp) {
             setIgnoreTemporaryControllerState(false);
-            LogUtil.d(TAG, "onPrepared Media mUri: " + mMediaBean.getMediaUri());
+            LogUtils.d(TAG, "onPrepared Media mUri: " + mMediaBean.getMediaUri());
             int fromState = mCurrentState;
             mCurrentState = STATE_PREPARED;
 
@@ -137,7 +137,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 }
             }
             if (mMediaWidth != 0 && mMediaHeight != 0 && isAttachViewMode() && mSurfaceView != null) {
-                //LogUtil.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
+                //LogUtils.i("@@@@", "media size: " + mMediaWidth +"/"+ mMediaHeight);
                 mSurfaceView.getHolder().setFixedSize(mMediaWidth, mMediaHeight);
                 if (mSurfaceWidth == mMediaWidth && mSurfaceHeight == mMediaHeight) {
                     // We didn't actually change the size (it was already at the size
@@ -177,7 +177,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     int currentPos = getCurrentPosition();
                     int duration = getDuration();
                     int bufferPercentage = getBufferPercentage();
-                    LogUtil.d(TAG, "onCompletion currentPos:" + currentPos
+                    LogUtils.d(TAG, "onCompletion currentPos:" + currentPos
                             + ", duration:" + duration
                             + ", bufferPercentage:" + bufferPercentage);
                     if (currentPos != duration && bufferPercentage > 0 && bufferPercentage < 100) {
@@ -234,7 +234,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     release();
                     if (mRetryForBufferingStartTimeout < MAX_RETRY_FOR_BUFFERING_START_TIMEOUT) {
                         mRetryForBufferingStartTimeout++;
-                        LogUtil.d(TAG, "Resume player when network bandwidth block, " +
+                        LogUtils.d(TAG, "Resume player when network bandwidth block, " +
                                 "retry count:" + mRetryForBufferingStartTimeout);
                         if (mMediaBean != null) {
                             openMedia(true);
@@ -247,7 +247,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private MediaPlayer.OnErrorListener mErrorListener =
             new MediaPlayer.OnErrorListener() {
                 public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
-                    LogUtil.d(TAG, "Error: " + framework_err + "," + impl_err);
+                    LogUtils.d(TAG, "Error: " + framework_err + "," + impl_err);
                     mCurrentState = STATE_ERROR;
                     mTargetState = STATE_ERROR;
                     if (canUpdateControllerPlayState()) {
@@ -296,7 +296,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             new MediaPlayer.OnInfoListener() {
                 @Override
                 public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                    LogUtil.d(TAG, "onInfo what: " + what + ", extra:" + extra);
+                    LogUtils.d(TAG, "onInfo what: " + what + ", extra:" + extra);
                     if (canUpdateControllerPlayState()) {
                         mMediaPlayerView.getMediaController().onMediaPlayerInfo(what, extra);
                     }
@@ -325,7 +325,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            LogUtil.d(TAG, "Local service connected");
+            LogUtils.d(TAG, "Local service connected");
             mLocalService = (IPineMediaSocketService) service;
             mLocalServiceState = SERVICE_STATE_CONNECTED;
             if (mIsDelayOpenMedia) {
@@ -345,7 +345,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            LogUtil.d(TAG, "Local service disconnected!");
+            LogUtils.d(TAG, "Local service disconnected!");
             mLocalService = null;
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
         }
@@ -404,7 +404,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             return;
         }
         setIgnoreTemporaryControllerState(false);
-        LogUtil.d(TAG, "Open Media mUri:" + mediaUri + ", isResumeState:" + isResumeState);
+        LogUtils.d(TAG, "Open Media mUri:" + mediaUri + ", isResumeState:" + isResumeState);
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
         release(false);
@@ -468,13 +468,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 }
             }
         } catch (IOException ex) {
-            LogUtil.w(TAG, "Unable to open content: " + mediaUri, ex);
+            LogUtils.w(TAG, "Unable to open content: " + mediaUri, ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
             return;
         } catch (IllegalArgumentException ex) {
-            LogUtil.w(TAG, "Unable to open content: " + mediaUri, ex);
+            LogUtils.w(TAG, "Unable to open content: " + mediaUri, ex);
             mCurrentState = STATE_ERROR;
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
@@ -579,7 +579,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mLocalServiceState = SERVICE_STATE_CONNECTING;
             Intent intent = new Intent("media.socket.server");
             intent.setPackage(mContext.getPackageName());
-            LogUtil.d(TAG, "Bind local service");
+            LogUtils.d(TAG, "Bind local service");
             mContext.bindService(intent, mServiceConnection, mContext.BIND_AUTO_CREATE);
         }
     }
@@ -624,7 +624,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void start() {
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
             if (isInPlaybackState()) {
-                LogUtil.d(TAG, "Start media player");
+                LogUtils.d(TAG, "Start media player");
                 mMediaPlayer.start();
                 PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), false);
                 if (canUpdateControllerPlayState()) {
@@ -652,7 +652,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     public void pause() {
         if (isInPlaybackState()) {
             if (mMediaPlayer.isPlaying()) {
-                LogUtil.d(TAG, "Pause media player");
+                LogUtils.d(TAG, "Pause media player");
                 mMediaPlayer.pause();
                 if (canUpdateControllerPlayState()) {
                     mMediaPlayerView.getMediaController().onMediaPlayerPause();
@@ -704,13 +704,13 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
 
     @Override
     public void onDestroy() {
-        LogUtil.d(TAG, "onDestroy");
+        LogUtils.d(TAG, "onDestroy");
         mHandler.removeCallbacksAndMessages(null);
         mRetryForBufferingStartTimeout = 0;
         release();
         mMediaPlayerListenerSet.clear();
         if (mLocalServiceState != SERVICE_STATE_DISCONNECTED) {
-            LogUtil.d(TAG, "Unbind local service");
+            LogUtils.d(TAG, "Unbind local service");
             mContext.unbindService(mServiceConnection);
             mLocalService = null;
             mLocalServiceState = SERVICE_STATE_DISCONNECTED;
@@ -764,7 +764,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mMediaPlayer != null &&
                 mMediaPlayer.isPlaying()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                LogUtil.d(TAG, "mediaPlayerParams getSelectedTrack MEDIA_TRACK_TYPE_AUDIO: " +
+                LogUtils.d(TAG, "mediaPlayerParams getSelectedTrack MEDIA_TRACK_TYPE_AUDIO: " +
                         mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO) +
                         ", MEDIA_TRACK_TYPE_VIDEO:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_VIDEO) +
                         ", MEDIA_TRACK_TYPE_TIMEDTEXT:" + mMediaPlayer.getSelectedTrack(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT) +
@@ -774,7 +774,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             MediaPlayer.TrackInfo trackInfo = null;
             for (int i = 0; i < trackInfoArr.length; i++) {
                 trackInfo = trackInfoArr[i];
-                LogUtil.d(TAG, "mediaPlayerParams trackInfo.getTrackType:" + trackInfo.getTrackType() +
+                LogUtils.d(TAG, "mediaPlayerParams trackInfo.getTrackType:" + trackInfo.getTrackType() +
                         ", trackInfo.getLanguage():" + trackInfo.getLanguage() +
                         ", trackInfo.describeContents():" + trackInfo.describeContents());
             }
@@ -787,7 +787,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     @Override
     public void seekTo(int msc) {
         if (isInPlaybackState()) {
-            LogUtil.d(TAG, "seek to:" + msc);
+            LogUtils.d(TAG, "seek to:" + msc);
             mMediaPlayer.seekTo(msc);
             PineMediaPlayerService.setSeekWhenPrepared(mMediaBean.getMediaCode(), 0);
         } else {
@@ -1031,7 +1031,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     protected void stopPlayback() {
-        LogUtil.d(TAG, "stopPlayback");
+        LogUtils.d(TAG, "stopPlayback");
         if (mMediaPlayer != null) {
             mMediaPlayer.stop();
             mMediaPlayer.release();
@@ -1057,7 +1057,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
      * release the media player in any state
      */
     public void release(boolean clearTargetState) {
-        LogUtil.d(TAG, "release clearTargetState:" + clearTargetState);
+        LogUtils.d(TAG, "release clearTargetState:" + clearTargetState);
         mHandler.removeMessages(MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT);
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();

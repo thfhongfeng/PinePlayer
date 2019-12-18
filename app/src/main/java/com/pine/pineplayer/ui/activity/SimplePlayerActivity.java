@@ -10,11 +10,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.pine.pineplayer.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaPlayerView;
 
 public class SimplePlayerActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(SimplePlayerActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(SimplePlayerActivity.class);
 
     private PineMediaPlayerView mVideoView;
     private PineMediaWidget.IPineMediaPlayer mPlayer;

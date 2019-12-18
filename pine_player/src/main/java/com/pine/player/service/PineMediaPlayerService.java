@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class PineMediaPlayerService extends Service {
     public final static String SERVICE_MEDIA_PLAYER_TAG = "ServiceMediaPlayer";
-    private final static String TAG = LogUtil.makeLogTag(PineMediaPlayerService.class);
+    private final static String TAG = LogUtils.makeLogTag(PineMediaPlayerService.class);
     private static HashMap<String, PineMediaPlayerProxy> mMediaPlayerProxyMap =
             new HashMap<>();
     private static HashMap<String, Boolean> mMediaShouldPlayWhenPreparedMap =
@@ -35,12 +35,12 @@ public class PineMediaPlayerService extends Service {
 
     public synchronized static void setMediaPlayerByTag(String tag,
                                                         PineMediaPlayerProxy mediaPlayerProxy) {
-        LogUtil.d(TAG, "setMediaPlayerByTag tag:" + tag + ",mediaPlayerProxy:" + mediaPlayerProxy);
+        LogUtils.d(TAG, "setMediaPlayerByTag tag:" + tag + ",mediaPlayerProxy:" + mediaPlayerProxy);
         mMediaPlayerProxyMap.put(tag, mediaPlayerProxy);
     }
 
     public synchronized static void destroyAllMediaPlayer() {
-        LogUtil.d(TAG, "destroyAllMediaPlayer");
+        LogUtils.d(TAG, "destroyAllMediaPlayer");
         Iterator iterator = mMediaPlayerProxyMap.entrySet().iterator();
         PineMediaPlayerProxy pineMediaPlayer = null;
         while (iterator.hasNext()) {
@@ -54,7 +54,7 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void destroyMediaPlayerByTag(String tag) {
-        LogUtil.d(TAG, "destroyMediaPlayerByTag tag:" + tag);
+        LogUtils.d(TAG, "destroyMediaPlayerByTag tag:" + tag);
         PineMediaPlayerProxy pineMediaPlayer = mMediaPlayerProxyMap.remove(tag);
         if (pineMediaPlayer != null) {
             pineMediaPlayer.onDestroy();
@@ -62,13 +62,13 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void clearAllPlayMediaState() {
-        LogUtil.d(TAG, "clearAllPlayMediaState");
+        LogUtils.d(TAG, "clearAllPlayMediaState");
         mMediaShouldPlayWhenPreparedMap.clear();
         mMediaSeekWhenPreparedMap.clear();
     }
 
     public synchronized static void clearPlayMediaState(String mediaCode) {
-        LogUtil.d(TAG, "clearPlayMediaState mediaCode:" + mediaCode);
+        LogUtils.d(TAG, "clearPlayMediaState mediaCode:" + mediaCode);
         mMediaShouldPlayWhenPreparedMap.remove(mediaCode);
         mMediaSeekWhenPreparedMap.remove(mediaCode);
     }
@@ -84,18 +84,18 @@ public class PineMediaPlayerService extends Service {
     }
 
     public synchronized static void setShouldPlayWhenPrepared(String mediaCode, boolean isPlaying) {
-        LogUtil.d(TAG, "setShouldPlayWhenPrepared mediaCode:" + mediaCode + ",isPlaying:" + isPlaying);
+        LogUtils.d(TAG, "setShouldPlayWhenPrepared mediaCode:" + mediaCode + ",isPlaying:" + isPlaying);
         mMediaShouldPlayWhenPreparedMap.put(mediaCode, isPlaying);
     }
 
     public synchronized static void setSeekWhenPrepared(String mediaCode, int currentPosition) {
-        LogUtil.d(TAG, "setSeekWhenPrepared mediaCode:" + mediaCode + ",currentPosition:" + currentPosition);
+        LogUtils.d(TAG, "setSeekWhenPrepared mediaCode:" + mediaCode + ",currentPosition:" + currentPosition);
         mMediaSeekWhenPreparedMap.put(mediaCode, currentPosition);
     }
 
     @Override
     public void onCreate() {
-        LogUtil.d(TAG, "onCreate");
+        LogUtils.d(TAG, "onCreate");
         if (getMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG) == null) {
             setMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG, new PineMediaPlayerProxy(
                     getApplicationContext(), SERVICE_MEDIA_PLAYER_TAG));
@@ -105,13 +105,13 @@ public class PineMediaPlayerService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        LogUtil.d(TAG, "onUnbind");
+        LogUtils.d(TAG, "onUnbind");
         return super.onUnbind(intent); // 返回false
     }
 
     @Override
     public void onDestroy() {
-        LogUtil.d(TAG, "onDestroy");
+        LogUtils.d(TAG, "onDestroy");
         destroyMediaPlayerByTag(SERVICE_MEDIA_PLAYER_TAG);
         super.onDestroy();
     }

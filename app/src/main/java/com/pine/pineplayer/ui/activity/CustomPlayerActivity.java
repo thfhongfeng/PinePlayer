@@ -28,7 +28,7 @@ import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
 import com.pine.player.widget.view.PineProgressBar;
@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CustomPlayerActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(CustomPlayerActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(CustomPlayerActivity.class);
 
     private PineMediaPlayerView mVideoView;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -78,11 +78,6 @@ public class CustomPlayerActivity extends AppCompatActivity {
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
         mController = new PineMediaController(this);
         mMediaControllerAdapter = new PineMediaController.AbstractMediaControllerAdapter() {
-
-            @Override
-            public boolean init(PineMediaWidget.IPineMediaPlayer player) {
-                return true;
-            }
 
             @Override
             public List<PineRightViewHolder> onCreateRightViewHolderList(

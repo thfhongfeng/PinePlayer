@@ -15,14 +15,14 @@ import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.service.IPineMediaPlayerService;
 import com.pine.player.service.PineMediaPlayerService;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 /**
  * Created by tanghongfeng on 2018/4/8.
  */
 
 public class MediaServiceMainActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(MediaServiceMainActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(MediaServiceMainActivity.class);
     private String mBasePath;
     private PineMediaWidget.IPineMediaPlayer mMediaServicePlayer;
     private IPineMediaPlayerService mPlayerService;

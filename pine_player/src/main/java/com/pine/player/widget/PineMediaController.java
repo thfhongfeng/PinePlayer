@@ -27,7 +27,7 @@ import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaPlayerComponent;
 import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.adapter.DefaultVideoControllerAdapter;
 import com.pine.player.widget.view.PineProgressBar;
 import com.pine.player.widget.viewholder.PineBackgroundViewHolder;
@@ -50,7 +50,7 @@ import java.util.Map;
 
 public class PineMediaController extends RelativeLayout
         implements PineMediaWidget.IPineMediaController, GestureDetector.OnGestureListener {
-    private final static String TAG = LogUtil.makeLogTag(PineMediaController.class);
+    private final static String TAG = LogUtils.makeLogTag(PineMediaController.class);
 
     private static final int MSG_FADE_OUT = 1;
     private static final int MSG_SHOW_PROGRESS = 2;
@@ -74,7 +74,7 @@ public class PineMediaController extends RelativeLayout
     // 播放实体
     private PineMediaPlayerBean mMediaBean;
     private IControllersActionListener mControllersActionListener;
-    private final View.OnClickListener mNextListener = new View.OnClickListener() {
+    private final OnClickListener mNextListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -83,7 +83,7 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
-    private final View.OnClickListener mPrevListener = new View.OnClickListener() {
+    private final OnClickListener mPrevListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -122,7 +122,7 @@ public class PineMediaController extends RelativeLayout
     private List<PineRightViewHolder> mRightViewHolderList;
     private HashMap<Integer, PinePluginViewHolder> mPluginViewHolderMap;
     private PineControllerViewHolder mControllerViewHolder;
-    private final View.OnClickListener mSpeedListener = new View.OnClickListener() {
+    private final OnClickListener mSpeedListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -137,7 +137,7 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
-    private final View.OnClickListener mVolumesListener = new View.OnClickListener() {
+    private final OnClickListener mVolumesListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -152,7 +152,7 @@ public class PineMediaController extends RelativeLayout
             new PineMediaPlayerView.PineMediaViewLayout();
     // Controller控件的当前父布局PineMediaPlayerView
     private PineMediaPlayerView mMediaPlayerView;
-    private final View.OnClickListener mGoBackListener = new View.OnClickListener() {
+    private final OnClickListener mGoBackListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -161,7 +161,7 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
-    private final View.OnClickListener mFullScreenListener = new View.OnClickListener() {
+    private final OnClickListener mFullScreenListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             mPlayer.savePlayMediaState();
@@ -188,15 +188,15 @@ public class PineMediaController extends RelativeLayout
                     bottomMargin = mControllerViewHolder
                             .getBottomControllerView().getHeight();
                 }
-                RelativeLayout.LayoutParams oldLayoutParams = (RelativeLayout.LayoutParams)
+                LayoutParams oldLayoutParams = (LayoutParams)
                         mRightViewContainer.getLayoutParams();
                 if (oldLayoutParams.topMargin == topMargin
                         && oldLayoutParams.bottomMargin == bottomMargin) {
                     mIsNeedResizeRightContainerView = false;
                 } else {
-                    LogUtil.d(TAG, "RightViewContainer OnPreDrawListener topMargin: " + topMargin
+                    LogUtils.d(TAG, "RightViewContainer OnPreDrawListener topMargin: " + topMargin
                             + ", bottomMargin: " + bottomMargin + ", view:" + mRightViewContainer);
-                    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+                    LayoutParams layoutParams = new LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                     layoutParams.topMargin = topMargin;
                     layoutParams.bottomMargin = bottomMargin;
@@ -221,15 +221,15 @@ public class PineMediaController extends RelativeLayout
                         if (mControllerViewHolder.getBottomControllerView() != null && isShowing()) {
                             bottomMargin = mControllerViewHolder.getBottomControllerView().getHeight();
                         }
-                        RelativeLayout.LayoutParams oldLayoutParams = (RelativeLayout.LayoutParams)
+                        LayoutParams oldLayoutParams = (LayoutParams)
                                 mControllerPluginViewContainer.getLayoutParams();
                         if (oldLayoutParams != null && oldLayoutParams.topMargin == topMargin &&
                                 oldLayoutParams.bottomMargin == bottomMargin) {
                             mIsNeedResizeControllerPluginView = false;
                         } else {
-                            LogUtil.d(TAG, "ControllerPlugin OnPreDrawListener topMargin: " + topMargin
+                            LogUtils.d(TAG, "ControllerPlugin OnPreDrawListener topMargin: " + topMargin
                                     + ", bottomMargin: " + bottomMargin + ", view:" + mControllerPluginViewContainer);
-                            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+                            LayoutParams layoutParams = new LayoutParams(
                                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                             layoutParams.topMargin = topMargin;
                             layoutParams.bottomMargin = bottomMargin;
@@ -273,7 +273,7 @@ public class PineMediaController extends RelativeLayout
                                 bottomMargin = getMeasuredHeight() - playerLayoutParams.bottom;
                             }
                         }
-                        RelativeLayout.LayoutParams oldLayoutParams = (RelativeLayout.LayoutParams)
+                        LayoutParams oldLayoutParams = (LayoutParams)
                                 mSurfacePluginViewContainer.getLayoutParams();
                         if (oldLayoutParams != null && oldLayoutParams.topMargin == topMargin &&
                                 oldLayoutParams.bottomMargin == bottomMargin &&
@@ -281,9 +281,9 @@ public class PineMediaController extends RelativeLayout
                                 oldLayoutParams.height == playerLayoutParams.height) {
                             mIsNeedResizeSurfacePluginView = false;
                         } else {
-                            LogUtil.d(TAG, "SurfacePlugin OnPreDrawListener topMargin: " + topMargin
+                            LogUtils.d(TAG, "SurfacePlugin OnPreDrawListener topMargin: " + topMargin
                                     + ", bottomMargin: " + bottomMargin + ", view:" + mSurfacePluginViewContainer);
-                            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+                            LayoutParams layoutParams = new LayoutParams(
                                     playerLayoutParams.width, playerLayoutParams.height);
                             if (topMargin != -1) {
                                 layoutParams.topMargin = topMargin;
@@ -389,7 +389,7 @@ public class PineMediaController extends RelativeLayout
                     mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
                 }
             };
-    private final View.OnClickListener mPausePlayListener = new View.OnClickListener() {
+    private final OnClickListener mPausePlayListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -400,7 +400,7 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
-    private final View.OnClickListener mRewListener = new View.OnClickListener() {
+    private final OnClickListener mRewListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -413,7 +413,7 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
-    private final View.OnClickListener mFfwdListener = new View.OnClickListener() {
+    private final OnClickListener mFfwdListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -426,7 +426,7 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
-    private final View.OnClickListener mRightControlBtnListener = new View.OnClickListener() {
+    private final OnClickListener mRightControlBtnListener = new OnClickListener() {
         @Override
         public void onClick(View view) {
             List<View> rightControllerBtnList = mControllerViewHolder.getRightViewControlBtnList();
@@ -457,7 +457,7 @@ public class PineMediaController extends RelativeLayout
             }
         }
     };
-    private final View.OnClickListener mLockControllerListener = new View.OnClickListener() {
+    private final OnClickListener mLockControllerListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
             if (mControllersActionListener == null
@@ -710,17 +710,14 @@ public class PineMediaController extends RelativeLayout
      */
     @Override
     public void attachToParentView(boolean isPlayerReset, boolean isResumeState) {
-        LogUtil.d(TAG, "Attach to media view. isPlayerReset: " + isPlayerReset
+        LogUtils.d(TAG, "Attach to media view. isPlayerReset: " + isPlayerReset
                 + ", isResumeState: " + isResumeState + ", mMediaPlayerView:" + mMediaPlayerView);
         if (mMediaPlayerView == null) {
             return;
         }
         removeAllViews();
         if (mAdapter == null) {
-            mAdapter = new DefaultVideoControllerAdapter(mContext);
-        }
-        if (!mAdapter.init(mPlayer)) {
-            return;
+            mAdapter = new DefaultVideoControllerAdapter(mContext, mPlayer);
         }
         mControllerMonitor = mAdapter.onCreateControllerMonitor();
         mControllersActionListener = mAdapter.onCreateControllersActionListener();
@@ -729,7 +726,7 @@ public class PineMediaController extends RelativeLayout
         releasePlugin();
         mPinePluginMap = mMediaBean.getPlayerPluginMap();
         if (needInitPlugin()) {
-            LogUtil.d(TAG, "construct plugin view holder map");
+            LogUtils.d(TAG, "construct plugin view holder map");
             mPluginViewHolderMap = new HashMap<Integer, PinePluginViewHolder>();
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
@@ -755,7 +752,7 @@ public class PineMediaController extends RelativeLayout
                 .onCreateWaitingProgressViewHolder(mPlayer, mMediaPlayerView.isFullScreenMode());
         mRightViewHolderList = mAdapter
                 .onCreateRightViewHolderList(mPlayer, mMediaPlayerView.isFullScreenMode());
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+        LayoutParams layoutParams = new LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
         );
@@ -780,33 +777,33 @@ public class PineMediaController extends RelativeLayout
                     if (pinePluginViewHolder.getContainerType()
                             == IPinePlayerPlugin.TYPE_MATCH_SURFACE) {
                         mSurfacePluginViewContainer.addView(pinePluginViewHolder.getContainer(),
-                                new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                                new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                     } else {
                         mControllerPluginViewContainer.addView(pinePluginViewHolder.getContainer(),
-                                new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                                new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                     }
                 }
             }
             if (mSurfacePluginViewContainer.getChildCount() > 0) {
-                LogUtil.d(TAG, "attach surface plugin container");
+                LogUtils.d(TAG, "attach surface plugin container");
                 if (mControllerContainerInRoot) {
                     mIsNeedResizeSurfacePluginView = true;
                     addPreDrawListener(mSurfacePluginViewContainer, mSurfacePluginPreDrawListener);
                 }
                 mPluginViewContainer.addView(mSurfacePluginViewContainer,
-                        new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                        new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             }
             if (mControllerPluginViewContainer.getChildCount() > 0) {
-                LogUtil.d(TAG, "attach controller plugin container");
+                LogUtils.d(TAG, "attach controller plugin container");
                 if (mControllerContainerInRoot) {
                     mIsNeedResizeControllerPluginView = true;
                     addPreDrawListener(mControllerPluginViewContainer, mControllerPluginPreDrawListener);
                 }
                 mPluginViewContainer.addView(mControllerPluginViewContainer,
-                        new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                        new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             }
-            LogUtil.d(TAG, "attach all plugin containers root");
-            addView(mPluginViewContainer, new RelativeLayout.LayoutParams(
+            LogUtils.d(TAG, "attach all plugin containers root");
+            addView(mPluginViewContainer, new LayoutParams(
                     LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         }
         // 控制器内置View
@@ -832,14 +829,14 @@ public class PineMediaController extends RelativeLayout
                         mRightViewHolderList.get(i);
                 if (pineRightViewHolder.getContainer() != null) {
                     mRightViewContainer.addView(pineRightViewHolder.getContainer(),
-                            new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                            new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                 }
             }
             if (mControllerContainerInRoot) {
                 mIsNeedResizeRightContainerView = true;
                 addPreDrawListener(mRightViewContainer, mRightViewContainerPreDrawListener);
             }
-            addView(mRightViewContainer, new RelativeLayout.LayoutParams(0, 0));
+            addView(mRightViewContainer, new LayoutParams(0, 0));
         }
         if (mIsFirstAttach) {
             mMediaPlayerView.addView(mRoot, layoutParams);
@@ -848,7 +845,7 @@ public class PineMediaController extends RelativeLayout
         mIsFirstAttach = false;
 
         if (needInitPlugin()) {
-            LogUtil.d(TAG, "init plugin mPlayer:" + mPlayer);
+            LogUtils.d(TAG, "init plugin mPlayer:" + mPlayer);
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -860,7 +857,7 @@ public class PineMediaController extends RelativeLayout
     }
 
     private void initControllerView(boolean isPlayerReset, boolean isResumeState) {
-        LogUtil.d(TAG, "initControllerView");
+        LogUtils.d(TAG, "initControllerView");
         setControllerEnabled(false);
         if (mControllerViewHolder.getGoBackButton() != null) {
             mControllerViewHolder.getGoBackButton().setOnClickListener(mGoBackListener);
@@ -887,7 +884,7 @@ public class PineMediaController extends RelativeLayout
             show(0);
         }
         if (!isPlayerReset && isResumeState) {
-            LogUtil.d(TAG, "resume media controller");
+            LogUtils.d(TAG, "resume media controller");
             onMediaPlayerPrepared();
             onMediaPlayerStart();
         }
@@ -990,7 +987,7 @@ public class PineMediaController extends RelativeLayout
         }
         if (!(mControllerViewHolder.getContainer().getVisibility() == VISIBLE) ||
                 timeout != mPreFadeOutTime || refreshAnyway) {
-            LogUtil.d(TAG, "show timeout: " + timeout);
+            LogUtils.d(TAG, "show timeout: " + timeout);
             mPreFadeOutTime = timeout;
             mIsNeedResizeControllerPluginView = true;
             mIsNeedResizeSurfacePluginView = true;
@@ -1031,7 +1028,7 @@ public class PineMediaController extends RelativeLayout
             return;
         }
         if (mControllerViewHolder.getContainer().getVisibility() == VISIBLE) {
-            LogUtil.d(TAG, "hide");
+            LogUtils.d(TAG, "hide");
             try {
                 mIsNeedResizeControllerPluginView = true;
                 mIsNeedResizeSurfacePluginView = true;
@@ -1043,7 +1040,7 @@ public class PineMediaController extends RelativeLayout
                 }
                 updateControllerVisibility(false);
             } catch (IllegalArgumentException ex) {
-                LogUtil.w("MediaController", "already removed");
+                LogUtils.w("MediaController", "already removed");
             }
         }
     }
@@ -1197,7 +1194,7 @@ public class PineMediaController extends RelativeLayout
             float per = position * 100 / duration;
             if (per > (float) percent) {
                 if (mPlayer.isPlaying()) {
-                    LogUtil.d(TAG, "onBufferingUpdate pause player: " +
+                    LogUtils.d(TAG, "onBufferingUpdate pause player: " +
                             percent + ", duration:" + duration + ", position:" + position);
                     mPlayer.pause();
                     mPausedByBufferingUpdate = true;
@@ -1208,7 +1205,7 @@ public class PineMediaController extends RelativeLayout
                 }
             } else {
                 if (mPlayer.isPause() && mPausedByBufferingUpdate) {
-                    LogUtil.d(TAG, "onBufferingUpdate start player: " +
+                    LogUtils.d(TAG, "onBufferingUpdate start player: " +
                             percent + ", duration:" + duration + ", position:" + position);
                     mPlayer.start();
                     mPausedByBufferingUpdate = false;
@@ -1372,7 +1369,7 @@ public class PineMediaController extends RelativeLayout
         if (mMediaPlayerView == null) {
             return;
         }
-        LogUtil.d(TAG, "setControllerEnabled enabledSpeed: " + enabledSpeed
+        LogUtils.d(TAG, "setControllerEnabled enabledSpeed: " + enabledSpeed
                 + ", enabledRightView: " + enabledRightView
                 + ", enabledPlayerPause: " + enabledPlayerPause
                 + ", enabledProgressBar: " + enabledProgressBar
@@ -1818,6 +1815,9 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public boolean onDown(MotionEvent e) {
+        if (isLocked()) {
+            return true;
+        }
         if (mControllersActionListener != null) {
             mControllersActionListener.onScreenDown(e);
         }
@@ -1829,6 +1829,9 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void onShowPress(MotionEvent e) {
+        if (isLocked()) {
+            return;
+        }
         if (mControllersActionListener != null) {
             mControllersActionListener.onScreenShowPress(e);
         }
@@ -1849,6 +1852,9 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public boolean onScroll(MotionEvent downEvent, MotionEvent curEvent, float distanceX, float distanceY) {
+        if (isLocked()) {
+            return true;
+        }
         if (mControllersActionListener == null
                 || !mControllersActionListener.onScreenScroll(downEvent, curEvent, distanceX, distanceY)) {
             if (mPlayer.isInPlaybackState() && mMediaPlayerView.isFullScreenMode()) {
@@ -1897,6 +1903,9 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void onLongPress(MotionEvent e) {
+        if (isLocked()) {
+            return;
+        }
         if (mControllersActionListener != null) {
             mControllersActionListener.onScreenLongPress(e);
         }
@@ -1904,6 +1913,9 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public boolean onFling(MotionEvent downEvent, MotionEvent upEvent, float velocityX, float velocityY) {
+        if (isLocked()) {
+            return true;
+        }
         if (mControllersActionListener == null
                 || !mControllersActionListener.onScreenScroll(downEvent, upEvent, velocityX, velocityY)) {
 
@@ -2123,16 +2135,6 @@ public class PineMediaController extends RelativeLayout
     public abstract static class AbstractMediaControllerAdapter {
 
         /**
-         * 适配器初始化
-         *
-         * @param player
-         * @return
-         */
-        protected boolean init(PineMediaWidget.IPineMediaPlayer player) {
-            return true;
-        }
-
-        /**
          * 背景布局，会被添加到PineMediaPlayerView布局中，
          * 位于PineMediaController View最底层。用于播放切换过程中的背景布置，或者播放音频时的背景图
          *
@@ -2212,8 +2214,9 @@ public class PineMediaController extends RelativeLayout
          * 设置当前播放媒体在播放列表中的位置
          *
          * @param position
+         * @param startPlay
          */
-        public void setCurrentMediaPosition(int position) {
+        public void mediaSelect(int position, boolean startPlay) {
 
         }
     }

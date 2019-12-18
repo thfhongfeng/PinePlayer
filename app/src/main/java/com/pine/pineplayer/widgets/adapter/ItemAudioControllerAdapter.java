@@ -43,20 +43,15 @@ public class ItemAudioControllerAdapter extends PineMediaController.AbstractMedi
     private PineMediaPlayerBean mMediaBean;
     private ControllersActionListener mControllersActionListener;
 
-    public ItemAudioControllerAdapter(Activity context, ViewGroup root,
+    public ItemAudioControllerAdapter(Activity context, PineMediaWidget.IPineMediaPlayer player, ViewGroup root,
                                       PineMediaPlayerView playerView, PineMediaPlayerBean mediaBean,
                                       ControllersActionListener listener) {
         mDContext = context;
+        mDPlayer = player;
         mRoot = root;
         mMediaPlayerView = playerView;
         mMediaBean = mediaBean;
         mControllersActionListener = listener;
-    }
-
-    @Override
-    protected final boolean init(PineMediaWidget.IPineMediaPlayer player) {
-        mDPlayer = player;
-        return true;
     }
 
     @Override

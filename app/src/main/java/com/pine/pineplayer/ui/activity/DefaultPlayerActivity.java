@@ -10,12 +10,12 @@ import com.pine.pineplayer.R;
 import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
 
 public class DefaultPlayerActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(DefaultPlayerActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(DefaultPlayerActivity.class);
 
     private PineMediaPlayerView mVideoView;
     private PineMediaWidget.IPineMediaPlayer mPlayer;

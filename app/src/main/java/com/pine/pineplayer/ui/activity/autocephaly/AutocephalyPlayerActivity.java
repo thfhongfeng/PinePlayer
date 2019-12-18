@@ -12,7 +12,7 @@ import com.pine.pineplayer.R;
 import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
 import com.pine.player.widget.adapter.DefaultAudioControllerAdapter;
@@ -25,7 +25,7 @@ import java.util.List;
  */
 
 public class AutocephalyPlayerActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(AutocephalyPlayerActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(AutocephalyPlayerActivity.class);
 
     private PineMediaPlayerView mCurMediaView;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -49,34 +49,33 @@ public class AutocephalyPlayerActivity extends AppCompatActivity {
         }
         mMediaList = MockDataUtil.getMediaList(this, mBasePath);
         mController = new PineMediaController(this);
+
         if (PinePlayerApp.mMockCount++ % 2 == 0) {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.video_view);
-            mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mMediaList);
-            mController.setMediaControllerAdapter(mMediaControllerAdapter);
             mCurMediaView.init(TAG, mController);
-
+            mPlayer = mCurMediaView.getMediaPlayer();
+            mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mPlayer, mMediaList);
+            mController.setMediaControllerAdapter(mMediaControllerAdapter);
         } else {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.audio_view);
-            mMediaControllerAdapter = new DefaultAudioControllerAdapter(this, mMediaList);
-            mController.setMediaControllerAdapter(mMediaControllerAdapter);
             mCurMediaView.init(TAG, mController, false);
+            mPlayer = mCurMediaView.getMediaPlayer();
+            mMediaControllerAdapter = new DefaultAudioControllerAdapter(this, mPlayer, mMediaList);
+            mController.setMediaControllerAdapter(mMediaControllerAdapter);
         }
         mCurMediaView.setVisibility(View.VISIBLE);
-        mPlayer = mCurMediaView.getMediaPlayer();
         if (mPlayer.isInPlaybackState()) {
             PineMediaPlayerBean playerBean = mPlayer.getMediaPlayerBean();
             for (int i = 0; i < mMediaList.size(); i++) {
                 if (playerBean.getMediaCode().equals(mMediaList.get(i).getMediaCode())) {
                     mCurrentVideoPosition = i;
-                    mMediaControllerAdapter.setCurrentMediaPosition(mCurrentVideoPosition);
+                    mMediaControllerAdapter.mediaSelect(mCurrentVideoPosition, false);
                     break;
                 }
             }
         } else {
             mCurrentVideoPosition = 15;
-            mMediaControllerAdapter.setCurrentMediaPosition(mCurrentVideoPosition);
-            mPlayer.setPlayingMedia(mMediaList.get(mCurrentVideoPosition), true);
-            mPlayer.start();
+            mMediaControllerAdapter.mediaSelect(mCurrentVideoPosition, true);
         }
     }
 

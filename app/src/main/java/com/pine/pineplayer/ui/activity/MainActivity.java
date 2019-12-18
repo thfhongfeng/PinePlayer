@@ -12,7 +12,7 @@ import com.pine.pineplayer.R;
 import com.pine.pineplayer.ui.activity.autocephaly.AutocephalyMainActivity;
 import com.pine.pineplayer.ui.activity.mediaservice.MediaServiceMainActivity;
 import com.pine.pineplayer.util.FileUtil;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 import java.io.File;
 
@@ -21,7 +21,7 @@ import java.io.File;
  */
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(MainActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(MainActivity.class);
     private String mBasePath;
     private boolean mNeedCopyAssets = false;
 

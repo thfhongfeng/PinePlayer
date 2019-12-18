@@ -15,14 +15,14 @@ import android.widget.TextView;
 
 import com.pine.player.applet.barrage.bean.PartialDisplayBarrageNode;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 /**
  * Created by tanghongfeng on 2018/2/1.
  */
 
 public class BarrageCanvasView extends RelativeLayout {
-    private final static String TAG = LogUtil.makeLogTag(BarrageCanvasView.class);
+    private final static String TAG = LogUtils.makeLogTag(BarrageCanvasView.class);
 
     private Context mContext;
     private boolean mIsPrepare = false;
@@ -93,7 +93,7 @@ public class BarrageCanvasView extends RelativeLayout {
         } else {
             mDisplayableHeadNode = new PartialDisplayBarrageNode(null, null, mDisplayStartPx, 0, 200);
         }
-        LogUtil.d(TAG, "prepare StartPxIndex:" + mDisplayableHeadNode.getStartPixIndex()
+        LogUtils.d(TAG, "prepare StartPxIndex:" + mDisplayableHeadNode.getStartPixIndex()
                 + ", UntilNextRemainderPix:" + mDisplayableHeadNode.getUntilNextRemainderPix());
         mIsPrepare = true;
     }
@@ -239,7 +239,7 @@ public class BarrageCanvasView extends RelativeLayout {
             if (newNode.getNextNode() != null) {
                 newNode.getNextNode().setPreNode(newNode);
             }
-            LogUtil.d(TAG, "matched node:" + newNode);
+            LogUtils.d(TAG, "matched node:" + newNode);
             return newNode;
         } else {
             return null;
@@ -257,7 +257,7 @@ public class BarrageCanvasView extends RelativeLayout {
         if (node.getNextNode() != null) {
             node.getNextNode().setPreNode(preNode);
         }
-        LogUtil.d(TAG, "freeNodeSpace node:" + node + ", after free, pre node:" + preNode);
+        LogUtils.d(TAG, "freeNodeSpace node:" + node + ", after free, pre node:" + preNode);
         node.setStartPixIndex(-1);
         node.setNodeUsedPix(-1);
         node.setUntilNextRemainderPix(-1);

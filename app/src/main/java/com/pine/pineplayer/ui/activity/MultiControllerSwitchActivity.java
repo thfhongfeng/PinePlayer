@@ -12,7 +12,7 @@ import com.pine.pineplayer.R;
 import com.pine.pineplayer.widgets.adapter.ItemAudioControllerAdapter;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
 
@@ -21,7 +21,7 @@ import com.pine.player.widget.PineMediaPlayerView;
  */
 
 public class MultiControllerSwitchActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(MultiControllerSwitchActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(MultiControllerSwitchActivity.class);
     PineMediaController mMediaController1, mMediaController2, mMediaController3;
     PineMediaPlayerView mAudioPlayerView;
     PineMediaWidget.IPineMediaPlayer mMediaPlayer;
@@ -41,6 +41,8 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
         RelativeLayout itemRl2 = (RelativeLayout) findViewById(R.id.item_controller2_rl);
         RelativeLayout itemRl3 = (RelativeLayout) findViewById(R.id.item_controller3_rl);
 
+        mAudioPlayerView.init(TAG, null, false);
+        mMediaPlayer = mAudioPlayerView.getMediaPlayer();
         mMediaController1 = new PineMediaController(this);
         final PineMediaPlayerBean playerBean1 = new PineMediaPlayerBean(String.valueOf(0), "Scenery",
                 Uri.parse(mBasePath + "/resource/Scenery.mp4"),
@@ -55,7 +57,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
                 mMediaPlayer.start();
             }
         });
-        mMediaController1.setMediaControllerAdapter(new ItemAudioControllerAdapter(this,
+        mMediaController1.setMediaControllerAdapter(new ItemAudioControllerAdapter(this, mMediaPlayer,
                 itemRl1, mAudioPlayerView, playerBean1,
                 new ItemAudioControllerAdapter.ControllersActionListener() {
                     @Override
@@ -83,7 +85,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
                 mMediaPlayer.start();
             }
         });
-        mMediaController2.setMediaControllerAdapter(new ItemAudioControllerAdapter(this,
+        mMediaController2.setMediaControllerAdapter(new ItemAudioControllerAdapter(this, mMediaPlayer,
                 itemRl2, mAudioPlayerView, playerBean2,
                 new ItemAudioControllerAdapter.ControllersActionListener() {
                     @Override
@@ -111,7 +113,7 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
                 mMediaPlayer.start();
             }
         });
-        mMediaController3.setMediaControllerAdapter(new ItemAudioControllerAdapter(this,
+        mMediaController3.setMediaControllerAdapter(new ItemAudioControllerAdapter(this, mMediaPlayer,
                 itemRl3, mAudioPlayerView, playerBean2,
                 new ItemAudioControllerAdapter.ControllersActionListener() {
                     @Override
@@ -124,8 +126,6 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
                         return false;
                     }
                 }));
-        mAudioPlayerView.init(TAG, null, false);
-        mMediaPlayer = mAudioPlayerView.getMediaPlayer();
         mMediaPlayer.setAutocephalyPlayMode(false);
     }
 }

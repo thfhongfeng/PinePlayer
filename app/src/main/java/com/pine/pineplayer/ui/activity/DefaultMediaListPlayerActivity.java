@@ -10,7 +10,7 @@ import com.pine.pineplayer.R;
 import com.pine.pineplayer.util.MockDataUtil;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
 import com.pine.player.widget.adapter.DefaultVideoControllerAdapter;
@@ -18,7 +18,7 @@ import com.pine.player.widget.adapter.DefaultVideoControllerAdapter;
 import java.util.List;
 
 public class DefaultMediaListPlayerActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(DefaultMediaListPlayerActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(DefaultMediaListPlayerActivity.class);
 
     private PineMediaPlayerView mVideoView;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -42,16 +42,14 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
         }
         mMediaList = MockDataUtil.getMediaList(this, mBasePath);
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
+        mPlayer = mVideoView.getMediaPlayer();
         mController = new PineMediaController(this);
-        mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mMediaList);
+        mMediaControllerAdapter = new DefaultVideoControllerAdapter(this, mPlayer, mMediaList);
         mController.setMediaControllerAdapter(mMediaControllerAdapter);
         mVideoView.init(TAG, mController);
-        mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
         mCurrentVideoPosition = 0;
-        mMediaControllerAdapter.setCurrentMediaPosition(mCurrentVideoPosition);
-        mPlayer.setPlayingMedia(mMediaList.get(mCurrentVideoPosition));
-        mPlayer.start();
+        mMediaControllerAdapter.mediaSelect(mCurrentVideoPosition, false);
     }
 
     @Override

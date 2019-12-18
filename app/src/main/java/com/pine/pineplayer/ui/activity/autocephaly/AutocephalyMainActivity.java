@@ -10,14 +10,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.pine.pineplayer.R;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.service.PineMediaPlayerService;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 /**
  * Created by tanghongfeng on 2018/4/8.
  */
 
 public class AutocephalyMainActivity extends AppCompatActivity {
-    private static final String TAG = LogUtil.makeLogTag(AutocephalyMainActivity.class);
+    private static final String TAG = LogUtils.makeLogTag(AutocephalyMainActivity.class);
     private String mBasePath;
     private PineMediaWidget.IPineMediaPlayer mAutocephalyMediaPlayer;
     private TextView mAutocephalyPausePlayBtn, mAutocephalyReleaseBtn;
@@ -44,10 +44,10 @@ public class AutocephalyMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 PineMediaWidget.IPineMediaPlayer autocephalyMediaPlayer = PineMediaPlayerService
-                        .getMediaPlayerByTag(LogUtil.makeLogTag(AutocephalyPlayerActivity.class));
+                        .getMediaPlayerByTag(LogUtils.makeLogTag(AutocephalyPlayerActivity.class));
                 if (autocephalyMediaPlayer != null) {
                     PineMediaPlayerService.destroyMediaPlayerByTag(
-                            LogUtil.makeLogTag(AutocephalyPlayerActivity.class));
+                            LogUtils.makeLogTag(AutocephalyPlayerActivity.class));
                     mAutocephalyReleaseBtn.setVisibility(View.GONE);
                     mAutocephalyPausePlayBtn.setVisibility(View.GONE);
                 }
@@ -75,7 +75,7 @@ public class AutocephalyMainActivity extends AppCompatActivity {
         super.onResume();
 
         mAutocephalyMediaPlayer = PineMediaPlayerService
-                .getMediaPlayerByTag(LogUtil.makeLogTag(AutocephalyPlayerActivity.class));
+                .getMediaPlayerByTag(LogUtils.makeLogTag(AutocephalyPlayerActivity.class));
         if (mAutocephalyMediaPlayer != null) {
             mAutocephalyReleaseBtn.setVisibility(View.VISIBLE);
             mAutocephalyPausePlayBtn.setText(mAutocephalyMediaPlayer.isPlaying() ? "暂停" : "播放");

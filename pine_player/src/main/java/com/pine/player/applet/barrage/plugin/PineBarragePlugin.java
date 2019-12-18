@@ -10,7 +10,7 @@ import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.barrage.BarrageCanvasView;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.List;
  */
 
 public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
-    private final static String TAG = LogUtil.makeLogTag(PineBarragePlugin.class);
+    private final static String TAG = LogUtils.makeLogTag(PineBarragePlugin.class);
     private final Object LIST_LOCK = new Object();
     private Context mContext;
     private PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -122,7 +122,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     public void onInit(Context context, PineMediaWidget.IPineMediaPlayer player,
                        PineMediaWidget.IPineMediaController controller,
                        boolean isPlayerReset, boolean isResumeState) {
-        LogUtil.d(TAG, "onInit isPlayerReset:" + isPlayerReset + ", isResumeState:" + isResumeState);
+        LogUtils.d(TAG, "onInit isPlayerReset:" + isPlayerReset + ", isResumeState:" + isResumeState);
         clear();
         mContext = context;
         mPlayer = player;
@@ -138,7 +138,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
             mPreFirstPDBIndex = -1;
             mPreLastPDBIndex = -1;
         }
-        LogUtil.d(TAG, "setBarrageData mBarrageList.size():" + mBarrageList.size());
+        LogUtils.d(TAG, "setBarrageData mBarrageList.size():" + mBarrageList.size());
     }
 
     /**
@@ -159,7 +159,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         if (startPosition > endPosition) {
             return;
         }
-        LogUtil.d(TAG, "before addBarrageData total size:" + mBarrageList.size());
+        LogUtils.d(TAG, "before addBarrageData total size:" + mBarrageList.size());
         if (mBarrageList.size() > 0 &&
                 startPosition < mBarrageList.get(mBarrageList.size() - 1).getBeginTime()) {
             int startSearchIndex = mPreFirstPDBIndex < 0 ? 0 : mPreFirstPDBIndex;
@@ -202,13 +202,13 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 }
                 mBarrageList.addAll(endIndex + 1, resultList.subList(k, resultList.size()));
             }
-            LogUtil.d(TAG, "after addBarrageData merge func size:" + data.size() + ", total size:" +
+            LogUtils.d(TAG, "after addBarrageData merge func size:" + data.size() + ", total size:" +
                     mBarrageList.size() + ", startPosition:" + startPosition + ", endPosition:" + endPosition +
                     ", resultList.size():" + resultList.size() + ", startIndex:" + startIndex + ", endIndex:" + endIndex);
         } else {
             synchronized (LIST_LOCK) {
                 mBarrageList.addAll(barrageList);
-                LogUtil.d(TAG, "after addBarrageData addAll func size:" + data.size() + ", total size:" +
+                LogUtils.d(TAG, "after addBarrageData addAll func size:" + data.size() + ", total size:" +
                         mBarrageList.size() + ", startPosition:" + startPosition + ", endPosition:" + endPosition);
             }
         }
@@ -315,13 +315,13 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 positionBarrageList.addAll(mDelayShowBarrageList);
                 mDelayShowBarrageList.clear();
             }
-            LogUtil.v(TAG, "onTime start add barrage text positionBarrageList size:" + positionBarrageList.size());
+            LogUtils.v(TAG, "onTime start add barrage text positionBarrageList size:" + positionBarrageList.size());
             PineBarrageBean pineBarrageBean = null;
             int itemSize = Math.min(mMaxShownItemCount, positionBarrageList.size());
             for (int i = 0; i < itemSize; i++) {
                 pineBarrageBean = positionBarrageList.get(i);
                 if (mBarrageCanvasView.addBarrageItemView(pineBarrageBean, mPlayer.getSpeed())) {
-                    LogUtil.v(TAG, "onTime barrage added text:" + pineBarrageBean.getTextBody());
+                    LogUtils.v(TAG, "onTime barrage added text:" + pineBarrageBean.getTextBody());
                     pineBarrageBean.setShow(true);
                     mShownBarrageList.add(pineBarrageBean);
                 } else if (pineBarrageBean.getBeginTime() < position + PineConstants.PLUGIN_BARRAGE_MAX_DELAY_POSITION &&
@@ -329,7 +329,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                     mDelayShowBarrageList.add(pineBarrageBean);
                 }
             }
-            LogUtil.v(TAG, "onTime end add barrage text positionBarrageList size:" + positionBarrageList.size());
+            LogUtils.v(TAG, "onTime end add barrage text positionBarrageList size:" + positionBarrageList.size());
         }
     }
 
@@ -364,7 +364,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     }
 
     private void resetBarrage() {
-        LogUtil.d(TAG, "resetBarrage");
+        LogUtils.d(TAG, "resetBarrage");
         mDelayShowBarrageList.clear();
         while (mShownBarrageList.size() > 0) {
             PineBarrageBean pineBarrageBean = mShownBarrageList.get(0);
@@ -384,7 +384,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
 
     private void clearShownPineBarrageBean(PineBarrageBean pineBarrageBean) {
         if (pineBarrageBean != null && pineBarrageBean.isShow()) {
-            LogUtil.d(TAG, "clearPineBarrageBeanState pineBarrageBean:" + pineBarrageBean.getTextBody());
+            LogUtils.d(TAG, "clearPineBarrageBeanState pineBarrageBean:" + pineBarrageBean.getTextBody());
             pineBarrageBean.setPartialDisplayBarrageNode(null);
             pineBarrageBean.setShow(false);
             pineBarrageBean.setItemView(null);
@@ -424,7 +424,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 }
             }
             if (lastFoundIndex >= 0) {
-                LogUtil.d(TAG, "findNeedAddBarrageList after index " + mPreLastPDBIndex +
+                LogUtils.d(TAG, "findNeedAddBarrageList after index " + mPreLastPDBIndex +
                         ", found index rang firstPDBIndex:" + (lastFoundIndex - countMatchSize + 1) +
                         ", lastPDBIndex:" + lastFoundIndex +
                         ", preLastPosition:" + preLastPosition +
@@ -447,7 +447,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                 }
             }
             if (lastFoundIndex >= 0) {
-                LogUtil.d(TAG, "findNeedAddBarrageList before index " + mPreFirstPDBIndex +
+                LogUtils.d(TAG, "findNeedAddBarrageList before index " + mPreFirstPDBIndex +
                         ", found index rang firstPDBIndex:" + (lastFoundIndex + countMatchSize - 1) +
                         ", lastPDBIndex:" + lastFoundIndex +
                         ", preLastPosition:" + preLastPosition +

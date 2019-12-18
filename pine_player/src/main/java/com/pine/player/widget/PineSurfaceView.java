@@ -7,7 +7,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.pine.player.component.PineMediaPlayerProxy;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 /**
  * Created by tanghongfeng on 2017/8/14.
@@ -19,28 +19,28 @@ import com.pine.player.util.LogUtil;
  */
 
 public class PineSurfaceView extends SurfaceView {
-    private static final String TAG = LogUtil.makeLogTag(PineSurfaceView.class);
+    private static final String TAG = LogUtils.makeLogTag(PineSurfaceView.class);
     private Context mContext;
     private PineMediaPlayerView mMediaPlayerView = null;
     private PineMediaPlayerProxy mMediaPlayer = null;
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format,
                                    int w, int h) {
-            LogUtil.d(TAG, "surfaceChanged");
+            LogUtils.d(TAG, "surfaceChanged");
             if (mMediaPlayer != null) {
                 mMediaPlayer.onSurfaceChanged(mMediaPlayerView, PineSurfaceView.this, format, w, h);
             }
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
-            LogUtil.d(TAG, "surfaceCreated");
+            LogUtils.d(TAG, "surfaceCreated");
             if (mMediaPlayer != null) {
                 mMediaPlayer.onSurfaceCreated(mMediaPlayerView, PineSurfaceView.this);
             }
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
-            LogUtil.d(TAG, "surfaceDestroyed");
+            LogUtils.d(TAG, "surfaceDestroyed");
             if (mMediaPlayer != null) {
                 mMediaPlayer.onSurfaceDestroyed(mMediaPlayerView, PineSurfaceView.this);
             }
@@ -110,10 +110,10 @@ public class PineSurfaceView extends SurfaceView {
 
                 // for compatibility, we adjust size based on aspect ratio
                 if (mMediaWidth * height < width * mMediaHeight) {
-                    //LogUtil.i("@@@", "image too wide, correcting");
+                    //LogUtils.i("@@@", "image too wide, correcting");
                     width = height * mMediaWidth / mMediaHeight;
                 } else if (mMediaWidth * height > width * mMediaHeight) {
-                    //LogUtil.i("@@@", "image too tall, correcting");
+                    //LogUtils.i("@@@", "image too tall, correcting");
                     height = width * mMediaHeight / mMediaWidth;
                 }
             } else if (widthSpecMode == MeasureSpec.EXACTLY) {
@@ -166,13 +166,13 @@ public class PineSurfaceView extends SurfaceView {
 
     @Override
     public void draw(Canvas canvas) {
-        LogUtil.d(TAG, "draw");
+        LogUtils.d(TAG, "draw");
         super.draw(canvas);
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        LogUtil.d(TAG, "Detach from window view:" + this.getId());
+        LogUtils.d(TAG, "Detach from window view:" + this.getId());
         mMediaPlayerView = null;
         super.onDetachedFromWindow();
     }

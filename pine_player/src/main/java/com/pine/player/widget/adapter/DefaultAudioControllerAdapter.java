@@ -1,7 +1,7 @@
 package com.pine.player.widget.adapter;
 
-import android.animation.LayoutTransition;
 import android.app.Activity;
+import android.net.Uri;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +18,7 @@ import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineRightViewHolder;
 import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -41,20 +42,21 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     private boolean mDEnableCurTime, mDEnableProgressBar, mDEnableTotalTime;
     private boolean mDEnableVolumeText, mDEnableFullScreen;
 
-    public DefaultAudioControllerAdapter(Activity context) {
-        this(context, null, true, true, true, true, true, true, true);
+    public DefaultAudioControllerAdapter(Activity context, PineMediaWidget.IPineMediaPlayer player) {
+        this(context, player, null, true, true, true, true, true, true, true);
     }
 
-    public DefaultAudioControllerAdapter(Activity context, List<PineMediaPlayerBean> mediaList) {
-        this(context, mediaList, true, true, true, true, true, true, true);
+    public DefaultAudioControllerAdapter(Activity context, PineMediaWidget.IPineMediaPlayer player, List<PineMediaPlayerBean> mediaList) {
+        this(context, player, mediaList, true, true, true, true, true, true, true);
     }
 
-    public DefaultAudioControllerAdapter(Activity context,
+    public DefaultAudioControllerAdapter(Activity context, PineMediaWidget.IPineMediaPlayer player,
                                          List<PineMediaPlayerBean> mediaList, boolean enablePreNext,
                                          boolean enableSpeed, boolean enableCurTime,
                                          boolean enableProgressBar, boolean enableTotalTime,
                                          boolean enableVolumeText, boolean enableFullScreen) {
         mDContext = context;
+        mDPlayer = player;
         mDMediaList = mediaList;
         mDEnablePreNext = enablePreNext;
         mDEnableSpeed = enableSpeed;
@@ -66,27 +68,25 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    protected final boolean init(PineMediaWidget.IPineMediaPlayer player) {
-        mDPlayer = player;
-        return true;
-    }
-
-    @Override
     protected final PineBackgroundViewHolder onCreateBackgroundViewHolder(
             PineMediaWidget.IPineMediaPlayer player, boolean isFullScreenMode) {
         if (mDBackgroundViewHolder == null) {
             mDBackgroundViewHolder = new PineBackgroundViewHolder();
             if (mDBackgroundView == null) {
-                ImageView backgroundView = new ImageView(mDContext);
-                backgroundView.setBackgroundResource(android.R.color.darker_gray);
+                PineMediaPlayerBean playerBean = player.getMediaPlayerBean();
+                Uri imgUri = playerBean == null ? null : playerBean.getMediaImgUri();
+                ImageView mediaBackgroundView = new ImageView(mDContext);
+                mediaBackgroundView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                if (imgUri == null) {
+                    mediaBackgroundView.setBackgroundResource(android.R.color.darker_gray);
+                } else {
+                    mediaBackgroundView.setImageURI(Uri.fromFile(new File(imgUri.getPath())));
+                }
                 mDBackgroundView = new RelativeLayout(mDContext);
-                mDBackgroundView.setBackgroundResource(android.R.color.darker_gray);
-                mDBackgroundView.setLayoutTransition(new LayoutTransition());
-                RelativeLayout.LayoutParams backgroundParams = new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-                backgroundParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-                mDBackgroundView.addView(backgroundView, backgroundParams);
-                mDBackgroundViewHolder.setBackgroundImageView(backgroundView);
+                mDBackgroundView.addView(mediaBackgroundView,
+                        new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT));
+                mDBackgroundViewHolder.setContainer(mDBackgroundView);
             }
         }
         mDBackgroundViewHolder.setContainer(mDBackgroundView);
@@ -192,19 +192,43 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         viewHolder.setMediaNameText(root.findViewById(R.id.media_name_text));
     }
 
+    private PineMediaController.ControllerMonitor mControllerMonitor;
+
+    public void setControllerMonitor(PineMediaController.ControllerMonitor controllerMonitor) {
+        mControllerMonitor = controllerMonitor;
+    }
+
+    @Override
+    protected PineMediaController.ControllerMonitor onCreateControllerMonitor() {
+        if (mControllerMonitor != null) {
+            return mControllerMonitor;
+        }
+        return super.onCreateControllerMonitor();
+    }
+
+    private PineMediaController.ControllersActionListener mActionListener;
+
+    public void setActionListener(PineMediaController.ControllersActionListener actionListener) {
+        mActionListener = actionListener;
+    }
+
     @Override
     public PineMediaController.ControllersActionListener onCreateControllersActionListener() {
+        if (mActionListener != null) {
+            return mActionListener;
+        }
+
         return new PineMediaController.ControllersActionListener() {
             @Override
             public boolean onPreBtnClick(View preBtn, PineMediaWidget.IPineMediaPlayer player) {
-                audioSelected(mDCurrentVideoPosition - 1);
+                mediaSelect(mDCurrentVideoPosition - 1, true);
                 preBtn.setEnabled(mDMediaList != null && mDCurrentVideoPosition > 0);
                 return true;
             }
 
             @Override
             public boolean onNextBtnClick(View nextBtn, PineMediaWidget.IPineMediaPlayer player) {
-                audioSelected(mDCurrentVideoPosition + 1);
+                mediaSelect(mDCurrentVideoPosition + 1, true);
                 nextBtn.setEnabled(mDMediaList != null && mDCurrentVideoPosition < mDMediaList.size());
                 return true;
             }
@@ -223,11 +247,7 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     }
 
     @Override
-    public final void setCurrentMediaPosition(int position) {
-        mDCurrentVideoPosition = position;
-    }
-
-    private void audioSelected(int position) {
+    public void mediaSelect(int position, boolean startPlay) {
         PineMediaPlayerBean pineMediaPlayerBean = null;
         if (mDMediaList != null && mDMediaList.size() > 0) {
             if (position >= 0 && position < mDMediaList.size()) {
@@ -238,8 +258,29 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         } else {
             pineMediaPlayerBean = mDPlayer.getMediaPlayerBean();
         }
+        if (mDCurrentVideoPosition != position) {
+            mDPlayer.setPlayingMedia(pineMediaPlayerBean);
+        }
+        if (startPlay) {
+            mDPlayer.start();
+        }
+        if (mMediaItemChangeListener != null) {
+            mMediaItemChangeListener.onMediaChange(mDCurrentVideoPosition, position);
+        }
         mDCurrentVideoPosition = position;
-        mDPlayer.setPlayingMedia(pineMediaPlayerBean);
-        mDPlayer.start();
+    }
+
+    private IOnMediaItemChangeListener mMediaItemChangeListener;
+
+    public IOnMediaItemChangeListener getMediaItemChangeListener() {
+        return mMediaItemChangeListener;
+    }
+
+    public void setMediaItemChangeListener(IOnMediaItemChangeListener mediaItemChangeListener) {
+        mMediaItemChangeListener = mediaItemChangeListener;
+    }
+
+    public interface IOnMediaItemChangeListener {
+        void onMediaChange(int oldMediaBeanPosition, int newMediaBeanPosition);
     }
 }

@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.advert.bean.PineAdvertBean;
 import com.pine.player.component.PineMediaWidget;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 
 public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlugin<T> {
-    private static final String TAG = LogUtil.makeLogTag(PineAdvertPlugin.class);
+    private static final String TAG = LogUtils.makeLogTag(PineAdvertPlugin.class);
 
     private static final int MSG_HEAD_ADVERT_FINISH = 1;
     private static final int MSG_COMPLETE_ADVERT_FINISH = 2;
@@ -52,7 +52,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_HEAD_ADVERT_FINISH:
-                    LogUtil.d(TAG, "handleMessage MSG_HEAD_ADVERT_FINISH");
+                    LogUtils.d(TAG, "handleMessage MSG_HEAD_ADVERT_FINISH");
                     advertComplete();
                     mIsPauseByAdvert = false;
                     mIsPlayingHeadAdvert = false;
@@ -65,7 +65,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
                     }
                     break;
                 case MSG_COMPLETE_ADVERT_FINISH:
-                    LogUtil.d(TAG, "handleMessage MSG_COMPLETE_ADVERT_FINISH");
+                    LogUtils.d(TAG, "handleMessage MSG_COMPLETE_ADVERT_FINISH");
                     advertComplete();
                     mIsPauseByAdvert = false;
                     mIsPlayingCompleteAdvert = false;
@@ -75,7 +75,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
                     }
                     break;
                 case MSG_TIME_ADVERT_FINISH:
-                    LogUtil.d(TAG, "handleMessage MSG_TIME_ADVERT_FINISH");
+                    LogUtils.d(TAG, "handleMessage MSG_TIME_ADVERT_FINISH");
                     advertComplete();
                     mIsPauseByAdvert = false;
                     mIsPlayingTimeAdvert = false;
@@ -116,7 +116,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
         mPlayer = player;
         mController = controller;
         if (mIsOpen && mHeadAdvert != null && !isPlayingAdvert() && !mNotPlayWhenResumeState) {
-            LogUtil.d(TAG, "play head image advert");
+            LogUtils.d(TAG, "play head image advert");
             mIsPlayingHeadAdvert = true;
             playAdvert(mContext, mPlayer, mHeadAdvert, PineAdvertBean.TYPE_HEAD);
             mHandler.sendEmptyMessageDelayed(MSG_HEAD_ADVERT_FINISH, mHeadAdvert.getDurationTime());
@@ -169,7 +169,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
     public void onMediaPlayerPause() {
         if (mIsOpen && mPauseAdvert != null && !isPlayingAdvert() && !mIsPauseByAdvert
                 && !mNotPlayWhenResumeState) {
-            LogUtil.d(TAG, "play pause image advert");
+            LogUtils.d(TAG, "play pause image advert");
             mIsPlayingPauseAdvert = true;
             mController.setControllerEnabled(false, false, true, false, false, false, false, false);
             playAdvert(mContext, mPlayer, mPauseAdvert, PineAdvertBean.TYPE_PAUSE);
@@ -179,7 +179,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
     @Override
     public void onMediaPlayerComplete() {
         if (mCompleteAdvert != null && !isPlayingAdvert()) {
-            LogUtil.d(TAG, "play complete image advert");
+            LogUtils.d(TAG, "play complete image advert");
             mIsPlayingCompleteAdvert = true;
             mController.setControllerEnabled(false, false, true, false, false, false, false, false);
             playAdvert(mContext, mPlayer, mCompleteAdvert, PineAdvertBean.TYPE_COMPLETE);
@@ -214,7 +214,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
         }
         if (isFound) {
             if (mPreTimeAdvert != pineAdvertBean) {
-                LogUtil.d(TAG, "play time image advert");
+                LogUtils.d(TAG, "play time image advert");
                 mIsPlayingTimeAdvert = true;
                 mIsPauseByAdvert = true;
                 mController.setControllerEnabled(false);

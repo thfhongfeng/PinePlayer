@@ -3,7 +3,7 @@ package com.pine.player.service;
 import android.text.TextUtils;
 
 import com.pine.player.decrytor.IPineMediaDecryptor;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class PineMediaSocketThread implements Runnable {
-    private static final String TAG = LogUtil.makeLogTag(PineMediaSocketThread.class);
+    private static final String TAG = LogUtils.makeLogTag(PineMediaSocketThread.class);
 
     private static final int TIME_OUT = 0;
     private static final int BUFFER_SIZE = 1024 * 1024;
@@ -41,7 +41,7 @@ public class PineMediaSocketThread implements Runnable {
 
 
     public PineMediaSocketThread(int port) {
-        LogUtil.d(TAG, "construct");
+        LogUtils.d(TAG, "construct");
         try {
             mIsStop = new AtomicBoolean(false);
             mIsNeedReponse = new AtomicBoolean(false);
@@ -67,7 +67,7 @@ public class PineMediaSocketThread implements Runnable {
     }
 
     public void release() {
-        LogUtil.d(TAG, "release");
+        LogUtils.d(TAG, "release");
         mIsStop.set(true);
         mMediaSocketState = PineMediaSocketService.SERVICE_STATE_DISCONNECTED;
         if (null != mSelector) {
@@ -93,7 +93,7 @@ public class PineMediaSocketThread implements Runnable {
 
     @Override
     public void run() {
-        LogUtil.d(TAG, "run");
+        LogUtils.d(TAG, "run");
         mMediaSocketState = PineMediaSocketService.SERVICE_STATE_CONNECTED;
         while (!mIsStop.get() && mSelector != null) {
             try {
@@ -104,7 +104,7 @@ public class PineMediaSocketThread implements Runnable {
                     try {
                         handleClientRequest(key);
                     } catch (IOException e) {
-                        LogUtil.d(TAG, e.getMessage());
+                        LogUtils.d(TAG, e.getMessage());
                         if (null != key) {
                             key.cancel();
                         }
@@ -116,14 +116,14 @@ public class PineMediaSocketThread implements Runnable {
                     keys.remove();
                 }
             } catch (IOException e) {
-                LogUtil.d(TAG, e.getMessage());
+                LogUtils.d(TAG, e.getMessage());
             }
         }
         release();
     }
 
     private void handleClientRequest(SelectionKey key) throws IOException {
-        LogUtil.d(TAG, "handleClientRequest key:" + key);
+        LogUtils.d(TAG, "handleClientRequest key:" + key);
         if (key.isValid()) {
             // 处理新请求
             if (key.isAcceptable()) {

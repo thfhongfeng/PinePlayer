@@ -6,7 +6,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.pine.player.decrytor.IPineMediaDecryptor;
-import com.pine.player.util.LogUtil;
+import com.pine.player.util.LogUtils;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -24,7 +24,7 @@ public class PineMediaSocketService extends Service {
     public static final int SERVICE_STATE_DISCONNECTED = 1;
     public static final int SERVICE_STATE_CONNECTING = 2;
     public static final int SERVICE_STATE_CONNECTED = 3;
-    private static final String TAG = LogUtil.makeLogTag(PineMediaSocketService.class);
+    private static final String TAG = LogUtils.makeLogTag(PineMediaSocketService.class);
     private static int mSocketPort;
     private static PineMediaSocketThread mPineMediaServerThread;
 
@@ -61,13 +61,13 @@ public class PineMediaSocketService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        LogUtil.d(TAG, "onUnbind");
+        LogUtils.d(TAG, "onUnbind");
         return super.onUnbind(intent); // 返回false
     }
 
     @Override
     public void onCreate() {
-        LogUtil.d(TAG, "onCreate");
+        LogUtils.d(TAG, "onCreate");
         super.onCreate();
         mThreads = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
@@ -80,7 +80,7 @@ public class PineMediaSocketService extends Service {
 
     @Override
     public void onDestroy() {
-        LogUtil.d(TAG, "onDestroy");
+        LogUtils.d(TAG, "onDestroy");
         if (mPineMediaServerThread != null) {
             mPineMediaServerThread.release();
             mPineMediaServerThread = null;
