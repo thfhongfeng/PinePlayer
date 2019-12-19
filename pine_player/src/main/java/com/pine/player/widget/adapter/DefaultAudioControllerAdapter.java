@@ -221,14 +221,14 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         return new PineMediaController.ControllersActionListener() {
             @Override
             public boolean onPreBtnClick(View preBtn, PineMediaWidget.IPineMediaPlayer player) {
-                mediaSelect(mDCurrentVideoPosition - 1, true);
+                mediaSelectInController(mDCurrentVideoPosition - 1, true);
                 preBtn.setEnabled(mDMediaList != null && mDCurrentVideoPosition > 0);
                 return true;
             }
 
             @Override
             public boolean onNextBtnClick(View nextBtn, PineMediaWidget.IPineMediaPlayer player) {
-                mediaSelect(mDCurrentVideoPosition + 1, true);
+                mediaSelectInController(mDCurrentVideoPosition + 1, true);
                 nextBtn.setEnabled(mDMediaList != null && mDCurrentVideoPosition < mDMediaList.size());
                 return true;
             }
@@ -246,14 +246,21 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         };
     }
 
+    private void mediaSelectInController(int position, boolean startPlay) {
+        int oldVideoPosition = mDCurrentVideoPosition;
+        if (mediaSelect(position, startPlay) && mMediaItemChangeListener != null) {
+            mMediaItemChangeListener.onMediaChange(oldVideoPosition, position);
+        }
+    }
+
     @Override
-    public void mediaSelect(int position, boolean startPlay) {
+    public boolean mediaSelect(int position, boolean startPlay) {
         PineMediaPlayerBean pineMediaPlayerBean = null;
         if (mDMediaList != null && mDMediaList.size() > 0) {
             if (position >= 0 && position < mDMediaList.size()) {
                 pineMediaPlayerBean = mDMediaList.get(position);
             } else {
-                return;
+                return false;
             }
         } else {
             pineMediaPlayerBean = mDPlayer.getMediaPlayerBean();
@@ -264,10 +271,8 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         if (startPlay) {
             mDPlayer.start();
         }
-        if (mMediaItemChangeListener != null) {
-            mMediaItemChangeListener.onMediaChange(mDCurrentVideoPosition, position);
-        }
         mDCurrentVideoPosition = position;
+        return true;
     }
 
     private IOnMediaItemChangeListener mMediaItemChangeListener;

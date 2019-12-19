@@ -321,14 +321,21 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
         };
     }
 
+    private void mediaSelectInController(int position, boolean startPlay) {
+        int oldVideoPosition = mDCurrentVideoPosition;
+        if (mediaSelect(position, startPlay) && mMediaItemChangeListener != null) {
+            mMediaItemChangeListener.onMediaChange(oldVideoPosition, position);
+        }
+    }
+
     @Override
-    public void mediaSelect(int position, boolean startPlay) {
+    public boolean mediaSelect(int position, boolean startPlay) {
         PineMediaPlayerBean pineMediaPlayerBean = null;
         if (hasMediaList()) {
             if (position >= 0 && position < mDMediaList.size()) {
                 pineMediaPlayerBean = mDMediaList.get(position);
             } else {
-                return;
+                return false;
             }
         } else {
             pineMediaPlayerBean = mDPlayer.getMediaPlayerBean();
@@ -349,10 +356,8 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
         if (startPlay) {
             mDPlayer.start();
         }
-        if (mMediaItemChangeListener != null) {
-            mMediaItemChangeListener.onMediaChange(mDCurrentVideoPosition, position);
-        }
         mDCurrentVideoPosition = position;
+        return true;
     }
 
     private boolean hasMediaList() {
@@ -549,7 +554,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
 
                 @Override
                 public void onClick(View view) {
-                    mediaSelect(position, true);
+                    mediaSelectInController(position, true);
                     notifyDataSetChanged();
                 }
             });
