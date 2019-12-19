@@ -4,13 +4,14 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by tanghongfeng on 2018/3/7.
  */
 
-public class PineMediaUriSource {
+public class PineMediaUriSource implements Serializable {
     public static final int MEDIA_DEFINITION_SD = 1;
     public static final int MEDIA_DEFINITION_HD = 2;
     public static final int MEDIA_DEFINITION_VHD = 3;

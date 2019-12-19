@@ -1,5 +1,6 @@
 package com.pine.player.decrytor;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 /**
@@ -9,7 +10,7 @@ import java.nio.ByteBuffer;
 /**
  * 播放解密器
  */
-public interface IPineMediaDecryptor {
+public interface IPineMediaDecryptor extends Serializable {
     /**
      * @param byteBuffer 流数据ByteBuffer对象
      * @param offset     byteBuffer起始数据对应的整个播放流的偏移位置

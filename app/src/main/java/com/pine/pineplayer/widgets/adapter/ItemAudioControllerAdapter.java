@@ -1,7 +1,7 @@
 package com.pine.pineplayer.widgets.adapter;
 
-import android.animation.LayoutTransition;
 import android.app.Activity;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -19,6 +19,7 @@ import com.pine.player.widget.viewholder.PineControllerViewHolder;
 import com.pine.player.widget.viewholder.PineRightViewHolder;
 import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
+import java.io.File;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
@@ -60,16 +61,20 @@ public class ItemAudioControllerAdapter extends PineMediaController.AbstractMedi
         if (mDBackgroundViewHolder == null) {
             mDBackgroundViewHolder = new PineBackgroundViewHolder();
             if (mDBackgroundView == null) {
-                ImageView backgroundView = new ImageView(mDContext);
-                backgroundView.setBackgroundResource(android.R.color.darker_gray);
+                PineMediaPlayerBean playerBean = player.getMediaPlayerBean();
+                Uri imgUri = playerBean == null ? null : playerBean.getMediaImgUri();
+                ImageView mediaBackgroundView = new ImageView(mDContext);
+                mediaBackgroundView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                if (imgUri == null) {
+                    mediaBackgroundView.setBackgroundResource(android.R.color.darker_gray);
+                } else {
+                    mediaBackgroundView.setImageURI(Uri.fromFile(new File(imgUri.getPath())));
+                }
                 mDBackgroundView = new RelativeLayout(mDContext);
-                mDBackgroundView.setBackgroundResource(android.R.color.darker_gray);
-                mDBackgroundView.setLayoutTransition(new LayoutTransition());
-                RelativeLayout.LayoutParams backgroundParams = new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-                backgroundParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-                mDBackgroundView.addView(backgroundView, backgroundParams);
-                mDBackgroundViewHolder.setBackgroundImageView(backgroundView);
+                mDBackgroundView.addView(mediaBackgroundView,
+                        new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT));
+                mDBackgroundViewHolder.setContainer(mDBackgroundView);
             }
         }
         mDBackgroundViewHolder.setContainer(mDBackgroundView);

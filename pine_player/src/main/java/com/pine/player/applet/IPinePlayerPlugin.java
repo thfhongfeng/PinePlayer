@@ -5,13 +5,14 @@ import android.content.Context;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by tanghongfeng on 2018/1/11.
  */
 
-public interface IPinePlayerPlugin<T extends List> {
+public interface IPinePlayerPlugin<T extends List> extends Serializable {
     int TYPE_MATCH_CONTROLLER = 1;
     int TYPE_MATCH_SURFACE = 2;
 
