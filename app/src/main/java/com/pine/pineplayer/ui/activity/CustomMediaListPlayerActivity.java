@@ -17,11 +17,6 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.pine.pineplayer.PineConstants;
 import com.pine.pineplayer.R;
@@ -42,6 +37,11 @@ import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class CustomMediaListPlayerActivity extends AppCompatActivity {
     private static final String TAG = LogUtils.makeLogTag(CustomMediaListPlayerActivity.class);

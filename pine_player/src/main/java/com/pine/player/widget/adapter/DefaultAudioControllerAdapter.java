@@ -21,6 +21,8 @@ import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 import java.io.File;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by tanghongfeng on 2018/3/7.
  */
@@ -36,27 +38,25 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     private PineControllerViewHolder mDFullControllerViewHolder, mDControllerViewHolder;
     private RelativeLayout mDBackgroundView;
     private ViewGroup mDFullControllerView, mDControllerView;
-    private PineMediaWidget.IPineMediaPlayer mDPlayer;
-    private int mDCurrentVideoPosition = -1;
+    private String mDCurrentMediaCode = "";
+    private int mDCurrentMediaPos = -1;
     private boolean mDEnableSpeed, mDEnablePreNext;
     private boolean mDEnableCurTime, mDEnableProgressBar, mDEnableTotalTime;
     private boolean mDEnableVolumeText, mDEnableFullScreen;
 
-    public DefaultAudioControllerAdapter(Activity context, PineMediaWidget.IPineMediaPlayer player) {
-        this(context, player, null, true, true, true, true, true, true, true);
+    public DefaultAudioControllerAdapter(Activity context) {
+        this(context, null, true, true, true, true, true, true, true);
     }
 
-    public DefaultAudioControllerAdapter(Activity context, PineMediaWidget.IPineMediaPlayer player, List<PineMediaPlayerBean> mediaList) {
-        this(context, player, mediaList, true, true, true, true, true, true, true);
+    public DefaultAudioControllerAdapter(Activity context, List<PineMediaPlayerBean> mediaList) {
+        this(context, mediaList, true, true, true, true, true, true, true);
     }
 
-    public DefaultAudioControllerAdapter(Activity context, PineMediaWidget.IPineMediaPlayer player,
-                                         List<PineMediaPlayerBean> mediaList, boolean enablePreNext,
+    public DefaultAudioControllerAdapter(Activity context, List<PineMediaPlayerBean> mediaList, boolean enablePreNext,
                                          boolean enableSpeed, boolean enableCurTime,
                                          boolean enableProgressBar, boolean enableTotalTime,
                                          boolean enableVolumeText, boolean enableFullScreen) {
         mDContext = context;
-        mDPlayer = player;
         mDMediaList = mediaList;
         mDEnablePreNext = enablePreNext;
         mDEnableSpeed = enableSpeed;
@@ -147,8 +147,8 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         if (mDEnablePreNext) {
             viewHolder.setPrevButton(preTv);
             viewHolder.setNextButton(nextTv);
-            preTv.setEnabled(mDMediaList != null && mDCurrentVideoPosition > 0);
-            nextTv.setEnabled(mDMediaList != null && mDCurrentVideoPosition < mDMediaList.size());
+            preTv.setEnabled(mDMediaList != null && mDCurrentMediaPos > 0);
+            nextTv.setEnabled(mDMediaList != null && mDCurrentMediaPos < mDMediaList.size());
         } else {
             preTv.setVisibility(View.GONE);
             nextTv.setVisibility(View.GONE);
@@ -221,15 +221,21 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         return new PineMediaController.ControllersActionListener() {
             @Override
             public boolean onPreBtnClick(View preBtn, PineMediaWidget.IPineMediaPlayer player) {
-                mediaSelectInController(mDCurrentVideoPosition - 1, true);
-                preBtn.setEnabled(mDMediaList != null && mDCurrentVideoPosition > 0);
+                String oldMediaCode = mDCurrentMediaCode;
+                String curMediaCode = player.getMediaPlayerBean().getMediaCode();
+                if (onPreMediaSelect(curMediaCode, true) && mMediaItemChangeListener != null) {
+                    mMediaItemChangeListener.onMediaChange(oldMediaCode, mDCurrentMediaCode);
+                }
                 return true;
             }
 
             @Override
             public boolean onNextBtnClick(View nextBtn, PineMediaWidget.IPineMediaPlayer player) {
-                mediaSelectInController(mDCurrentVideoPosition + 1, true);
-                nextBtn.setEnabled(mDMediaList != null && mDCurrentVideoPosition < mDMediaList.size());
+                String oldMediaCode = mDCurrentMediaCode;
+                String curMediaCode = player.getMediaPlayerBean().getMediaCode();
+                if (onNextMediaSelect(curMediaCode, true) && mMediaItemChangeListener != null) {
+                    mMediaItemChangeListener.onMediaChange(oldMediaCode, mDCurrentMediaCode);
+                }
                 return true;
             }
 
@@ -246,33 +252,76 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         };
     }
 
-    private void mediaSelectInController(int position, boolean startPlay) {
-        int oldVideoPosition = mDCurrentVideoPosition;
-        if (mediaSelect(position, startPlay) && mMediaItemChangeListener != null) {
-            mMediaItemChangeListener.onMediaChange(oldVideoPosition, position);
+    private int findMediaPosition(String mediaCode) {
+        if (mDMediaList != null && mDMediaList.size() > 0) {
+            for (int i = 0; i < mDMediaList.size(); i++) {
+                if (mediaCode.equals(mDMediaList.get(i).getMediaCode())) {
+                    return i;
+                }
+            }
         }
+        return -1;
     }
 
     @Override
-    public boolean mediaSelect(int position, boolean startPlay) {
-        PineMediaPlayerBean pineMediaPlayerBean = null;
-        if (mDMediaList != null && mDMediaList.size() > 0) {
-            if (position >= 0 && position < mDMediaList.size()) {
-                pineMediaPlayerBean = mDMediaList.get(position);
-            } else {
-                return false;
+    public boolean onPreMediaSelect(@NonNull String curMediaCode, boolean startPlay) {
+        int position = findMediaPosition(curMediaCode);
+        if (position == -1) {
+            return false;
+        }
+        position--;
+        return playMedia(position, startPlay);
+    }
+
+    @Override
+    public boolean onNextMediaSelect(@NonNull String curMediaCode, boolean startPlay) {
+        int position = findMediaPosition(curMediaCode);
+        if (position == -1) {
+            return false;
+        }
+        position++;
+        return playMedia(position, startPlay);
+    }
+
+    @Override
+    public boolean onMediaSelect(String mediaCode, boolean startPlay) {
+        int position = findMediaPosition(mediaCode);
+        if (position == -1) {
+            return false;
+        }
+        return playMedia(position, startPlay);
+    }
+
+    private boolean playMedia(int position, boolean startPlay) {
+        if (mDFullControllerViewHolder != null) {
+            if (mDFullControllerViewHolder.getPrevButton() != null) {
+                mDFullControllerViewHolder.getPrevButton().setEnabled(position > 0);
             }
-        } else {
-            pineMediaPlayerBean = mDPlayer.getMediaPlayerBean();
+            if (mDFullControllerViewHolder.getNextButton() != null) {
+                mDFullControllerViewHolder.getNextButton().setEnabled(position < mDMediaList.size() - 1);
+            }
         }
-        if (mDCurrentVideoPosition != position) {
-            mDPlayer.setPlayingMedia(pineMediaPlayerBean);
+        if (mDControllerViewHolder != null) {
+            if (mDControllerViewHolder.getPrevButton() != null) {
+                mDControllerViewHolder.getPrevButton().setEnabled(position > 0);
+            }
+            if (mDControllerViewHolder.getNextButton() != null) {
+                mDControllerViewHolder.getNextButton().setEnabled(position < mDMediaList.size() - 1);
+            }
         }
-        if (startPlay) {
-            mDPlayer.start();
+        if (position >= 0 && position < mDMediaList.size()) {
+            PineMediaPlayerBean mediaBean = mDMediaList.get(position);
+            if (mDCurrentMediaCode != mediaBean.getMediaCode()) {
+                mPlayer.setPlayingMedia(mediaBean);
+            }
+            if (startPlay) {
+                mPlayer.start();
+            }
+            mDCurrentMediaPos = position;
+            mDCurrentMediaCode = mediaBean.getMediaCode();
+            return true;
         }
-        mDCurrentVideoPosition = position;
-        return true;
+        return false;
     }
 
     private IOnMediaItemChangeListener mMediaItemChangeListener;
@@ -286,6 +335,6 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     }
 
     public interface IOnMediaItemChangeListener {
-        void onMediaChange(int oldMediaBeanPosition, int newMediaBeanPosition);
+        void onMediaChange(String oldMediaCode, String newMediaCode);
     }
 }

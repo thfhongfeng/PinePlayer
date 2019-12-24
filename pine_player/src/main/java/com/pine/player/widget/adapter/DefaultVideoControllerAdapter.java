@@ -17,10 +17,6 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
@@ -35,6 +31,10 @@ import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Created by tanghongfeng on 2018/3/7.
@@ -60,29 +60,27 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     private VideoListAdapter mDVideoListInPlayerAdapter;
     private List<PineMediaPlayerBean> mDMediaList;
     private String[] mDDefinitionNameArr;
-    private PineMediaWidget.IPineMediaPlayer mDPlayer;
-    private int mDCurrentVideoPosition = -1;
+    private String mDCurrentMediaCode = "";
+    private int mDCurrentMediaPos = -1;
     private TextView mDDefinitionBtn;
     private boolean mDEnableSpeed, mDEnableMediaList, mDEnableDefinition;
     private boolean mDEnableCurTime, mDEnableProgressBar, mDEnableTotalTime;
     private boolean mDEnableVolumeText, mDEnableFullScreen;
 
-    public DefaultVideoControllerAdapter(Context context, PineMediaWidget.IPineMediaPlayer player) {
-        this(context, player, null, true, true, true, true, true, true, true, true);
+    public DefaultVideoControllerAdapter(Context context) {
+        this(context, null, true, true, true, true, true, true, true, true);
     }
 
-    public DefaultVideoControllerAdapter(Context context, PineMediaWidget.IPineMediaPlayer player, List<PineMediaPlayerBean> mediaList) {
-        this(context, player, mediaList, true, true, true, true, true, true, true, true);
+    public DefaultVideoControllerAdapter(Context context, List<PineMediaPlayerBean> mediaList) {
+        this(context, mediaList, true, true, true, true, true, true, true, true);
     }
 
-    public DefaultVideoControllerAdapter(Context context, PineMediaWidget.IPineMediaPlayer player,
-                                         List<PineMediaPlayerBean> mediaList,
+    public DefaultVideoControllerAdapter(Context context, List<PineMediaPlayerBean> mediaList,
                                          boolean enableSpeed, boolean enableMediaList,
                                          boolean enableDefinition, boolean enableCurTime,
                                          boolean enableProgressBar, boolean enableTotalTime,
                                          boolean enableVolumeText, boolean enableFullScreen) {
         mDContext = context;
-        mDPlayer = player;
         mDDefinitionNameArr = mDContext.getResources().getStringArray(R.array.pine_media_definition_text_arr);
         mDMediaList = mediaList;
         mDEnableSpeed = enableSpeed;
@@ -321,43 +319,66 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
         };
     }
 
-    private void mediaSelectInController(int position, boolean startPlay) {
-        int oldVideoPosition = mDCurrentVideoPosition;
-        if (mediaSelect(position, startPlay) && mMediaItemChangeListener != null) {
-            mMediaItemChangeListener.onMediaChange(oldVideoPosition, position);
+    private int findMediaPosition(String mediaCode) {
+        if (mDMediaList != null && mDMediaList.size() > 0) {
+            for (int i = 0; i < mDMediaList.size(); i++) {
+                if (mediaCode.equals(mDMediaList.get(i).getMediaCode())) {
+                    return i;
+                }
+            }
         }
+        return -1;
     }
 
     @Override
-    public boolean mediaSelect(int position, boolean startPlay) {
-        PineMediaPlayerBean pineMediaPlayerBean = null;
-        if (hasMediaList()) {
-            if (position >= 0 && position < mDMediaList.size()) {
-                pineMediaPlayerBean = mDMediaList.get(position);
-            } else {
-                return false;
-            }
-        } else {
-            pineMediaPlayerBean = mDPlayer.getMediaPlayerBean();
+    public boolean onMediaSelect(@NonNull String mediaCode, boolean startPlay) {
+        int position = findMediaPosition(mediaCode);
+        if (position == -1) {
+            return false;
         }
-        if (mDDefinitionBtn != null) {
-            if (hasDefinitionList(pineMediaPlayerBean)) {
-                mDDefinitionListInPlayerAdapter.setData(pineMediaPlayerBean);
-                mDDefinitionListInPlayerAdapter.notifyDataSetChanged();
-                mDDefinitionBtn.setVisibility(View.VISIBLE);
-                mDDefinitionBtn.setText(getDefinitionName(pineMediaPlayerBean.getCurrentDefinition()));
-            } else {
-                mDDefinitionBtn.setVisibility(View.GONE);
+        return playMedia(position, startPlay);
+    }
+
+    private boolean playMedia(int position, boolean startPlay) {
+        if (mDFullControllerViewHolder != null) {
+            if (mDFullControllerViewHolder.getPrevButton() != null) {
+                mDFullControllerViewHolder.getPrevButton().setEnabled(position > 0);
+            }
+            if (mDFullControllerViewHolder.getNextButton() != null) {
+                mDFullControllerViewHolder.getNextButton().setEnabled(position < mDMediaList.size() - 1);
             }
         }
-        if (mDCurrentVideoPosition != position) {
-            mDPlayer.setPlayingMedia(pineMediaPlayerBean);
+        if (mDControllerViewHolder != null) {
+            if (mDControllerViewHolder.getPrevButton() != null) {
+                mDControllerViewHolder.getPrevButton().setEnabled(position > 0);
+            }
+            if (mDControllerViewHolder.getNextButton() != null) {
+                mDControllerViewHolder.getNextButton().setEnabled(position < mDMediaList.size() - 1);
+            }
         }
-        if (startPlay) {
-            mDPlayer.start();
+        if (position >= 0 && position < mDMediaList.size()) {
+            PineMediaPlayerBean mediaBean = mDMediaList.get(position);
+            if (mDDefinitionBtn != null) {
+                if (hasDefinitionList(mediaBean)) {
+                    mDDefinitionListInPlayerAdapter.setData(mediaBean);
+                    mDDefinitionListInPlayerAdapter.notifyDataSetChanged();
+                    mDDefinitionBtn.setVisibility(View.VISIBLE);
+                    mDDefinitionBtn.setText(getDefinitionName(mediaBean.getCurrentDefinition()));
+                } else {
+                    mDDefinitionBtn.setVisibility(View.GONE);
+                }
+            }
+            if (mDCurrentMediaCode != mediaBean.getMediaCode()) {
+                mPlayer.setPlayingMedia(mediaBean);
+            }
+            if (startPlay) {
+                mPlayer.start();
+            }
+            mDCurrentMediaPos = position;
+            mDCurrentMediaCode = mediaBean.getMediaCode();
+            return true;
         }
-        mDCurrentVideoPosition = position;
-        return true;
+        return false;
     }
 
     private boolean hasMediaList() {
@@ -444,7 +465,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
             return;
         }
         mDDefinitionListInPlayerAdapter.notifyDataSetChanged();
-        mDPlayer.resetPlayingMediaAndResume(pineMediaPlayerBean, null);
+        mPlayer.resetPlayingMediaAndResume(pineMediaPlayerBean, null);
         if (mDDefinitionBtn != null) {
             mDDefinitionBtn.setText(getDefinitionName(pineMediaPlayerBean.getCurrentDefinition()));
         }
@@ -491,7 +512,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
                 public void onClick(View view) {
                     int oldPosition = pineMediaPlayerBean.getCurrentDefinitionPosition();
                     pineMediaPlayerBean.setCurrentDefinitionByPosition(position);
-                    mDPlayer.savePlayMediaState();
+                    mPlayer.savePlayMediaState();
                     videoDefinitionSelected(pineMediaPlayerBean, oldPosition, position);
                 }
             });
@@ -541,11 +562,11 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
             final VideoViewHolder myHolder = (VideoViewHolder) holder;
-            PineMediaPlayerBean itemData = mData.get(position);
+            final PineMediaPlayerBean itemData = mData.get(position);
             if (myHolder.mItemTv != null) {
                 myHolder.mItemTv.setText(itemData.getMediaName());
             }
-            boolean isSelected = position == mDCurrentVideoPosition;
+            boolean isSelected = itemData.getMediaCode().equals(mDCurrentMediaCode);
             myHolder.itemView.setSelected(isSelected);
             myHolder.mItemTv.setSelected(isSelected);
             myHolder.mTextPaint.setFakeBoldText(isSelected);
@@ -554,7 +575,10 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
 
                 @Override
                 public void onClick(View view) {
-                    mediaSelectInController(position, true);
+                    String oldMediaCode = mDCurrentMediaCode;
+                    if (onMediaSelect(itemData.getMediaCode(), true) && mMediaItemChangeListener != null) {
+                        mMediaItemChangeListener.onMediaChange(oldMediaCode, mDCurrentMediaCode);
+                    }
                     notifyDataSetChanged();
                 }
             });
@@ -602,7 +626,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     }
 
     public interface IOnMediaItemChangeListener {
-        void onMediaChange(int oldMediaBeanPosition, int newMediaBeanPosition);
+        void onMediaChange(String oldMediaCode, String newMediaCode);
     }
 
     public interface IOnDefinitionItemChangeListener {
