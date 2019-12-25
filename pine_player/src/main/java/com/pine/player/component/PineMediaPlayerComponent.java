@@ -253,7 +253,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     if (canUpdateControllerPlayState()) {
                         mMediaPlayerView.getMediaController().onMediaPlayerError(framework_err, impl_err);
                     }
-                    release(true);
+                    release(true, false);
                     /* If an error handler has been supplied, use it and finish. */
                     if (mMediaPlayerListenerSet.size() > 0) {
                         synchronized (LISTENER_SET_LOCK) {
@@ -361,18 +361,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private void initMediaView() {
         mMediaWidth = 0;
         mMediaHeight = 0;
-        int fromState = mCurrentState;
         mCurrentState = STATE_IDLE;
         mTargetState = STATE_IDLE;
-        if (mMediaPlayerListenerSet.size() > 0) {
-            synchronized (LISTENER_SET_LOCK) {
-                for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
-                    if (listener != null) {
-                        listener.onStateChange(mMediaBean, fromState, STATE_IDLE);
-                    }
-                }
-            }
-        }
     }
 
     // 这个参数用来在player状态发生改变时暂时忽略其所引起的controller状态的变化，直到重新播放media bean。
@@ -407,7 +397,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         LogUtils.d(TAG, "Open Media mUri:" + mediaUri + ", isResumeState:" + isResumeState);
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
-        release(false);
+        release(false, true);
 
         AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -675,7 +665,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
 
     @Override
     public void suspend() {
-        release(false);
+        release(false, false);
     }
 
     @Override
@@ -698,7 +688,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
 
     @Override
     public void release() {
-        release(true);
+        release(true, false);
     }
 
 
@@ -1056,7 +1046,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     /*
      * release the media player in any state
      */
-    public void release(boolean clearTargetState) {
+    public void release(boolean clearTargetState, boolean forOldMedia) {
         LogUtils.d(TAG, "release clearTargetState:" + clearTargetState);
         mHandler.removeMessages(MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT);
         if (mMediaPlayer != null) {
@@ -1073,7 +1063,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             if (canUpdateControllerPlayState()) {
                 mMediaPlayerView.getMediaController().onMediaPlayerRelease(clearTargetState);
             }
-            if (mMediaPlayerListenerSet.size() > 0) {
+            if (mMediaPlayerListenerSet.size() > 0 && !forOldMedia) {
                 synchronized (LISTENER_SET_LOCK) {
                     for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
                         if (listener != null) {
