@@ -32,6 +32,8 @@ public class PineMediaPlayerBean implements Serializable {
     @NonNull
     private String mediaName;
     @NonNull
+    private String mediaDesc;
+
     private ArrayList<PineMediaUriSource> mediaUriSourceList;
     private int mediaType = MEDIA_TYPE_VIDEO;
     private Uri mediaImgUri;
@@ -166,6 +168,15 @@ public class PineMediaPlayerBean implements Serializable {
 
     public void setMediaName(String mediaName) {
         this.mediaName = mediaName;
+    }
+
+    @NonNull
+    public String getMediaDesc() {
+        return mediaDesc;
+    }
+
+    public void setMediaDesc(@NonNull String mediaDesc) {
+        this.mediaDesc = mediaDesc;
     }
 
     /**
