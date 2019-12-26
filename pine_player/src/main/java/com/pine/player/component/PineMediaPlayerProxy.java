@@ -217,7 +217,7 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
     }
 
     @Override
-    public int getMediaPlayerState() {
+    public PinePlayState getMediaPlayerState() {
         return mMediaPlayerComponent.getMediaPlayerState();
     }
 

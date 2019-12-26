@@ -15,11 +15,12 @@ import android.widget.Toast;
 
 import com.pine.player.PineConstants;
 import com.pine.player.R;
-import com.pine.player.component.PineMediaPlayerComponent;
 import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.service.PineMediaPlayerService;
 import com.pine.player.util.LogUtils;
+
+import static com.pine.player.component.PinePlayState.STATE_PLAYING;
 
 /**
  * Created by tanghongfeng on 2017/9/15.
@@ -214,21 +215,21 @@ public class PineMediaPlayerView extends RelativeLayout {
             ViewGroup.LayoutParams layoutParams;
             if (isFullScreenMode()) {
                 if (getParent() instanceof RelativeLayout) {
-                    layoutParams = new RelativeLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                    layoutParams = new LayoutParams(
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 } else if (getParent() instanceof LinearLayout) {
                     layoutParams = new LinearLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 } else if (getParent() instanceof FrameLayout) {
                     layoutParams = new FrameLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 } else {
                     layoutParams = new ViewGroup.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 }
             } else {
                 layoutParams = getHalfAnchorLayout();
@@ -371,8 +372,7 @@ public class PineMediaPlayerView extends RelativeLayout {
                 mMediaController.updateVolumesText();
                 return super.dispatchKeyEvent(event);
             } else if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
-                if (uniqueDown && mMediaPlayerProxy.getMediaPlayerState() ==
-                        PineMediaPlayerComponent.STATE_PLAYING
+                if (uniqueDown && mMediaPlayerProxy.getMediaPlayerState() == STATE_PLAYING
                         && System.currentTimeMillis() - mExitTime > BACK_PRESSED_EXIT_TIME) {
                     if (isFullScreenMode()) {
                         toggleFullScreenMode(mMediaController.isLocked());

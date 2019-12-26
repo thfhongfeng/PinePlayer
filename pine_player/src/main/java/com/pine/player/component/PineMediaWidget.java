@@ -393,7 +393,7 @@ public class PineMediaWidget {
          *
          * @return
          */
-        int getMediaPlayerState();
+        PinePlayState getMediaPlayerState();
 
         /**
          * 移除播放状态监听器
@@ -645,7 +645,7 @@ public class PineMediaWidget {
          * @return
          */
 
-        int getMediaPlayerState();
+        PinePlayState getMediaPlayerState();
 
         /**
          * 设置在player状态发生改变时是否暂时忽略其所引起的controller状态的变化，在重置或者更换新的media bean后准备播放，这个值会被重置为false
@@ -752,7 +752,7 @@ public class PineMediaWidget {
          * @param toState    （STATE_IDLE, STATE_PREPARING, STATE_PREPARED, STATE_PLAYING,
          *                   STATE_PAUSED, STATE_PLAYBACK_COMPLETED）
          */
-        void onStateChange(PineMediaPlayerBean playerBean, int fromState, int toState);
+        void onStateChange(PineMediaPlayerBean playerBean, PinePlayState fromState, PinePlayState toState);
 
         /**
          * 播放器播放信息更新
@@ -789,7 +789,7 @@ public class PineMediaWidget {
     public static class PineMediaPlayerListener implements IPineMediaPlayerListener {
 
         @Override
-        public void onStateChange(PineMediaPlayerBean playerBean, int fromState, int toState) {
+        public void onStateChange(PineMediaPlayerBean playerBean, PinePlayState fromState, PinePlayState toState) {
 
         }
 

@@ -38,31 +38,30 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import static com.pine.player.component.PinePlayState.SERVICE_STATE_CONNECTED;
+import static com.pine.player.component.PinePlayState.SERVICE_STATE_CONNECTING;
+import static com.pine.player.component.PinePlayState.SERVICE_STATE_DISCONNECTED;
+import static com.pine.player.component.PinePlayState.STATE_ERROR;
+import static com.pine.player.component.PinePlayState.STATE_IDLE;
+import static com.pine.player.component.PinePlayState.STATE_PAUSED;
+import static com.pine.player.component.PinePlayState.STATE_PLAYBACK_COMPLETED;
+import static com.pine.player.component.PinePlayState.STATE_PLAYING;
+import static com.pine.player.component.PinePlayState.STATE_PREPARED;
+import static com.pine.player.component.PinePlayState.STATE_PREPARING;
+
 /**
  * Created by tanghongfeng on 2017/8/14.
  */
 
 public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlayerComponent {
-    // 播放器状态
-    public static final int STATE_ERROR = -1;
-    public static final int STATE_IDLE = 0;
-    public static final int STATE_PREPARING = 1;
-    public static final int STATE_PREPARED = 2;
-    public static final int STATE_PLAYING = 3;
-    public static final int STATE_PAUSED = 4;
-    public static final int STATE_PLAYBACK_COMPLETED = 5;
-    // 本地播放流服务状态，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况
-    public static final int SERVICE_STATE_DISCONNECTED = 1;
-    public static final int SERVICE_STATE_CONNECTING = 2;
-    public static final int SERVICE_STATE_CONNECTED = 3;
     private final static String TAG = LogUtils.makeLogTag(PineMediaPlayerComponent.class);
     // 是否使用5.0之后的新API，该API支持本地流播放
     private static final boolean USE_NEW_API = true;
     private final Object LISTENER_SET_LOCK = new Object();
     private final int MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT = 1;
     private final int MAX_RETRY_FOR_BUFFERING_START_TIMEOUT = 3;
-    private int mCurrentState = STATE_IDLE;
-    private int mTargetState = STATE_IDLE;
+    private PinePlayState mCurrentState = STATE_IDLE;
+    private PinePlayState mTargetState = STATE_IDLE;
     // 是否独立模式（独立模式下播放器不跟随Context的生命周期变化）
     private boolean mIsAutocephalyPlayMode;
     /**
@@ -80,7 +79,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private boolean mIsLocalStreamMedia;
     // 本地播放流服务，用于兼容5.0以下版本的mediaPlayer不支持本地流播放的情况（模拟网络流进行流播放）
     private IPineMediaSocketService mLocalService;
-    private int mLocalServiceState = SERVICE_STATE_DISCONNECTED;
+    private PinePlayState mLocalServiceState = SERVICE_STATE_DISCONNECTED;
     private boolean mIsDelayOpenMedia;
     private boolean mIsDelayStart;
     private PineSurfaceView mSurfaceView = null;
@@ -111,7 +110,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
         public void onPrepared(MediaPlayer mp) {
             setIgnoreTemporaryControllerState(false);
             LogUtils.d(TAG, "onPrepared Media mUri: " + mMediaBean.getMediaUri());
-            int fromState = mCurrentState;
+            PinePlayState fromState = mCurrentState;
             mCurrentState = STATE_PREPARED;
 
             // Get the capabilities of the player for this stream
@@ -198,7 +197,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                             }
                         }
                     } else {
-                        int fromState = mCurrentState;
+                        PinePlayState fromState = mCurrentState;
                         mCurrentState = STATE_PLAYBACK_COMPLETED;
                         mTargetState = STATE_PLAYBACK_COMPLETED;
                         if (canUpdateControllerPlayState()) {
@@ -444,7 +443,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
 
             // we don't set the target state here either, but preserve the
             // target state that was there before.
-            int fromState = mCurrentState;
+            PinePlayState fromState = mCurrentState;
             mCurrentState = STATE_PREPARING;
             attachMediaController(true, isResumeState);
 
@@ -620,7 +619,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 if (canUpdateControllerPlayState()) {
                     mMediaPlayerView.getMediaController().onMediaPlayerStart();
                 }
-                int fromState = mCurrentState;
+                PinePlayState fromState = mCurrentState;
                 mCurrentState = STATE_PLAYING;
                 if (mMediaPlayerListenerSet.size() > 0) {
                     synchronized (LISTENER_SET_LOCK) {
@@ -647,7 +646,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                 if (canUpdateControllerPlayState()) {
                     mMediaPlayerView.getMediaController().onMediaPlayerPause();
                 }
-                int fromState = mCurrentState;
+                PinePlayState fromState = mCurrentState;
                 mCurrentState = STATE_PAUSED;
                 if (mMediaPlayerListenerSet.size() > 0) {
                     synchronized (LISTENER_SET_LOCK) {
@@ -885,7 +884,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public int getMediaPlayerState() {
+    public PinePlayState getMediaPlayerState() {
         return mCurrentState;
     }
 
@@ -1026,7 +1025,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
-            int fromState = mCurrentState;
+            PinePlayState fromState = mCurrentState;
             mCurrentState = STATE_IDLE;
             mTargetState = STATE_IDLE;
             AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
@@ -1053,7 +1052,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
-            int fromState = mCurrentState;
+            PinePlayState fromState = mCurrentState;
             mCurrentState = STATE_IDLE;
             if (clearTargetState) {
                 mTargetState = STATE_IDLE;

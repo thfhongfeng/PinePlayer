@@ -21,10 +21,11 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
-import com.pine.player.component.PineMediaPlayerComponent;
 import com.pine.player.component.PineMediaPlayerProxy;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtils;
@@ -44,7 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import androidx.annotation.NonNull;
+import static com.pine.player.component.PinePlayState.STATE_PLAYBACK_COMPLETED;
 
 /**
  * Created by tanghongfeng on 2017/8/16.
@@ -1193,7 +1194,7 @@ public class PineMediaController extends RelativeLayout
         }
         float position = (float) mPlayer.getCurrentPosition();
         float duration = (float) mPlayer.getDuration();
-        if (mPlayer.getMediaPlayerState() == PineMediaPlayerComponent.STATE_PLAYBACK_COMPLETED
+        if (mPlayer.getMediaPlayerState() == STATE_PLAYBACK_COMPLETED
                 || position >= duration) {
             return;
         }
@@ -1333,7 +1334,7 @@ public class PineMediaController extends RelativeLayout
         if (duration < 0) {
             return position;
         }
-        if (mPlayer.getMediaPlayerState() == PineMediaPlayerComponent.STATE_PLAYBACK_COMPLETED
+        if (mPlayer.getMediaPlayerState() == STATE_PLAYBACK_COMPLETED
                 || position > duration) {
             position = duration;
         }
