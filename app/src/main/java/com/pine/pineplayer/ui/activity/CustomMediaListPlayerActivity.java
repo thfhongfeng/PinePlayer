@@ -21,7 +21,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.pine.pineplayer.PineConstants;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.ui.view.AdvanceDecoration;
-import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.pineplayer.util.MockDataUtils;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
@@ -84,7 +84,7 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     for (int i = 0; i < 600; i++) {
-                                        barragePlugin.addData(MockDataUtil.getBarrageList(i * 1000 + 30000));
+                                        barragePlugin.addData(MockDataUtils.getBarrageList(i * 1000 + 30000));
                                     }
                                 }
                             }).start();
@@ -96,7 +96,7 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
                         IPinePlayerPlugin barragePlugin =
                                 pineMediaPlayerBean.getPlayerPluginMap().get(PineConstants.PLUGIN_BARRAGE);
                         if (barragePlugin != null) {
-                            barragePlugin.addData(MockDataUtil.getBarrageList(mPlayer.getCurrentPosition()));
+                            barragePlugin.addData(MockDataUtils.getBarrageList(mPlayer.getCurrentPosition()));
                         }
                         if (pineMediaPlayerBean != null && mPlayer.isPlaying()) {
                             if (mPlayer.getCurrentPosition() < mPlayer.getDuration() - 35000) {
@@ -124,7 +124,7 @@ public class CustomMediaListPlayerActivity extends AppCompatActivity {
             return;
         }
         mDefinitionNameArr = getResources().getStringArray(R.array.media_definition_text_arr);
-        mMediaList = MockDataUtil.getMediaList(this, mBasePath);
+        mMediaList = MockDataUtils.getMediaList(this, mBasePath);
         initRecycleView();
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
         mController = new PineMediaController(this);

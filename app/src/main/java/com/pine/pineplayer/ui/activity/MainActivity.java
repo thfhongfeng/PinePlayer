@@ -11,7 +11,7 @@ import com.pine.pineplayer.PinePlayerApp;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.ui.activity.autocephaly.AutocephalyMainActivity;
 import com.pine.pineplayer.ui.activity.mediaservice.MediaServiceMainActivity;
-import com.pine.pineplayer.util.FileUtil;
+import com.pine.pineplayer.util.FileUtils;
 import com.pine.player.util.LogUtils;
 
 import java.io.File;
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
                 File file = new File(mBasePath + File.separator + "resource");
                 if (!file.exists() || mNeedCopyAssets) {
                     findViewById(R.id.label_tv).setVisibility(View.VISIBLE);
-                    FileUtil.unZipAssets(PinePlayerApp.getAppContext(), "resource.zip",
+                    FileUtils.unZipAssets(PinePlayerApp.getAppContext(), "resource.zip",
                             mBasePath, true, "GBK");
                 }
                 runOnUiThread(new Runnable() {

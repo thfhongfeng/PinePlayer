@@ -7,7 +7,7 @@ import android.view.WindowManager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.pine.pineplayer.R;
-import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.pineplayer.util.MockDataUtils;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtils;
@@ -40,7 +40,7 @@ public class DefaultPlayerActivity extends AppCompatActivity {
         mPlayer = mVideoView.getMediaPlayer();
         mPlayer.setAutocephalyPlayMode(false);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "VideoDefinitionSelect",
-                MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);
+                MockDataUtils.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, null, null);
         mPlayer.setPlayingMedia(pineMediaBean);
         mPlayer.start();
     }

@@ -23,7 +23,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.pine.pineplayer.R;
 import com.pine.pineplayer.applet.PlayerSpeedPlugin;
 import com.pine.pineplayer.ui.view.AdvanceDecoration;
-import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.pineplayer.util.MockDataUtils;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
@@ -283,7 +283,7 @@ public class CustomPlayerActivity extends AppCompatActivity {
         HashMap<Integer, IPinePlayerPlugin> playerPlugins = new HashMap<Integer, IPinePlayerPlugin>();
         playerPlugins.put(1, mSpeedPlugin);
         PineMediaPlayerBean pineMediaBean = new PineMediaPlayerBean(String.valueOf(0), "VideoDefinitionSelect",
-                MockDataUtil.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, playerPlugins, null);
+                MockDataUtils.getMediaUriSourceList(mBasePath), PineMediaPlayerBean.MEDIA_TYPE_VIDEO, null, playerPlugins, null);
         mDefinitionListInPlayerAdapter.setData(pineMediaBean);
         mDefinitionListInPlayerAdapter.notifyDataSetChanged();
         mPlayer.setPlayingMedia(pineMediaBean);

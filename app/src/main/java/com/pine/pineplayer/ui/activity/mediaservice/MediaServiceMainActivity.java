@@ -11,7 +11,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.pine.pineplayer.R;
-import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.pineplayer.util.MockDataUtils;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.service.IPineMediaPlayerService;
 import com.pine.player.service.PineMediaPlayerService;
@@ -35,7 +35,7 @@ public class MediaServiceMainActivity extends AppCompatActivity {
             findViewById(R.id.release_service_player_tv).setVisibility(View.VISIBLE);
             findViewById(R.id.service_player_tv).setVisibility(View.VISIBLE);
 
-            mMediaServicePlayer.setPlayingMedia(MockDataUtil
+            mMediaServicePlayer.setPlayingMedia(MockDataUtils
                     .getMediaList(MediaServiceMainActivity.this, mBasePath).get(15), true);
             mMediaServicePlayer.start();
         }

@@ -1,6 +1,6 @@
 package com.pine.pineplayer.decrytor;
 
-import com.pine.pineplayer.util.IOUtil;
+import com.pine.pineplayer.util.IOUtils;
 import com.pine.player.decrytor.IPineMediaDecryptor;
 
 import java.nio.ByteBuffer;
@@ -12,19 +12,19 @@ import java.nio.ByteBuffer;
 public class PineMediaDecryptor implements IPineMediaDecryptor {
     @Override
     public void decrypt(ByteBuffer byteBuffer, long offset, long size) {
-        if (offset < IOUtil.getReverseLength()) {
-            long count = IOUtil.getReverseLength() - offset;
+        if (offset < IOUtils.getReverseLength()) {
+            long count = IOUtils.getReverseLength() - offset;
             count = count < size ? count : size;
-            IOUtil.decrypt(byteBuffer, offset, count);
+            IOUtils.decrypt(byteBuffer, offset, count);
         }
     }
 
     @Override
     public void decrypt(byte[] buffer, long offset, long size) {
-        if (offset < IOUtil.getReverseLength()) {
-            long count = IOUtil.getReverseLength() - offset;
+        if (offset < IOUtils.getReverseLength()) {
+            long count = IOUtils.getReverseLength() - offset;
             count = count < size ? count : size;
-            IOUtil.decrypt(buffer, offset, count);
+            IOUtils.decrypt(buffer, offset, count);
         }
     }
 }

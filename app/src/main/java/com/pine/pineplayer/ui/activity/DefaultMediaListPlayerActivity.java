@@ -5,7 +5,7 @@ import android.text.TextUtils;
 import android.view.WindowManager;
 
 import com.pine.pineplayer.R;
-import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.pineplayer.util.MockDataUtils;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtils;
@@ -40,7 +40,7 @@ public class DefaultMediaListPlayerActivity extends AppCompatActivity {
             finish();
             return;
         }
-        mMediaList = MockDataUtil.getMediaList(this, mBasePath);
+        mMediaList = MockDataUtils.getMediaList(this, mBasePath);
         mVideoView = (PineMediaPlayerView) findViewById(R.id.video_view);
 
         mController = new PineMediaController(this);

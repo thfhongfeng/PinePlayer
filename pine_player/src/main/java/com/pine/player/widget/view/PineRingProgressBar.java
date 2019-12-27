@@ -12,6 +12,7 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.Gravity;
 
 import androidx.annotation.Nullable;
 
@@ -26,20 +27,28 @@ public class PineRingProgressBar extends PineProgressBar {
     private int mProgress = 10;
     private int mSecondaryProgress = 0;
     private OnProgressBarChangeListener mProgressChangeListener;
-    private Drawable mBgDrawable;
     private Paint mBgPaint;
     private BitmapShader mBitmapShader;
     private Paint mRingBgPaint;
     private Paint mRingPaint;
     private Paint mSecondaryRingPaint;
-    private int mRadius;
-    private int mStrokeWidth;
-    private int mStartAngle = -90;
     private int mCircle;
+    // 半径
+    private int mRadius;
+    // 圆环宽度
+    private int mStrokeWidth;
+    // 其实角度，-90为北
+    private int mStartAngle = -90;
     private RectF mArcRectF;
+    // 圆环进度条背景色
     private int mRingBgColor;
+    // 圆环第一进度条颜色
     private int mRingColor;
+    // 圆环第二进度条颜色
     private int mSecondaryRingColor;
+    // 圆环中心背景图
+    private Drawable mBgDrawable;
+    private int mGravity;
 
     public PineRingProgressBar(Context context) {
         super(context);
@@ -48,6 +57,7 @@ public class PineRingProgressBar extends PineProgressBar {
     public PineRingProgressBar(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.PineProgressBar);
+        mGravity = typedArray.getInt(R.styleable.PineProgressBar_android_gravity, Gravity.CENTER);
         mRadius = typedArray.getDimensionPixelOffset(R.styleable.PineProgressBar_radius, -1);
         mStrokeWidth = typedArray.getDimensionPixelOffset(R.styleable.PineProgressBar_strokeWidth, 4);
         mRingBgColor = typedArray.getColor(R.styleable.PineProgressBar_backgroundColor, 0xFFFFFFFF);
@@ -127,21 +137,46 @@ public class PineRingProgressBar extends PineProgressBar {
         //2、改变了半径，则需要重新设置字体大小；
         //3、改变了半径，则需要重新设置外圆环的宽度
         //4、画背景圆的外接矩形，用来画圆环；
-        mCircle = getMeasuredWidth() / 2;
+        int length = getMeasuredWidth();
+        mCircle = length / 2;
         int strokeWidth = (int) mRingPaint.getStrokeWidth();
+        int halfStroke = strokeWidth / 2;
         if (mRadius > mCircle) {
             strokeWidth = (int) 0.1 * mRadius;
             strokeWidth = strokeWidth < 1 ? 1 : strokeWidth;
-            mRadius = mCircle - strokeWidth;
+            mRadius = mCircle - halfStroke;
             mRingBgPaint.setStrokeWidth(strokeWidth);
             mRingPaint.setStrokeWidth(strokeWidth);
             mSecondaryRingPaint.setStrokeWidth(strokeWidth);
         } else if (mRadius < 0) {
-            mRadius = mCircle - strokeWidth;
+            mRadius = mCircle - halfStroke;
         }
-        float half = strokeWidth / 2.0f;
-        mArcRectF = new RectF(half, half,
-                mCircle + mRadius + half, mCircle + mRadius + half);
+        float leftX = halfStroke;
+        float leftY = halfStroke;
+        switch (mGravity) {
+            case Gravity.LEFT:
+                leftX = halfStroke;
+                leftY = mCircle - mRadius;
+                break;
+            case Gravity.RIGHT:
+                leftX = length - mRadius * 2 - halfStroke;
+                leftY = mCircle - mRadius;
+                break;
+            case Gravity.TOP:
+                leftX = mCircle - mRadius;
+                leftY = halfStroke;
+                break;
+            case Gravity.BOTTOM:
+                leftX = mCircle - mRadius;
+                leftY = length - mRadius * 2 - halfStroke;
+                break;
+            default:
+                leftX = mCircle - mRadius;
+                leftY = mCircle - mRadius;
+                break;
+        }
+        mArcRectF = new RectF(leftX, leftY,
+                mRadius * 2 + leftX, mRadius * 2 + leftY);
 
         if (mBgDrawable != null) {
             Bitmap bitmap;

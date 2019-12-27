@@ -21,8 +21,8 @@ import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class FileUtil {
-    private final static String TAG = "FileUtil";
+public class FileUtils {
+    private final static String TAG = "FileUtils";
 
     public static String readFile(String filePath) {
         File file = new File(filePath);

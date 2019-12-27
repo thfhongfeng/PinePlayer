@@ -7,7 +7,7 @@ import android.view.WindowManager;
 
 import com.pine.pineplayer.PinePlayerApp;
 import com.pine.pineplayer.R;
-import com.pine.pineplayer.util.MockDataUtil;
+import com.pine.pineplayer.util.MockDataUtils;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.service.PineMediaPlayerService;
@@ -48,7 +48,7 @@ public class MediaServicePlayerActivity extends AppCompatActivity {
             finish();
             return;
         }
-        mMediaList = MockDataUtil.getMediaList(this, mBasePath);
+        mMediaList = MockDataUtils.getMediaList(this, mBasePath);
         mController = new PineMediaController(this);
         if (PinePlayerApp.mMockCount++ % 2 == 0) {
             mCurMediaView = (PineMediaPlayerView) findViewById(R.id.video_view);

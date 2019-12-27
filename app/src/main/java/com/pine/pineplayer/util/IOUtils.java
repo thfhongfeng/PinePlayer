@@ -10,7 +10,7 @@ import java.nio.channels.FileChannel;
  * Created by tanghongfeng on 2017/9/13.
  */
 
-public class IOUtil {
+public class IOUtils {
     private final static int REVERSE_LENGTH = 100;
 
     /**
