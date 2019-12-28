@@ -781,6 +781,14 @@ public class PineMediaWidget {
          * @return
          */
         boolean onAbnormalComplete(PineMediaPlayerBean playerBean);
+
+        /**
+         * 播放器正常播放结束
+         *
+         * @param playerBean
+         * @return
+         */
+        boolean onComplete(PineMediaPlayerBean playerBean);
     }
 
     /**
@@ -805,6 +813,11 @@ public class PineMediaWidget {
 
         @Override
         public boolean onAbnormalComplete(PineMediaPlayerBean playerBean) {
+            return false;
+        }
+
+        @Override
+        public boolean onComplete(PineMediaPlayerBean playerBean) {
             return false;
         }
     }
