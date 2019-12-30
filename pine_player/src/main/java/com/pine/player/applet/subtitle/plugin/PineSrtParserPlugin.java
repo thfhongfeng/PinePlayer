@@ -6,8 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-
 import com.pine.player.R;
 import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
@@ -16,6 +14,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 /**
  * Created by tanghongfeng on 2017/9/18.
@@ -136,6 +136,14 @@ public class PineSrtParserPlugin<T extends List> extends PineSubtitlePlugin<T> {
             }
         }
         ((TextView) mCurViewHolder.getContainer().findViewById(R.id.subtitle_text)).setText(Html.fromHtml(text));
+    }
+
+    @Override
+    public void clearSubtitleText() {
+        if (mCurViewHolder == null || mCurViewHolder.getContainer() == null) {
+            return;
+        }
+        ((TextView) mCurViewHolder.getContainer().findViewById(R.id.subtitle_text)).setText("");
     }
 
     @NonNull

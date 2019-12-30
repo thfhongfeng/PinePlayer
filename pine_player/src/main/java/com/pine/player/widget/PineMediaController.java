@@ -21,8 +21,6 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
@@ -44,6 +42,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
 
 import static com.pine.player.component.PinePlayState.STATE_PLAYBACK_COMPLETED;
 
@@ -123,7 +123,6 @@ public class PineMediaController extends RelativeLayout
     // 仅与播放内容（SurfaceView）宽高匹配的插件容器view，由插件的containerType决定
     private RelativeLayout mSurfacePluginViewContainer;
     private List<PineRightViewHolder> mRightViewHolderList;
-    private HashMap<Integer, PinePluginViewHolder> mPluginViewHolderMap;
     private PineControllerViewHolder mControllerViewHolder;
     private final OnClickListener mSpeedListener = new OnClickListener() {
         @Override
@@ -587,6 +586,13 @@ public class PineMediaController extends RelativeLayout
     public void setMediaControllerAdapter(AbstractMediaControllerAdapter adapter) {
         mAdapter = adapter;
         mAdapter.mPlayer = mPlayer;
+        if (mMediaPlayerView != null) {
+            if (mPlayer.isInPlaybackState()) {
+                mMediaPlayerView.resetMediaController(this, false, true);
+            } else {
+                mMediaPlayerView.resetMediaController(this, true, false);
+            }
+        }
     }
 
     public View getMediaPlayerView() {
@@ -733,9 +739,10 @@ public class PineMediaController extends RelativeLayout
                 = mAdapter.onCreateBackgroundViewHolder(mPlayer, mMediaPlayerView.isFullScreenMode());
         releasePlugin();
         mPinePluginMap = mMediaBean.getPlayerPluginMap();
+        HashMap<Integer, PinePluginViewHolder> pluginViewHolderMap = null;
         if (needInitPlugin()) {
             LogUtils.d(TAG, "construct plugin view holder map");
-            mPluginViewHolderMap = new HashMap<Integer, PinePluginViewHolder>();
+            pluginViewHolderMap = new HashMap<Integer, PinePluginViewHolder>();
             Iterator iterator = mPinePluginMap.entrySet().iterator();
             IPinePlayerPlugin pinePlayerPlugin = null;
             while (iterator.hasNext()) {
@@ -743,8 +750,11 @@ public class PineMediaController extends RelativeLayout
                 pinePlayerPlugin = (IPinePlayerPlugin) entry.getValue();
                 PinePluginViewHolder pinePluginViewHolder = pinePlayerPlugin.createViewHolder(mContext,
                         mMediaPlayerView.isFullScreenMode());
+                if (pinePluginViewHolder == null) {
+                    pinePluginViewHolder = new PinePluginViewHolder();
+                }
                 pinePluginViewHolder.setContainerType(pinePlayerPlugin.getContainerType());
-                mPluginViewHolderMap.put((Integer) entry.getKey(), pinePluginViewHolder);
+                pluginViewHolderMap.put((Integer) entry.getKey(), pinePluginViewHolder);
             }
         }
         mControllerViewHolder = mAdapter
@@ -772,11 +782,11 @@ public class PineMediaController extends RelativeLayout
             mBackgroundViewHolder = new PineBackgroundViewHolder();
         }
         // 插件View
-        if (mPluginViewHolderMap != null) {
+        if (pluginViewHolderMap != null) {
             mPluginViewContainer = new RelativeLayout(getContext());
             mControllerPluginViewContainer = new RelativeLayout(getContext());
             mSurfacePluginViewContainer = new RelativeLayout(getContext());
-            Iterator iterator = mPluginViewHolderMap.entrySet().iterator();
+            Iterator iterator = pluginViewHolderMap.entrySet().iterator();
             PinePluginViewHolder pinePluginViewHolder = null;
             while (iterator.hasNext()) {
                 Map.Entry entry = (Map.Entry) iterator.next();
@@ -786,7 +796,8 @@ public class PineMediaController extends RelativeLayout
                             == IPinePlayerPlugin.TYPE_MATCH_SURFACE) {
                         mSurfacePluginViewContainer.addView(pinePluginViewHolder.getContainer(),
                                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-                    } else {
+                    } else if (pinePluginViewHolder.getContainerType()
+                            == IPinePlayerPlugin.TYPE_MATCH_CONTROLLER) {
                         mControllerPluginViewContainer.addView(pinePluginViewHolder.getContainer(),
                                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                     }
@@ -1969,12 +1980,11 @@ public class PineMediaController extends RelativeLayout
     }
 
     private boolean needInitPlugin() {
-        return mPinePluginMap != null && mPinePluginMap.size() > 0 && mPlayer != null &&
-                mMediaPlayerView.hasSurfaceView();
+        return mPinePluginMap != null && mPinePluginMap.size() > 0 && mPlayer != null;
     }
 
     private boolean needActivePlugin() {
-        return needInitPlugin() && mPlayer.getSurfaceView() != null;
+        return needInitPlugin();
     }
 
     /**

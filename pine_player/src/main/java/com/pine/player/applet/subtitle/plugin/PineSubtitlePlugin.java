@@ -4,9 +4,8 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.text.TextUtils;
 import android.view.View;
-
-import androidx.annotation.NonNull;
 
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
@@ -24,6 +23,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by tanghongfeng on 2018/1/12.
  */
@@ -39,7 +40,7 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     private List<PineSubtitleBean> mSubtitleBeanList;
     private int mPreSubtitleBeanIndex = 0;
 
-    private PineMediaWidget.IPineMediaPlayer mPlayer;
+    protected PineMediaWidget.IPineMediaPlayer mPlayer;
     private boolean mIsOpen = true;
 
     private HandlerThread mHandlerThread;
@@ -65,7 +66,7 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     }
 
     private void prepareSubtitle() {
-        if (mSubtitleFilePath == null && mSubtitleFilePath == "") {
+        if (TextUtils.isEmpty(mSubtitleFilePath)) {
             return;
         }
         if (mHandlerThread == null || !mHandlerThread.isAlive()) {
@@ -193,11 +194,17 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
 
     @Override
     public void onRelease() {
-        mThreadHandler.removeCallbacksAndMessages(null);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            mHandlerThread.quitSafely();
-        } else {
-            mHandlerThread.quit();
+        if (mThreadHandler != null) {
+            mThreadHandler.removeCallbacksAndMessages(null);
+            mThreadHandler = null;
+        }
+        if (mHandlerThread != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                mHandlerThread.quitSafely();
+            } else {
+                mHandlerThread.quit();
+            }
+            mHandlerThread = null;
         }
         resetState();
         mContext = null;
@@ -205,7 +212,7 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     }
 
     private void resetState() {
-        updateSubtitleText(null);
+        clearSubtitleText();
     }
 
     public void openPlugin() {
@@ -228,6 +235,8 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     public abstract List<PineSubtitleBean> parseSubtitleBufferedReader(BufferedReader bufferedReader);
 
     public abstract void updateSubtitleText(PineSubtitleBean subtitle);
+
+    public abstract void clearSubtitleText();
 
     public abstract
     @NonNull

@@ -10,13 +10,12 @@ import com.pine.player.applet.IPinePlayerPlugin;
 
 public final class PinePluginViewHolder {
     // 插件根View
-    protected int containerType;
+    protected int containerType = IPinePlayerPlugin.TYPE_MATCH_CONTROLLER;
     // 插件根View
     protected ViewGroup container;
 
     public int getContainerType() {
-        return containerType == IPinePlayerPlugin.TYPE_MATCH_SURFACE ?
-                IPinePlayerPlugin.TYPE_MATCH_SURFACE : IPinePlayerPlugin.TYPE_MATCH_CONTROLLER;
+        return containerType;
     }
 
     public void setContainerType(int containerType) {

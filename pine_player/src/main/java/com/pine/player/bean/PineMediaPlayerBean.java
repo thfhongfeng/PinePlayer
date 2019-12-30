@@ -20,7 +20,7 @@ import java.util.HashMap;
 /**
  * 播放参数
  */
-public class PineMediaPlayerBean implements Serializable {
+public class PineMediaPlayerBean {
     public final static int MEDIA_TYPE_VIDEO = 1;
     public final static int MEDIA_TYPE_AUDIO = 2;
 

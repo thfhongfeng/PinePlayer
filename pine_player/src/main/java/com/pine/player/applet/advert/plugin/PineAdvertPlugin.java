@@ -5,8 +5,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 
-import androidx.annotation.NonNull;
-
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.advert.bean.PineAdvertBean;
 import com.pine.player.component.PineMediaWidget;
@@ -15,6 +13,8 @@ import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 /**
  * Created by tanghongfeng on 2018/1/12.
@@ -34,7 +34,7 @@ public abstract class PineAdvertPlugin<T extends List> implements IPinePlayerPlu
     private PineAdvertBean mPauseAdvert;
     private PineAdvertBean mCompleteAdvert;
     private boolean mIsOpen = true;
-    private PineMediaWidget.IPineMediaPlayer mPlayer;
+    protected PineMediaWidget.IPineMediaPlayer mPlayer;
     private PineMediaWidget.IPineMediaController mController;
 
     private boolean mNotPlayWhenResumeState = false;

@@ -2,19 +2,26 @@ package com.pine.pineplayer.ui.activity;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import com.pine.pineplayer.PineConstants;
 import com.pine.pineplayer.R;
+import com.pine.pineplayer.applet.OutRootLrcPlugin;
 import com.pine.pineplayer.widgets.adapter.ItemAudioControllerAdapter;
+import com.pine.player.applet.IPinePlayerPlugin;
+import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.util.LogUtils;
 import com.pine.player.widget.PineMediaController;
 import com.pine.player.widget.PineMediaPlayerView;
+
+import java.util.HashMap;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * Created by tanghongfeng on 2018/4/26.
@@ -75,6 +82,29 @@ public class MultiControllerSwitchActivity extends AppCompatActivity {
         final PineMediaPlayerBean playerBean2 = new PineMediaPlayerBean(String.valueOf(1), "yesterday once more",
                 Uri.parse(mBasePath + "/resource/yesterday once more.mp3"),
                 PineMediaPlayerBean.MEDIA_TYPE_VIDEO);
+        HashMap<Integer, IPinePlayerPlugin> pluginHashMap = new HashMap<>();
+        OutRootLrcPlugin playerPlugin = new OutRootLrcPlugin(this, mBasePath + "/resource/yesterday once more.lrc",
+                "GBK");
+        playerPlugin.setSubtitleUpdateListener(new OutRootLrcPlugin.ISubtitleUpdateListener() {
+            @Override
+            public void updateSubtitleText(PineMediaPlayerBean mediaBean, PineSubtitleBean subtitle) {
+                String text = "";
+                if (subtitle != null) {
+                    text = subtitle.getTextBody();
+                    if (subtitle.getTransBody() != null && !subtitle.getTransBody().isEmpty()) {
+                        text += "<br />" + subtitle.getTransBody();
+                    }
+                }
+                ((TextView) findViewById(com.pine.player.R.id.subtitle_text)).setText(Html.fromHtml(text));
+            }
+
+            @Override
+            public void clearSubtitleText() {
+                ((TextView) findViewById(com.pine.player.R.id.subtitle_text)).setText("");
+            }
+        });
+        pluginHashMap.put(PineConstants.PLUGIN_LRC_SUBTITLE, playerPlugin);
+        playerBean2.setPlayerPluginMap(pluginHashMap);
         ((TextView) itemRl2.findViewById(R.id.vb_message_tv)).setText("yesterday once more");
         itemRl2.findViewById(R.id.vb_play_pause_iv).setOnClickListener(new View.OnClickListener() {
             @Override

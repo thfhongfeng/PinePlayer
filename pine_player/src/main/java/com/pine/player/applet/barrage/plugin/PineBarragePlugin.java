@@ -26,7 +26,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     private final static String TAG = LogUtils.makeLogTag(PineBarragePlugin.class);
     private final Object LIST_LOCK = new Object();
     private Context mContext;
-    private PineMediaWidget.IPineMediaPlayer mPlayer;
+    protected PineMediaWidget.IPineMediaPlayer mPlayer;
     private PinePluginViewHolder mCurViewHolder;
     private BarrageCanvasView mBarrageCanvasView;
     private int mMaxShownItemCount;
