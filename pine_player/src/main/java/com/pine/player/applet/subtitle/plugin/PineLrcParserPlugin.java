@@ -130,7 +130,7 @@ public class PineLrcParserPlugin<T extends List> extends PineSubtitlePlugin<T> {
      * 更新字幕
      */
     @Override
-    public void updateSubtitleText(PineSubtitleBean subtitle) {
+    public void updateSubtitleText(PineSubtitleBean subtitle, int position) {
         if (mCurViewHolder == null || mCurViewHolder.getContainer() == null) {
             return;
         }

@@ -584,9 +584,10 @@ public class PineMediaController extends RelativeLayout
     }
 
     public void setMediaControllerAdapter(AbstractMediaControllerAdapter adapter) {
+        boolean adapterChange = mAdapter != adapter;
         mAdapter = adapter;
         mAdapter.mPlayer = mPlayer;
-        if (mMediaPlayerView != null) {
+        if (adapterChange && mMediaPlayerView != null) {
             if (mPlayer.isInPlaybackState()) {
                 mMediaPlayerView.resetMediaController(this, false, true);
             } else {

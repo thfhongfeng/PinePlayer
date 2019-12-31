@@ -37,7 +37,7 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     private String mCharset;
 
     // 字幕列表，按时间升序排列
-    private List<PineSubtitleBean> mSubtitleBeanList;
+    protected List<PineSubtitleBean> mSubtitleBeanList;
     private int mPreSubtitleBeanIndex = 0;
 
     protected PineMediaWidget.IPineMediaPlayer mPlayer;
@@ -58,7 +58,6 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     }
 
     public void setSubtitle(String subtitleFilePath, int pathType, String charset) {
-        resetState();
         mSubtitleFilePath = subtitleFilePath;
         mSubtitleFileType = pathType;
         mCharset = charset;
@@ -189,7 +188,11 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
         } else {
             isFound = true;
         }
-        updateSubtitleText(isFound ? mSubtitleBeanList.get(mPreSubtitleBeanIndex) : null);
+        if (isFound) {
+            updateSubtitleText(mSubtitleBeanList.get(mPreSubtitleBeanIndex), mPreSubtitleBeanIndex);
+        } else {
+            updateSubtitleText(null, mPreSubtitleBeanIndex);
+        }
     }
 
     @Override
@@ -234,7 +237,7 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
 
     public abstract List<PineSubtitleBean> parseSubtitleBufferedReader(BufferedReader bufferedReader);
 
-    public abstract void updateSubtitleText(PineSubtitleBean subtitle);
+    public abstract void updateSubtitleText(PineSubtitleBean subtitle, int position);
 
     public abstract void clearSubtitleText();
 

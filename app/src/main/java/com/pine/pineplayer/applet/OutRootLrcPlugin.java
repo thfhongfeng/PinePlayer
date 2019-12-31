@@ -36,7 +36,7 @@ public class OutRootLrcPlugin<T extends List> extends PineLrcParserPlugin<T> {
     }
 
     @Override
-    public void updateSubtitleText(PineSubtitleBean subtitle) {
+    public void updateSubtitleText(PineSubtitleBean subtitle, int position) {
         if (mPlayer != null && mSubtitleUpdateListener != null) {
             mSubtitleUpdateListener.updateSubtitleText(mPlayer.getMediaPlayerBean(), subtitle);
         }
