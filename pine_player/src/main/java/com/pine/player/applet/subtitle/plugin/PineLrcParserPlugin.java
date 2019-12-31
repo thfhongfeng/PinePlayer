@@ -2,6 +2,7 @@ package com.pine.player.applet.subtitle.plugin;
 
 import android.content.Context;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -137,6 +138,7 @@ public class PineLrcParserPlugin<T extends List> extends PineSubtitlePlugin<T> {
         String text = "";
         if (subtitle != null) {
             text = subtitle.getTextBody();
+            text = TextUtils.isEmpty(text) ? "" : text;
             if (subtitle.getTransBody() != null && !subtitle.getTransBody().isEmpty()) {
                 text += "<br />" + subtitle.getTransBody();
             }
@@ -186,32 +188,46 @@ public class PineLrcParserPlugin<T extends List> extends PineSubtitlePlugin<T> {
             item.setTextBody(line.substring(
                     line.indexOf(':') + 1, line.lastIndexOf(']')));
         } else if (line.indexOf(TagXTrans) != -1) {
-            String[] cut = line.split("]");
-            if (cut.length >= 2) {
-                for (int i = 0; i < cut.length - 1; i++) {
-                    item = new PineSubtitleBean();
-                    item.setType(PineSubtitleBean.TRANS_ZONE);
-                    item.setBeginTime(analyzeTimeStringToValue(cut[i]
-                            .substring(line.indexOf('[') + 1)));
-                    item.setTextBody(cut[cut.length - 1]);
+            try {
+                String[] cut = line.split("]");
+                if (cut.length >= 2) {
+                    for (int i = 0; i < cut.length - 1; i++) {
+                        item = new PineSubtitleBean();
+                        item.setType(PineSubtitleBean.TRANS_ZONE);
+                        item.setBeginTime(analyzeTimeStringToValue(cut[i]
+                                .substring(line.indexOf('[') + 1)));
+                        item.setTextBody(cut[cut.length - 1]);
+                    }
                 }
+            } catch (Exception ex) {
             }
         } else {
-            String[] cut = line.split("]");
-            if (cut.length >= 2) {
-                for (int i = 0; i < cut.length - 1; i++) {
-                    item = new PineSubtitleBean();
-                    item.setType(PineSubtitleBean.TEXT_ZONE);
-                    item.setBeginTime(analyzeTimeStringToValue(cut[i]
-                            .substring(line.indexOf('[') + 1)));
-                    item.setTextBody(cut[cut.length - 1]);
+            try {
+                String[] cut = line.split("]");
+                if (cut.length >= 2) {
+                    for (int i = 0; i < cut.length - 1; i++) {
+                        item = new PineSubtitleBean();
+                        item.setType(PineSubtitleBean.TEXT_ZONE);
+                        long beginTime = analyzeTimeStringToValue(cut[i]
+                                .substring(line.indexOf('[') + 1));
+                        item.setBeginTime(beginTime);
+                        String body = cut[cut.length - 1];
+                        if (!TextUtils.isEmpty(body)) {
+                            String[] bodyArr = body.split("\\^");
+                            item.setTextBody(bodyArr[0]);
+                            if (bodyArr.length > 1) {
+                                item.setTransBody(bodyArr[1]);
+                            }
+                        }
+                    }
                 }
+            } catch (Exception ex) {
             }
         }
         return item;
     }
 
-    private long analyzeTimeStringToValue(String time) {
+    private long analyzeTimeStringToValue(String time) throws NumberFormatException {
         long minute = Integer
                 .parseInt(time.substring(0, time.lastIndexOf(":")));
         long second = Integer.parseInt(time.substring(time.indexOf(":") + 1,

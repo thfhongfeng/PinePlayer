@@ -2,6 +2,7 @@ package com.pine.player.applet.subtitle.plugin;
 
 import android.content.Context;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -131,6 +132,7 @@ public class PineSrtParserPlugin<T extends List> extends PineSubtitlePlugin<T> {
         String text = "";
         if (subtitle != null) {
             text = subtitle.getTextBody();
+            text = TextUtils.isEmpty(text) ? "" : text;
             if (subtitle.getTransBody() != null && !subtitle.getTransBody().isEmpty()) {
                 text += "<br />" + subtitle.getTransBody();
             }
