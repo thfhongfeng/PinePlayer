@@ -13,6 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.annotation.IdRes;
+
 import com.pine.player.PineConstants;
 import com.pine.player.R;
 import com.pine.player.component.PineMediaPlayerProxy;
@@ -33,6 +35,8 @@ import static com.pine.player.component.PinePlayState.STATE_PLAYING;
 public class PineMediaPlayerView extends RelativeLayout {
     private final static String TAG = LogUtils.makeLogTag(PineMediaPlayerView.class);
     private static final long BACK_PRESSED_EXIT_TIME = 2000;
+    private boolean mBackPressTipEnable = true;
+    private int mBackPressTipResId = -1;
     private Context mContext;
     private String mMediaPlayerTag;
     private boolean mIsInit;
@@ -162,6 +166,15 @@ public class PineMediaPlayerView extends RelativeLayout {
             Toast.makeText(mContext, R.string.init_method_need_call_toast, Toast.LENGTH_SHORT);
         }
         return mIsInit;
+    }
+
+    public void enableBackPressTip(@IdRes int tipResId) {
+        mBackPressTipEnable = true;
+        mBackPressTipResId = tipResId;
+    }
+
+    public void disableBackPressTip() {
+        mBackPressTipEnable = false;
     }
 
     public boolean hasSurfaceView() {
@@ -372,17 +385,19 @@ public class PineMediaPlayerView extends RelativeLayout {
                 mMediaController.updateVolumesText();
                 return super.dispatchKeyEvent(event);
             } else if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
-                if (uniqueDown && mMediaPlayerProxy.getMediaPlayerState() == STATE_PLAYING
-                        && System.currentTimeMillis() - mExitTime > BACK_PRESSED_EXIT_TIME) {
-                    if (isFullScreenMode()) {
-                        toggleFullScreenMode(mMediaController.isLocked());
-                    } else {
-                        mMediaController.hide();
-                        mExitTime = System.currentTimeMillis();
-                        Toast.makeText(mContext, R.string.pine_media_back_pressed_toast,
-                                Toast.LENGTH_SHORT).show();
+                if (mBackPressTipEnable) {
+                    if (uniqueDown && mMediaPlayerProxy.getMediaPlayerState() == STATE_PLAYING
+                            && System.currentTimeMillis() - mExitTime > BACK_PRESSED_EXIT_TIME) {
+                        if (isFullScreenMode()) {
+                            toggleFullScreenMode(mMediaController.isLocked());
+                        } else {
+                            mMediaController.hide();
+                            mExitTime = System.currentTimeMillis();
+                            Toast.makeText(mContext, mBackPressTipResId > 0 ? mBackPressTipResId : R.string.pine_media_back_pressed_toast,
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        return true;
                     }
-                    return true;
                 }
             }
         }
