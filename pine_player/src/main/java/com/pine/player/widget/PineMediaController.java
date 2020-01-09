@@ -21,6 +21,8 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.pine.player.PineConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
@@ -42,8 +44,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import androidx.annotation.NonNull;
 
 import static com.pine.player.component.PinePlayState.STATE_PLAYBACK_COMPLETED;
 
@@ -2152,6 +2152,8 @@ public class PineMediaController extends RelativeLayout
      * PineMediaController适配器，使用者通过此适配器客制化自己的视频播放控制器界面
      */
     public abstract static class AbstractMediaControllerAdapter {
+        protected final String TAG = LogUtils.makeLogTag(this.getClass());
+
         public PineMediaWidget.IPineMediaPlayer mPlayer;
 
         /**
