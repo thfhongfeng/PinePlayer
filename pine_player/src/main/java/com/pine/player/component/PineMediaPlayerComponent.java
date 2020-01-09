@@ -636,6 +636,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                         }
                     }
                 }
+            } else if (mMediaBean != null) {
+                setPlayingMedia(mMediaBean, mHeaders, false);
             }
             mTargetState = STATE_PLAYING;
         } else {
