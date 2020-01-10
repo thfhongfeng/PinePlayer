@@ -765,6 +765,15 @@ public class PineMediaWidget {
         boolean onInfo(PineMediaPlayerBean playerBean, int what, int extra);
 
         /**
+         * onBufferingUpdate回调
+         *
+         * @param playerBean
+         * @param percent
+         * @return
+         */
+        void onBufferingUpdate(PineMediaPlayerBean playerBean, int percent);
+
+        /**
          * 播放器发生错误
          *
          * @param playerBean
@@ -804,6 +813,11 @@ public class PineMediaWidget {
         @Override
         public boolean onInfo(PineMediaPlayerBean playerBean, int what, int extra) {
             return false;
+        }
+
+        @Override
+        public void onBufferingUpdate(PineMediaPlayerBean playerBean, int percent) {
+
         }
 
         @Override

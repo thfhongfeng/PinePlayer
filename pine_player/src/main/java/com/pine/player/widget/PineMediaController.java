@@ -584,6 +584,7 @@ public class PineMediaController extends RelativeLayout
     }
 
     public void setMediaControllerAdapter(AbstractMediaControllerAdapter adapter) {
+        LogUtils.d(TAG, "setMediaControllerAdapter adapter:" + adapter);
         boolean adapterChange = mAdapter != adapter;
         mAdapter = adapter;
         mAdapter.mPlayer = mPlayer;
@@ -602,6 +603,7 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public void setMediaPlayerView(PineMediaPlayerView playerView) {
+        LogUtils.d(TAG, "setMediaPlayerView playerView:" + playerView);
         if (playerView != null && playerView instanceof RelativeLayout) {
             mMediaPlayerView = playerView;
         } else {
@@ -716,6 +718,15 @@ public class PineMediaController extends RelativeLayout
         mMediaViewTag = mediaViewTag;
     }
 
+    private void removeSelfFromParent(View child, View parent) {
+        if (child != null) {
+            ViewGroup curParent = (ViewGroup) child.getParent();
+            if (curParent != null && parent instanceof ViewGroup && curParent != parent) {
+                curParent.removeView(child);
+            }
+        }
+    }
+
     /**
      * 将PineMediaController各个部分挂载到PineMediaPlayerView中
      *
@@ -777,6 +788,7 @@ public class PineMediaController extends RelativeLayout
         );
         // 背景图View
         if (mBackgroundViewHolder != null && mBackgroundViewHolder.getContainer() != null) {
+            removeSelfFromParent(mBackgroundViewHolder.getContainer(), this);
             addView(mBackgroundViewHolder.getContainer(), layoutParams);
             mBackgroundViewHolder.getContainer().setVisibility(VISIBLE);
         } else {
@@ -795,10 +807,12 @@ public class PineMediaController extends RelativeLayout
                 if (pinePluginViewHolder.getContainer() != null) {
                     if (pinePluginViewHolder.getContainerType()
                             == IPinePlayerPlugin.TYPE_MATCH_SURFACE) {
+                        removeSelfFromParent(pinePluginViewHolder.getContainer(), mSurfacePluginViewContainer);
                         mSurfacePluginViewContainer.addView(pinePluginViewHolder.getContainer(),
                                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                     } else if (pinePluginViewHolder.getContainerType()
                             == IPinePlayerPlugin.TYPE_MATCH_CONTROLLER) {
+                        removeSelfFromParent(pinePluginViewHolder.getContainer(), mControllerPluginViewContainer);
                         mControllerPluginViewContainer.addView(pinePluginViewHolder.getContainer(),
                                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                     }
@@ -829,6 +843,7 @@ public class PineMediaController extends RelativeLayout
         // 控制器内置View
         if (mControllerViewHolder != null && mControllerViewHolder.getContainer() != null) {
             if (mControllerContainerInRoot) {
+                removeSelfFromParent(mControllerViewHolder.getContainer(), this);
                 addView(mControllerViewHolder.getContainer(), layoutParams);
             }
         } else {
@@ -836,6 +851,7 @@ public class PineMediaController extends RelativeLayout
         }
         // 加载等待View
         if (mWaitingProgressViewHolder != null && mWaitingProgressViewHolder.getContainer() != null) {
+            removeSelfFromParent(mWaitingProgressViewHolder.getContainer(), this);
             addView(mWaitingProgressViewHolder.getContainer(), layoutParams);
             mWaitingProgressViewHolder.getContainer().setVisibility(VISIBLE);
         } else {
@@ -848,6 +864,7 @@ public class PineMediaController extends RelativeLayout
                 PineRightViewHolder pineRightViewHolder =
                         mRightViewHolderList.get(i);
                 if (pineRightViewHolder.getContainer() != null) {
+                    removeSelfFromParent(pineRightViewHolder.getContainer(), mRightViewContainer);
                     mRightViewContainer.addView(pineRightViewHolder.getContainer(),
                             new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                 }

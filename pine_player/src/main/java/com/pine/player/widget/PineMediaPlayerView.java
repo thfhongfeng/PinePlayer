@@ -47,6 +47,10 @@ public class PineMediaPlayerView extends RelativeLayout {
     private PineMediaWidget.IPineMediaController mMediaController;
     private PineMediaPlayerProxy mMediaPlayerProxy;
     private ViewGroup.LayoutParams mHalfAnchorLayout;
+    // 当从player上detach的后是否禁止将controller view置为idle状态。
+    // 当多个PineMediaController使用同一个MediaControllerAdapter时，
+    // 你需要将该值置为true，以避免PineMediaController被干扰
+    public boolean mForbidIdleControllerWhenDetach;
     ViewTreeObserver.OnPreDrawListener mOnPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
         @Override
         public boolean onPreDraw() {
@@ -215,11 +219,15 @@ public class PineMediaPlayerView extends RelativeLayout {
         }
     }
 
+    public void refreshViewState() {
+        resetMediaController(mMediaController, false, false);
+    }
+
     public PineMediaWidget.IPineMediaPlayer getMediaPlayer() {
         if (!checkIsInit()) {
             return null;
         }
-        return (PineMediaWidget.IPineMediaPlayer) mMediaPlayerProxy;
+        return mMediaPlayerProxy;
     }
 
     public void toggleFullScreenMode(boolean isLocked) {
@@ -279,7 +287,7 @@ public class PineMediaPlayerView extends RelativeLayout {
         }
         LogUtils.d(TAG, "detachFromMediaPlayerComponent viewDestroy: " + viewDestroy +
                 ", saveState:" + mSaveMediaStateWhenHide + ", view:" + this);
-        if (mMediaController != null) {
+        if (mMediaController != null && !mForbidIdleControllerWhenDetach) {
             mMediaController.resetOutRootControllerIdleState();
             mMediaController.hide();
         }

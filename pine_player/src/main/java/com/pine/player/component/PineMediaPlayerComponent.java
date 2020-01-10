@@ -226,6 +226,15 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                     if (canUpdateControllerPlayState()) {
                         mMediaPlayerView.getMediaController().onBufferingUpdate(percent);
                     }
+                    if (mMediaPlayerListenerSet.size() > 0) {
+                        synchronized (LISTENER_SET_LOCK) {
+                            for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                                if (listener != null) {
+                                    listener.onBufferingUpdate(mMediaBean, percent);
+                                }
+                            }
+                        }
+                    }
                 }
             };
     private int mRetryForBufferingStartTimeout = 0;
@@ -549,6 +558,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     @Override
     public void setPlayingMedia(PineMediaPlayerBean pineMediaPlayerBean,
                                 Map<String, String> headers, boolean resumeState, boolean isAutocephalyPlayMode) {
+        LogUtils.d(TAG, "setPlayingMedia resumeState:" + resumeState +
+                ", isAutocephalyPlayMode:" + isAutocephalyPlayMode + ",pineMediaPlayerBean :" + pineMediaPlayerBean);
         mOldMediaBean = mMediaBean;
         mMediaBean = pineMediaPlayerBean;
         mRetryForBufferingStartTimeout = 0;
@@ -582,6 +593,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     @Override
     public void resetPlayingMediaAndResume(PineMediaPlayerBean pineMediaPlayerBean,
                                            Map<String, String> headers) {
+        LogUtils.d(TAG, "resetPlayingMediaAndResume pineMediaPlayerBean:" + pineMediaPlayerBean);
         setPlayingMedia(pineMediaPlayerBean, headers, true, mIsAutocephalyPlayMode);
     }
 
@@ -618,8 +630,8 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     @Override
     public void start() {
         if (!isNeedLocalService() || mLocalServiceState == SERVICE_STATE_CONNECTED) {
+            LogUtils.d(TAG, "Start media player");
             if (isInPlaybackState()) {
-                LogUtils.d(TAG, "Start media player");
                 mMediaPlayer.start();
                 PineMediaPlayerService.setShouldPlayWhenPrepared(mMediaBean.getMediaCode(), false);
                 if (canUpdateControllerPlayState()) {
@@ -636,8 +648,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                         }
                     }
                 }
-            } else if (mMediaBean != null) {
-                setPlayingMedia(mMediaBean, mHeaders, false);
             }
             mTargetState = STATE_PLAYING;
         } else {
