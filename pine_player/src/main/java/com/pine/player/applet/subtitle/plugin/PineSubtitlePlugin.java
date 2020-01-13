@@ -7,7 +7,7 @@ import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.pine.player.PineConstants;
+import com.pine.player.PinePlayerConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.subtitle.bean.PineSubtitleBean;
 import com.pine.player.component.PineMediaWidget;
@@ -47,7 +47,7 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
     private Handler mThreadHandler;
 
     public PineSubtitlePlugin(Context context, String subtitleFilePath, String charset) {
-        this(context, subtitleFilePath, PineConstants.PATH_STORAGE, charset);
+        this(context, subtitleFilePath, PinePlayerConstants.PATH_STORAGE, charset);
     }
 
     public PineSubtitlePlugin(Context context, String subtitleFilePath, int pathType, String charset) {
@@ -79,13 +79,13 @@ public abstract class PineSubtitlePlugin<T extends List> implements IPinePlayerP
                 InputStream inputStream = null;
                 try {
                     switch (mSubtitleFileType) {
-                        case PineConstants.PATH_ASSETS:
+                        case PinePlayerConstants.PATH_ASSETS:
                             inputStream = mContext.getAssets().open(mSubtitleFilePath);
                             break;
-                        case PineConstants.PATH_STORAGE:
+                        case PinePlayerConstants.PATH_STORAGE:
                             inputStream = new FileInputStream(mSubtitleFilePath);
                             break;
-                        case PineConstants.PATH_NETWORK:
+                        case PinePlayerConstants.PATH_NETWORK:
                             URL fileUrl = new URL(mSubtitleFilePath);
                             HttpURLConnection conn = (HttpURLConnection) fileUrl
                                     .openConnection();

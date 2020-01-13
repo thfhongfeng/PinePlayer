@@ -5,6 +5,7 @@ import android.content.Context;
 import com.pine.player.component.PineMediaWidget;
 import com.pine.player.widget.viewholder.PinePluginViewHolder;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -45,6 +46,10 @@ public interface IPinePlayerPlugin<T extends List> {
 
     void onMediaPlayerError(int framework_err, int impl_err);
 
+    /**
+     *
+     * @param position the current position in milliseconds
+     */
     void onTime(long position);
 
     void onRelease();

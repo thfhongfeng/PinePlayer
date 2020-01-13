@@ -20,6 +20,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
+import com.pine.player.PinePlayerConstants;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.service.IPineMediaSocketService;
 import com.pine.player.service.PineMediaPlayerService;
@@ -58,6 +59,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private static final boolean USE_NEW_API = true;
     private final Object LISTENER_SET_LOCK = new Object();
     private final int MSG_MEDIA_INFO_BUFFERING_START_TIMEOUT = 1;
+    private static final int MSG_PROGRESS = 2;
     private final int MAX_RETRY_FOR_BUFFERING_START_TIMEOUT = 3;
     private PinePlayState mPreState = STATE_IDLE;
     private PinePlayState mCurrentState = STATE_IDLE;
@@ -88,6 +90,7 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     private PineMediaPlayerView mMediaPlayerView = null;
     private MediaPlayer mMediaPlayer = null;
     private int mAudioSession;
+
     private int mMediaWidth, mMediaHeight;
     MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
             new MediaPlayer.OnVideoSizeChangedListener() {
@@ -168,6 +171,11 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             }
             if (isAttachViewMode() && mSurfaceView != null) {
                 mSurfaceView.requestFocus();
+            }
+            if (mMediaPlayerListenerSet.size() > 0 &&
+                    isInPlaybackState() && !mHandler.hasMessages(MSG_PROGRESS)) {
+                Message msg = mHandler.obtainMessage(MSG_PROGRESS);
+                mHandler.sendMessage(msg);
             }
         }
     };
@@ -250,6 +258,22 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                                 "retry count:" + mRetryForBufferingStartTimeout);
                         if (mMediaBean != null) {
                             openMedia(true);
+                        }
+                    }
+                    break;
+                // 每PROGRESS_TIME_DELAY毫秒调用一次进度更新
+                case MSG_PROGRESS:
+                    if (mMediaPlayerListenerSet.size() > 0 && mMediaPlayer != null) {
+                        synchronized (LISTENER_SET_LOCK) {
+                            for (PineMediaWidget.IPineMediaPlayerListener listener : mMediaPlayerListenerSet) {
+                                if (listener != null) {
+                                    listener.onProgress(mMediaBean, mMediaPlayer.getCurrentPosition());
+                                }
+                            }
+                        }
+                        if (isInPlaybackState() && !mHandler.hasMessages(MSG_PROGRESS)) {
+                            msg = obtainMessage(MSG_PROGRESS);
+                            sendMessageDelayed(msg, PinePlayerConstants.PLUGIN_REFRESH_TIME_DELAY);
                         }
                     }
                     break;
@@ -648,6 +672,9 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
                         }
                     }
                 }
+            } else if (mMediaBean != null && (mCurrentState == STATE_ERROR ||
+                    mCurrentState == STATE_IDLE)) {
+                setPlayingMedia(mMediaBean, mHeaders, false, mIsAutocephalyPlayMode);
             }
             mTargetState = STATE_PLAYING;
         } else {

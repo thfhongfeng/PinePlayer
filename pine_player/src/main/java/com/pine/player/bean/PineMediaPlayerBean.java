@@ -31,9 +31,8 @@ public class PineMediaPlayerBean {
     private String mediaCode;
     @NonNull
     private String mediaName;
-    @NonNull
     private String mediaDesc;
-
+    
     private ArrayList<PineMediaUriSource> mediaUriSourceList;
     private int mediaType = MEDIA_TYPE_VIDEO;
     private Uri mediaImgUri;
@@ -170,12 +169,11 @@ public class PineMediaPlayerBean {
         this.mediaName = mediaName;
     }
 
-    @NonNull
     public String getMediaDesc() {
         return mediaDesc;
     }
 
-    public void setMediaDesc(@NonNull String mediaDesc) {
+    public void setMediaDesc(String mediaDesc) {
         this.mediaDesc = mediaDesc;
     }
 

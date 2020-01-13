@@ -507,7 +507,7 @@ public class PineMediaWidget {
         /**
          * 获取当前播放位置
          *
-         * @return
+         * @return the current position in milliseconds
          */
         int getCurrentPosition();
 
@@ -774,6 +774,14 @@ public class PineMediaWidget {
         void onBufferingUpdate(PineMediaPlayerBean playerBean, int percent);
 
         /**
+         * 播放器播放进度回调
+         *
+         * @param playerBean
+         * @param progressTime the current position in milliseconds
+         */
+        void onProgress(PineMediaPlayerBean playerBean, int progressTime);
+
+        /**
          * 播放器发生错误
          *
          * @param playerBean
@@ -817,6 +825,11 @@ public class PineMediaWidget {
 
         @Override
         public void onBufferingUpdate(PineMediaPlayerBean playerBean, int percent) {
+
+        }
+
+        @Override
+        public void onProgress(PineMediaPlayerBean playerBean, int progressTime) {
 
         }
 

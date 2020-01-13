@@ -5,7 +5,7 @@ import android.content.Context;
 import android.os.Build;
 import android.view.View;
 
-import com.pine.player.PineConstants;
+import com.pine.player.PinePlayerConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.applet.barrage.BarrageCanvasView;
 import com.pine.player.applet.barrage.bean.PineBarrageBean;
@@ -52,7 +52,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     }
 
     public PineBarragePlugin(int displayStartPx, int displayTotalHeight, T barrageList) {
-        this(PineConstants.PLUGIN_BARRAGE_MAX_ITEM_COUNT, displayStartPx, displayTotalHeight, barrageList);
+        this(PinePlayerConstants.PLUGIN_BARRAGE_MAX_ITEM_COUNT, displayStartPx, displayTotalHeight, barrageList);
     }
 
     /**
@@ -76,7 +76,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
     }
 
     public PineBarragePlugin(float displayStartPercent, float displayEndPercent, T barrageList) {
-        this(PineConstants.PLUGIN_BARRAGE_MAX_ITEM_COUNT, displayStartPercent, displayEndPercent, barrageList);
+        this(PinePlayerConstants.PLUGIN_BARRAGE_MAX_ITEM_COUNT, displayStartPercent, displayEndPercent, barrageList);
     }
 
     /**
@@ -299,7 +299,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
             return;
         }
         if (mPrePosition > -1 && Math.abs(position - mPrePosition) >
-                (PineConstants.PLUGIN_REFRESH_TIME_DELAY << 2) * mPlayer.getSpeed()) {
+                (PinePlayerConstants.PLUGIN_REFRESH_TIME_DELAY << 2) * mPlayer.getSpeed()) {
             resetBarrage();
         }
         synchronized (LIST_LOCK) {
@@ -324,8 +324,8 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
                     LogUtils.v(TAG, "onTime barrage added text:" + pineBarrageBean.getTextBody());
                     pineBarrageBean.setShow(true);
                     mShownBarrageList.add(pineBarrageBean);
-                } else if (pineBarrageBean.getBeginTime() < position + PineConstants.PLUGIN_BARRAGE_MAX_DELAY_POSITION &&
-                        mDelayShowBarrageList.size() < PineConstants.PLUGIN_BARRAGE_MAX_DELAY_ITEM_COUNT) {
+                } else if (pineBarrageBean.getBeginTime() < position + PinePlayerConstants.PLUGIN_BARRAGE_MAX_DELAY_POSITION &&
+                        mDelayShowBarrageList.size() < PinePlayerConstants.PLUGIN_BARRAGE_MAX_DELAY_ITEM_COUNT) {
                     mDelayShowBarrageList.add(pineBarrageBean);
                 }
             }
@@ -397,7 +397,7 @@ public class PineBarragePlugin<T extends List> implements IPinePlayerPlugin<T> {
         if (mBarrageList == null || mBarrageList.size() < 1) {
             return null;
         }
-        long startPosition = position - (long) Math.ceil(speed * 3 * PineConstants.PLUGIN_REFRESH_TIME_DELAY);
+        long startPosition = position - (long) Math.ceil(speed * 3 * PinePlayerConstants.PLUGIN_REFRESH_TIME_DELAY);
         ArrayList<PineBarrageBean> resultList = new ArrayList<PineBarrageBean>();
         PineBarrageBean tmpBean;
         long preFirstPosition = -1;

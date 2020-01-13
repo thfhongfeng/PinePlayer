@@ -23,7 +23,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.pine.player.PineConstants;
+import com.pine.player.PinePlayerConstants;
 import com.pine.player.applet.IPinePlayerPlugin;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaPlayerProxy;
@@ -98,7 +98,7 @@ public class PineMediaController extends RelativeLayout
     private ControllerMonitor mControllerMonitor;
     private int mPreFadeOutTime;
     // 播放控制器自动隐藏时间
-    private int mFadeOutTime = PineConstants.DEFAULT_SHOW_TIMEOUT;
+    private int mFadeOutTime = PinePlayerConstants.DEFAULT_SHOW_TIMEOUT;
     // 进度条是否正在拖动
     private boolean mDragging;
     // 控制器是否以getControllerView方式被内置在Media View上
@@ -349,7 +349,7 @@ public class PineMediaController extends RelativeLayout
             setProgress();
             updatePausePlayButton(mPlayer.isPlaying());
 
-            show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+            show(PinePlayerConstants.DEFAULT_SHOW_TIMEOUT);
 
             // Ensure that progress is properly updated in the future,
             // the call to show() does not guarantee this because it is a
@@ -387,7 +387,7 @@ public class PineMediaController extends RelativeLayout
                     setProgress();
                     updatePausePlayButton(mPlayer.isPlaying());
 
-                    show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                    show(PinePlayerConstants.DEFAULT_SHOW_TIMEOUT);
                     mHandler.sendEmptyMessage(MSG_SHOW_PROGRESS);
                 }
             };
@@ -397,7 +397,7 @@ public class PineMediaController extends RelativeLayout
             if (mControllersActionListener == null
                     || !mControllersActionListener.onPlayPauseBtnClick(v, mPlayer)) {
                 doPauseResume();
-                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                show(PinePlayerConstants.DEFAULT_SHOW_TIMEOUT);
                 updatePausePlayButton(mPlayer.isPlaying());
             }
         }
@@ -411,7 +411,7 @@ public class PineMediaController extends RelativeLayout
                 pos -= 5000; // milliseconds
                 mPlayer.seekTo(pos);
                 setProgress();
-                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                show(PinePlayerConstants.DEFAULT_SHOW_TIMEOUT);
             }
         }
     };
@@ -424,7 +424,7 @@ public class PineMediaController extends RelativeLayout
                 pos += 15000; // milliseconds
                 mPlayer.seekTo(pos);
                 setProgress();
-                show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+                show(PinePlayerConstants.DEFAULT_SHOW_TIMEOUT);
             }
         }
     };
@@ -455,7 +455,7 @@ public class PineMediaController extends RelativeLayout
                     mRightViewHolderList.get(visibilityIndex).getContainer().setVisibility(isCurViewLastSelected ? GONE : VISIBLE);
                 }
                 show(!isCurViewLastSelected || !mPlayer.isInPlaybackState() ? 0 :
-                        PineConstants.DEFAULT_SHOW_TIMEOUT, true);
+                        PinePlayerConstants.DEFAULT_SHOW_TIMEOUT, true);
             }
         }
     };
@@ -523,7 +523,7 @@ public class PineMediaController extends RelativeLayout
                     }
                     if (mPlayer.isPlaying() && !mHandler.hasMessages(MSG_PLUGIN_REFRESH)) {
                         msg = obtainMessage(MSG_PLUGIN_REFRESH);
-                        sendMessageDelayed(msg, PineConstants.PLUGIN_REFRESH_TIME_DELAY);
+                        sendMessageDelayed(msg, PinePlayerConstants.PLUGIN_REFRESH_TIME_DELAY);
                     }
                     break;
             }
@@ -1826,7 +1826,7 @@ public class PineMediaController extends RelativeLayout
 
     @Override
     public boolean onTrackballEvent(MotionEvent ev) {
-        show(PineConstants.DEFAULT_SHOW_TIMEOUT);
+        show(PinePlayerConstants.DEFAULT_SHOW_TIMEOUT);
         return false;
     }
 
