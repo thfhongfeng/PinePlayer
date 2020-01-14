@@ -547,13 +547,6 @@ public class PineMediaWidget {
         boolean isPause();
 
         /**
-         * 当前player是否允许挂载SurfaceView
-         *
-         * @return
-         */
-        boolean isSurfaceViewEnable();
-
-        /**
          * 获取缓冲百分比
          *
          * @return
@@ -702,6 +695,20 @@ public class PineMediaWidget {
          * @param isResumeState 本此attach是否是为了恢复状态
          */
         void attachMediaController(boolean isPlayerReset, boolean isResumeState);
+
+        /**
+         * 当前播放器是否开启了SurfaceView
+         *
+         * @return
+         */
+        boolean isSurfaceEnabled();
+
+        /**
+         * 是否开启当前播放器的SurfaceView
+         *
+         * @return
+         */
+        void enableSurface(boolean enable);
 
         /**
          * 获取播放器当前的播放SurfaceView

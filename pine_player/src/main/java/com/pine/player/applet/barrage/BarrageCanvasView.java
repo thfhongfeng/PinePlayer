@@ -106,6 +106,9 @@ public class BarrageCanvasView extends RelativeLayout {
         if (!mIsPrepare) {
             prepare();
         }
+        if (getWidth() <= 0) {
+            return false;
+        }
         if (pineBarrageBean.getTextHeight() > 0) {
             mTextViewHeight = pineBarrageBean.getTextHeight();
         } else if (mTextViewHeight <= 0) {

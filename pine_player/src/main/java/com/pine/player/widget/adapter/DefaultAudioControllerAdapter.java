@@ -9,6 +9,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
+import androidx.annotation.NonNull;
+
 import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.component.PineMediaWidget;
@@ -20,8 +22,6 @@ import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 
 import java.io.File;
 import java.util.List;
-
-import androidx.annotation.NonNull;
 
 /**
  * Created by tanghongfeng on 2018/3/7.
@@ -38,7 +38,6 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
     private PineControllerViewHolder mDFullControllerViewHolder, mDControllerViewHolder;
     private RelativeLayout mDBackgroundView;
     private ViewGroup mDFullControllerView, mDControllerView;
-    private String mDCurrentMediaCode = "";
     private int mDCurrentMediaPos = -1;
     private boolean mDEnableSpeed, mDEnablePreNext;
     private boolean mDEnableCurTime, mDEnableProgressBar, mDEnableTotalTime;
@@ -221,20 +220,20 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         return new PineMediaController.ControllersActionListener() {
             @Override
             public boolean onPreBtnClick(View preBtn, PineMediaWidget.IPineMediaPlayer player) {
-                String oldMediaCode = mDCurrentMediaCode;
+                String oldMediaCode = getCurMediaCode();
                 String curMediaCode = player.getMediaPlayerBean().getMediaCode();
                 if (onPreMediaSelect(curMediaCode, true) && mMediaItemChangeListener != null) {
-                    mMediaItemChangeListener.onMediaChange(oldMediaCode, mDCurrentMediaCode);
+                    mMediaItemChangeListener.onMediaChange(oldMediaCode, getCurMediaCode());
                 }
                 return true;
             }
 
             @Override
             public boolean onNextBtnClick(View nextBtn, PineMediaWidget.IPineMediaPlayer player) {
-                String oldMediaCode = mDCurrentMediaCode;
+                String oldMediaCode = getCurMediaCode();
                 String curMediaCode = player.getMediaPlayerBean().getMediaCode();
                 if (onNextMediaSelect(curMediaCode, true) && mMediaItemChangeListener != null) {
-                    mMediaItemChangeListener.onMediaChange(oldMediaCode, mDCurrentMediaCode);
+                    mMediaItemChangeListener.onMediaChange(oldMediaCode, getCurMediaCode());
                 }
                 return true;
             }
@@ -311,17 +310,20 @@ public class DefaultAudioControllerAdapter extends PineMediaController.AbstractM
         }
         if (position >= 0 && position < mDMediaList.size()) {
             PineMediaPlayerBean mediaBean = mDMediaList.get(position);
-            if (mDCurrentMediaCode != mediaBean.getMediaCode()) {
+            if (!mediaBean.getMediaCode().equals(getCurMediaCode())) {
                 mPlayer.setPlayingMedia(mediaBean);
             }
             if (startPlay) {
                 mPlayer.start();
             }
             mDCurrentMediaPos = position;
-            mDCurrentMediaCode = mediaBean.getMediaCode();
             return true;
         }
         return false;
+    }
+
+    public String getCurMediaCode() {
+        return mPlayer != null && mPlayer.getMediaPlayerBean() != null ? mPlayer.getMediaPlayerBean().getMediaCode() : "";
     }
 
     private IOnMediaItemChangeListener mMediaItemChangeListener;

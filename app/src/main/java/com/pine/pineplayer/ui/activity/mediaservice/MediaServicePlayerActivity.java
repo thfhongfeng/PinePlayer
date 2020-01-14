@@ -66,13 +66,8 @@ public class MediaServicePlayerActivity extends AppCompatActivity {
         mCurMediaView.setVisibility(View.VISIBLE);
         if (mPlayer.isInPlaybackState()) {
             PineMediaPlayerBean playerBean = mPlayer.getMediaPlayerBean();
-            for (int i = 0; i < mMediaList.size(); i++) {
-                if (playerBean.getMediaCode().equals(mMediaList.get(i).getMediaCode())) {
-                    mCurrentMediaCode = playerBean.getMediaCode();
-                    mMediaControllerAdapter.onMediaSelect(mCurrentMediaCode, false);
-                    break;
-                }
-            }
+            mCurrentMediaCode = playerBean.getMediaCode();
+            mMediaControllerAdapter.onMediaSelect(mCurrentMediaCode, false);
         } else {
             mCurrentMediaCode = mMediaList.get(15).getMediaCode();
             mMediaControllerAdapter.onMediaSelect(mCurrentMediaCode, true);

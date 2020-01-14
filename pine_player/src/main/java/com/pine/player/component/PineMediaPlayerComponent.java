@@ -841,11 +841,6 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
     }
 
     @Override
-    public boolean isSurfaceViewEnable() {
-        return mSurfaceView != null;
-    }
-
-    @Override
     public int getBufferPercentage() {
         if (mMediaPlayer != null) {
             return mCurrentBufferPercentage;
@@ -998,6 +993,18 @@ public class PineMediaPlayerComponent implements PineMediaWidget.IPineMediaPlaye
             mMediaPlayerView.getMediaController().setPlayingMedia(mMediaBean, "PineMediaView");
             mMediaPlayerView.getMediaController().attachToParentView(isPlayerReset, isResumeState);
         }
+    }
+
+    private boolean mSurfaceEnabled;
+
+    @Override
+    public boolean isSurfaceEnabled() {
+        return mSurfaceEnabled;
+    }
+
+    @Override
+    public void enableSurface(boolean enable) {
+        mSurfaceEnabled = enable;
     }
 
     @Override

@@ -174,7 +174,6 @@ public class PineMediaController extends RelativeLayout
         }
     };
     ViewTreeObserver.OnPreDrawListener mRightViewContainerPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
-
         @Override
         public boolean onPreDraw() {
             // 在第一次绘制MediaList之前需要调整它的布局属性以适应Controller布局。
@@ -211,7 +210,6 @@ public class PineMediaController extends RelativeLayout
     };
     ViewTreeObserver.OnPreDrawListener mControllerPluginPreDrawListener =
             new ViewTreeObserver.OnPreDrawListener() {
-
                 @Override
                 public boolean onPreDraw() {
                     // 在绘制SubtitleView之前需要调整它的布局属性以适应Controller布局。
@@ -227,9 +225,11 @@ public class PineMediaController extends RelativeLayout
                                 mControllerPluginViewContainer.getLayoutParams();
                         if (oldLayoutParams != null && oldLayoutParams.topMargin == topMargin &&
                                 oldLayoutParams.bottomMargin == bottomMargin) {
+                            LogUtils.d(TAG, "ControllerPlugin OnPreDrawListener no longer needed topMargin: " + topMargin
+                                    + ", bottomMargin: " + bottomMargin + ", view:" + mControllerPluginViewContainer);
                             mIsNeedResizeControllerPluginView = false;
                         } else {
-                            LogUtils.d(TAG, "ControllerPlugin OnPreDrawListener topMargin: " + topMargin
+                            LogUtils.d(TAG, "ControllerPlugin OnPreDrawListener setup topMargin: " + topMargin
                                     + ", bottomMargin: " + bottomMargin + ", view:" + mControllerPluginViewContainer);
                             LayoutParams layoutParams = new LayoutParams(
                                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -244,7 +244,6 @@ public class PineMediaController extends RelativeLayout
             };
     ViewTreeObserver.OnPreDrawListener mSurfacePluginPreDrawListener =
             new ViewTreeObserver.OnPreDrawListener() {
-
                 @Override
                 public boolean onPreDraw() {
                     // 在绘制SubtitleView之前需要调整它的布局属性以适应Controller布局。
@@ -256,6 +255,7 @@ public class PineMediaController extends RelativeLayout
                             playerLayoutParams = mAdaptionControllerLayout;
                         }
                         if (playerLayoutParams == null) {
+                            LogUtils.d(TAG, "SurfacePlugin OnPreDrawListener playerLayoutParams is null");
                             return false;
                         }
                         int topMargin = -1, bottomMargin = -1;
@@ -281,9 +281,11 @@ public class PineMediaController extends RelativeLayout
                                 oldLayoutParams.bottomMargin == bottomMargin &&
                                 oldLayoutParams.width == playerLayoutParams.width &&
                                 oldLayoutParams.height == playerLayoutParams.height) {
+                            LogUtils.d(TAG, "SurfacePlugin OnPreDrawListener no longer needed topMargin: " + topMargin
+                                    + ", bottomMargin: " + bottomMargin + ", view:" + mSurfacePluginViewContainer);
                             mIsNeedResizeSurfacePluginView = false;
                         } else {
-                            LogUtils.d(TAG, "SurfacePlugin OnPreDrawListener topMargin: " + topMargin
+                            LogUtils.d(TAG, "SurfacePlugin OnPreDrawListener setup topMargin: " + topMargin
                                     + ", bottomMargin: " + bottomMargin + ", view:" + mSurfacePluginViewContainer);
                             LayoutParams layoutParams = new LayoutParams(
                                     playerLayoutParams.width, playerLayoutParams.height);
@@ -589,6 +591,7 @@ public class PineMediaController extends RelativeLayout
         mAdapter = adapter;
         mAdapter.mPlayer = mPlayer;
         if (adapterChange && mMediaPlayerView != null) {
+            LogUtils.d(TAG, "setMediaControllerAdapter resetMediaController");
             if (mPlayer.isInPlaybackState()) {
                 mMediaPlayerView.resetMediaController(this, false, true);
             } else {
@@ -806,7 +809,7 @@ public class PineMediaController extends RelativeLayout
                 pinePluginViewHolder = (PinePluginViewHolder) entry.getValue();
                 if (pinePluginViewHolder.getContainer() != null) {
                     if (pinePluginViewHolder.getContainerType()
-                            == IPinePlayerPlugin.TYPE_MATCH_SURFACE) {
+                            == IPinePlayerPlugin.TYPE_MATCH_SURFACE && mPlayer.isSurfaceEnabled()) {
                         removeSelfFromParent(pinePluginViewHolder.getContainer(), mSurfacePluginViewContainer);
                         mSurfacePluginViewContainer.addView(pinePluginViewHolder.getContainer(),
                                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));

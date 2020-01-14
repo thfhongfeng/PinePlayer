@@ -17,6 +17,10 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.pine.player.R;
 import com.pine.player.bean.PineMediaPlayerBean;
 import com.pine.player.bean.PineMediaUriSource;
@@ -31,10 +35,6 @@ import com.pine.player.widget.viewholder.PineWaitingProgressViewHolder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Created by tanghongfeng on 2018/3/7.
@@ -60,7 +60,6 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
     private VideoListAdapter mDVideoListInPlayerAdapter;
     private List<PineMediaPlayerBean> mDMediaList;
     private String[] mDDefinitionNameArr;
-    private String mDCurrentMediaCode = "";
     private int mDCurrentMediaPos = -1;
     private TextView mDDefinitionBtn;
     private boolean mDEnableSpeed, mDEnableMediaList, mDEnableDefinition;
@@ -368,14 +367,13 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
                     mDDefinitionBtn.setVisibility(View.GONE);
                 }
             }
-            if (mDCurrentMediaCode != mediaBean.getMediaCode()) {
+            if (!mediaBean.getMediaCode().equals(getCurMediaCode())) {
                 mPlayer.setPlayingMedia(mediaBean);
             }
             if (startPlay) {
                 mPlayer.start();
             }
             mDCurrentMediaPos = position;
-            mDCurrentMediaCode = mediaBean.getMediaCode();
             return true;
         }
         return false;
@@ -387,6 +385,10 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
 
     private boolean hasDefinitionList(PineMediaPlayerBean pineMediaPlayerBean) {
         return pineMediaPlayerBean != null && pineMediaPlayerBean.getMediaUriSourceList().size() > 1;
+    }
+
+    public String getCurMediaCode() {
+        return mPlayer != null && mPlayer.getMediaPlayerBean() != null ? mPlayer.getMediaPlayerBean().getMediaCode() : "";
     }
 
     private void initVideoRecycleView() {
@@ -566,7 +568,7 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
             if (myHolder.mItemTv != null) {
                 myHolder.mItemTv.setText(itemData.getMediaName());
             }
-            boolean isSelected = itemData.getMediaCode().equals(mDCurrentMediaCode);
+            boolean isSelected = itemData.getMediaCode().equals(getCurMediaCode());
             myHolder.itemView.setSelected(isSelected);
             myHolder.mItemTv.setSelected(isSelected);
             myHolder.mTextPaint.setFakeBoldText(isSelected);
@@ -575,9 +577,9 @@ public class DefaultVideoControllerAdapter extends PineMediaController.AbstractM
 
                 @Override
                 public void onClick(View view) {
-                    String oldMediaCode = mDCurrentMediaCode;
+                    String oldMediaCode = getCurMediaCode();
                     if (onMediaSelect(itemData.getMediaCode(), true) && mMediaItemChangeListener != null) {
-                        mMediaItemChangeListener.onMediaChange(oldMediaCode, mDCurrentMediaCode);
+                        mMediaItemChangeListener.onMediaChange(oldMediaCode, getCurMediaCode());
                     }
                     notifyDataSetChanged();
                 }

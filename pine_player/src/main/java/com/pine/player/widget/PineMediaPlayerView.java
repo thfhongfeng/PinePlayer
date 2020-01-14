@@ -139,6 +139,7 @@ public class PineMediaPlayerView extends RelativeLayout {
                 PineMediaPlayerService.setMediaPlayerByTag(mMediaPlayerTag, mMediaPlayerProxy);
             }
             mMediaPlayerProxy.setMediaPlayerView(this, false);
+            mMediaPlayerProxy.enableSurface(enableSurface);
             if (enableSurface) {
                 mPineSurfaceView = new PineSurfaceView(mContext);
                 mPineSurfaceView.setMediaPlayer(this, mMediaPlayerProxy);

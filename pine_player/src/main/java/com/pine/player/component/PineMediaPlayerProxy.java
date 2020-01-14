@@ -152,11 +152,6 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
     }
 
     @Override
-    public boolean isSurfaceViewEnable() {
-        return mMediaPlayerComponent.isSurfaceViewEnable();
-    }
-
-    @Override
     public int getBufferPercentage() {
         return mMediaPlayerComponent.getBufferPercentage();
     }
@@ -259,6 +254,16 @@ public class PineMediaPlayerProxy implements PineMediaWidget.IPineMediaPlayer,
     @Override
     public void attachMediaController(boolean isPlayerReset, boolean isResumeState) {
         mMediaPlayerComponent.attachMediaController(isPlayerReset, isResumeState);
+    }
+
+    @Override
+    public boolean isSurfaceEnabled() {
+        return mMediaPlayerComponent.isSurfaceEnabled();
+    }
+
+    @Override
+    public void enableSurface(boolean enable) {
+        mMediaPlayerComponent.enableSurface(enable);
     }
 
     @Override
