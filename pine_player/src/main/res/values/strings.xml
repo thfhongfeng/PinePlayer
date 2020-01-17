@@ -1,26 +1,12 @@
 <resources>
     <string name="pine_media_view_layout_incorrect">PineMediaView必须外包一层RelativeLayout，否则将导致显示异常</string>
     <string name="pine_media_back_pressed_toast">再按一次退出播放</string>
-    <string name="init_method_need_call_toast">请在使用PineMediaPlayerView之前先调用init方法</string>
+    <string name="pine_init_method_need_call_toast">请在使用PineMediaPlayerView之前先调用init方法</string>
 
-    <string-array name="pine_media_speed_text_arr">
-        <item>倍速</item>
-        <item>0.5X</item>
-        <item>2.0X</item>
-        <item>3.0X</item>
-    </string-array>
-    <integer-array name="pine_media_speed_arr">
-        <item>10</item>
-        <item>5</item>
-        <item>20</item>
-        <item>30</item>
-    </integer-array>
-    <string name="pine_media_speed">1.0X</string>
-    <string-array name="pine_media_definition_text_arr">
-        <item>标清</item>
-        <item>高清</item>
-        <item>超清</item>
-        <item>1080P</item>
-    </string-array>
     <string name="pine_media_definition_sd">标清</string>
+
+    <string name="pine_play_loop_all">列表循环</string>
+    <string name="pine_play_single_loop">单曲循环</string>
+    <string name="pine_play_ord">顺序播放</string>
+    <string name="pine_play_random">随机播放</string>
 </resources>

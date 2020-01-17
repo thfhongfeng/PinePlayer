@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pine_media_speed_text_arr">
+        <item>倍速</item>
+        <item>0.5X</item>
+        <item>2.0X</item>
+        <item>3.0X</item>
+    </string-array>
+    <integer-array name="pine_media_speed_arr">
+        <item>10</item>
+        <item>5</item>
+        <item>20</item>
+        <item>30</item>
+    </integer-array>
+    <string name="pine_media_speed">1.0X</string>
+    <string-array name="pine_media_definition_text_arr">
+        <item>标清</item>
+        <item>高清</item>
+        <item>超清</item>
+        <item>1080P</item>
+    </string-array>
+</resources>

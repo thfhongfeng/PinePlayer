@@ -168,7 +168,7 @@ public class PineMediaPlayerView extends RelativeLayout {
 
     private boolean checkIsInit() {
         if (!mIsInit) {
-            Toast.makeText(mContext, R.string.init_method_need_call_toast, Toast.LENGTH_SHORT);
+            Toast.makeText(mContext, R.string.pine_init_method_need_call_toast, Toast.LENGTH_SHORT);
         }
         return mIsInit;
     }
@@ -237,21 +237,21 @@ public class PineMediaPlayerView extends RelativeLayout {
             ViewGroup.LayoutParams layoutParams;
             if (isFullScreenMode()) {
                 if (getParent() instanceof RelativeLayout) {
-                    layoutParams = new RelativeLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                    layoutParams = new LayoutParams(
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 } else if (getParent() instanceof LinearLayout) {
                     layoutParams = new LinearLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 } else if (getParent() instanceof FrameLayout) {
                     layoutParams = new FrameLayout.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 } else {
                     layoutParams = new ViewGroup.LayoutParams(
-                            RelativeLayout.LayoutParams.MATCH_PARENT,
-                            RelativeLayout.LayoutParams.MATCH_PARENT);
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT);
                 }
             } else {
                 layoutParams = getHalfAnchorLayout();
